@@ -1,0 +1,101 @@
+server:
+  port: 8081
+  tomcat:
+    uri-encoding: UTF-8
+    # 특수문자 허용 설정
+    relaxed-query-chars: '|,{,},[,],^,`,<,>,\,;,/,?,@,#,$,%,&,=,+'
+    relaxed-path-chars: '|,{,},[,],^,`,<,>,\,;,/,?,@,#,$,%,&,=,+'
+
+  servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
+
+spring:
+  profiles:
+    active: local # 로컬 프로파일 활성화
+  config:
+    import: optional:file:.env[.properties] # 환경변수 파일 로드
+  output:
+    ansi:
+      enabled: always # ANSI 콘솔 색상 활성화 (JUnit 테스트 포함)
+  web:
+    resources:
+      add-mappings: false # 정적 리소스 매핑 추가 여부 false
+  servlet:
+    multipart:
+      max-request-size: 30MB # 최대 요청 크기, ⭐nginx client_max_body_size와 동일하게 설정
+      max-file-size: 10MB # 최대 파일 크기
+  jpa:
+    open-in-view: false # open in view 설정
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        highlight_sql: true
+        use_sql_comments: true
+        default_batch_fetch_size: 100
+
+app:
+  props:
+    jwt:
+      secret-key: ${JWT_SECRET_KEY}
+      access-token-expiration-period: 150
+      refresh-token-expiration-period: 1440
+
+    aws:
+      key:
+        access-key: ${AWS_ACCESS_KEY}
+        secret-key: ${AWS_SECRET_KEY}
+      s3:
+        bucket-name: ${AWS_S3_BUCKET_NAME}
+        region: ${AWS_REGION}
+
+---
+spring:
+  config:
+    activate:
+      on-profile: local
+
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: ${LOCAL_POSTGRES_URL}
+    username: ${LOCAL_POSTGRES_USERNAME}
+    password: ${LOCAL_POSTGRES_PASSWORD}
+
+logging:
+  level:
+    org.hibernate.sql: debug
+    org.hibernate.orm.jdbc.bind: trace
+    org.springframework.transaction.interceptor: trace
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod # 운영 환경
+  jpa:
+    hibernate:
+      ddl-auto: none
+  sql:
+    init:
+      platform: postgreSQL
+      data-locations: classpath:sql/data.sql
+      mode: never
+
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: ${PROD_POSTGRE_URL}
+    username: ${PROD_POSTGRE_USERNAME}
+    password: ${PROD_POSTGRE_PASSWORD}
+    hikari:
+      max-lifetime: 600000
+      idle-timeout: 300000
+      connection-timeout: 30000
+
+logging:
+  level:
+    org.hibernate.sql: error
