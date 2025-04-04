@@ -1,10 +1,10 @@
 package com.example.final_project_be.domain.member.entity;
 
 
+import com.example.final_project_be.domain.exercise_record.entity.ExerciseRecord;
 import com.example.final_project_be.domain.member.dto.JoinRequestDTO;
 import com.example.final_project_be.domain.member.enums.MemberGoal;
 import com.example.final_project_be.domain.member.enums.MemberRole;
-import com.example.final_project_be.domain.personal_exercise.entity.PersonalExercise;
 import com.example.final_project_be.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
@@ -21,12 +21,12 @@ import java.util.List;
 @Getter
 @Entity
 @Table(name = "member")
-@ToString(exclude = "personalExerciseList")
+@ToString(exclude = {"memberRoleList", "memberGoalList", "exerciseRecords"})
 public class Member extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private Long id;
 
     private String email;
     private String password;
@@ -54,7 +54,7 @@ public class Member extends BaseEntity {
 
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
     @Builder.Default
-    private List<PersonalExercise> personalExerciseList = new ArrayList<>();
+    private List<ExerciseRecord> exerciseRecords = new ArrayList<>();
 
     public void updateFcmToken(String fcmToken) {this.fcmToken = fcmToken;}
 

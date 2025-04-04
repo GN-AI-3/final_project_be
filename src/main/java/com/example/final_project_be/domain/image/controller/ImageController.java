@@ -24,7 +24,7 @@ public class ImageController {
     private final CustomFileUtil fileUtil;
 
     @GetMapping("/view/{fileName}")
-    public ResponseEntity<Resource> viewFileGET(@Parameter(description = "화면에 보여잘 파일명") @PathVariable String fileName) {
+    public ResponseEntity<Resource> viewFileGET(@Parameter(description = "화면에 보여질 파일명") @PathVariable String fileName) {
         return fileUtil.getFile(fileName);
     }
 
