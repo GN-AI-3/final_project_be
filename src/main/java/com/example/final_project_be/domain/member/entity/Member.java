@@ -1,10 +1,10 @@
 package com.example.final_project_be.domain.member.entity;
 
 
+import com.example.final_project_be.domain.chatmessage.entity.ChatMessage;
 import com.example.final_project_be.domain.exercise_record.entity.ExerciseRecord;
 import com.example.final_project_be.domain.member.dto.JoinRequestDTO;
 import com.example.final_project_be.domain.member.enums.MemberGoal;
-import com.example.final_project_be.domain.member.enums.MemberRole;
 import com.example.final_project_be.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
@@ -21,7 +21,7 @@ import java.util.List;
 @Getter
 @Entity
 @Table(name = "member")
-@ToString(exclude = {"memberRoleList", "memberGoalList", "exerciseRecords"})
+@ToString(exclude = {"memberGoalList", "exerciseRecords", "chatMessages"})
 public class Member extends BaseEntity {
 
     @Id
@@ -37,13 +37,10 @@ public class Member extends BaseEntity {
 
     @Column
     private String fcmToken;
-
-    @ElementCollection(fetch = FetchType.LAZY)
-    @CollectionTable(name = "member_role_list", joinColumns = @JoinColumn(name = "email"))
-    @Enumerated(EnumType.STRING)
-    @Column(name = "role")
+    
+    @Column(nullable = false)
     @Builder.Default
-    private List<MemberRole> memberRoleList = new ArrayList<>();
+    private String userType = "MEMBER";
 
     @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(name = "member_goal_list", joinColumns = @JoinColumn(name = "email"))
@@ -56,10 +53,13 @@ public class Member extends BaseEntity {
     @Builder.Default
     private List<ExerciseRecord> exerciseRecords = new ArrayList<>();
 
+    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
+    @Builder.Default
+    private List<ChatMessage> chatMessages = new ArrayList<>();
+
     public void updateFcmToken(String fcmToken) {this.fcmToken = fcmToken;}
 
     public static Member from(JoinRequestDTO request) {
-
         return Member.builder()
                 .email(request.getEmail())
                 .password(request.getPassword())
@@ -67,7 +67,7 @@ public class Member extends BaseEntity {
                 .phone(request.getPhone())
                 .profileImage("354dd23b-ee2e-4b35-91e0-9d8ef62219d6-default_image.png")
                 .fcmToken(request.getFcmToken())
-                .memberRoleList(request.getRole())
+                .userType(request.getUserType())
                 .memberGoalList(request.getGoal())
                 .build();
     }

@@ -2,7 +2,6 @@ package com.example.final_project_be.domain.member.dto;
 
 import com.example.final_project_be.domain.member.entity.Member;
 import com.example.final_project_be.domain.member.enums.MemberGoal;
-import com.example.final_project_be.domain.member.enums.MemberRole;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -23,7 +22,7 @@ public class MemberDetailDTO {
     private String phone;
     private String name;
     private String profileImage;
-    private List<String> role;
+    private String userType;
     private List<String> goal;
 
     public static MemberDetailDTO from(Member member) {
@@ -32,9 +31,7 @@ public class MemberDetailDTO {
                 .phone(member.getPhone())
                 .name(member.getName())
                 .profileImage(member.getProfileImage())
-                .role(member.getMemberRoleList().stream()
-                        .map(MemberRole::getRoleName)
-                        .collect(Collectors.toList()))
+                .userType(member.getUserType())
                 .goal(member.getMemberGoalList().stream()
                         .map(MemberGoal::getGoal)
                         .collect(Collectors.toList()))
