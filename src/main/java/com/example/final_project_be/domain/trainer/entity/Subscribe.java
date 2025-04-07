@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@Table(name = "subscribe")
 public class Subscribe {
 
     @Id
@@ -27,5 +28,6 @@ public class Subscribe {
     private String management_person;
 
     @OneToOne
+    @JoinColumn(name = "trainer_id")
     private Trainer trainer;
 }

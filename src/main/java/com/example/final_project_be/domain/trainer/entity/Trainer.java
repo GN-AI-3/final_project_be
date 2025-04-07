@@ -2,10 +2,14 @@ package com.example.final_project_be.domain.trainer.entity;
 
 import com.example.final_project_be.domain.trainer.dto.TrainerJoinRequestDTO;
 import com.example.final_project_be.entity.BaseEntity;
+import com.example.final_project_be.entity.PtLinked;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.DynamicUpdate;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @DynamicUpdate
 @SuperBuilder
@@ -14,7 +18,7 @@ import org.hibernate.annotations.DynamicUpdate;
 @Getter
 @Entity
 @Table(name = "trainer")
-@ToString
+@ToString(exclude = { "ptLinkedList"})
 public class Trainer extends BaseEntity {
 
     @Id
@@ -48,7 +52,12 @@ public class Trainer extends BaseEntity {
     @Column
     private String speciality;
 
+    @OneToMany(mappedBy = "trainer", cascade = CascadeType.ALL)
+    @Builder.Default
+    private List<PtLinked> ptLinkedList = new ArrayList<>();
 
+    @OneToOne(mappedBy = "trainer", cascade = CascadeType.ALL)
+    private Subscribe subscribe;
 
     public void updateFcmToken(String fcmToken) {
         this.fcmToken = fcmToken;

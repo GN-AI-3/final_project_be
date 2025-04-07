@@ -1,5 +1,7 @@
 package com.example.final_project_be.entity;
 
+import com.example.final_project_be.domain.member.entity.Member;
+import com.example.final_project_be.domain.trainer.entity.Trainer;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -16,13 +18,15 @@ public class PtLinked extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "pt_linked_id")
-    private Long ptLinkedID;
+    private Long id;
 
-    @Column(name = "member_id", nullable = false)
-    private Long memberID;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id")
+    private Member member;
 
-    @Column(name = "trainer_id", nullable = false)
-    private Long trainerID;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "trainer_id")
+    private Trainer trainer;
 
     @Column(name = "total_count", nullable = false)
     private Integer totalCount;
