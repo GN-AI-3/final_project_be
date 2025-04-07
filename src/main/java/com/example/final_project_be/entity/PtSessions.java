@@ -14,7 +14,7 @@ import org.hibernate.annotations.DynamicUpdate;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "pt_linked")
-public class PtLinked extends BaseEntity {
+public class PtSessions extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
