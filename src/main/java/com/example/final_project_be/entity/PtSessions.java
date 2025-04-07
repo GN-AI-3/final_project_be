@@ -13,7 +13,7 @@ import org.hibernate.annotations.DynamicUpdate;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "pt_linked")
+@Table(name = "pt_sessions")
 public class PtSessions extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
