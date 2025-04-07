@@ -48,6 +48,8 @@ public class Trainer extends BaseEntity {
     @Column
     private String speciality;
 
+
+
     public void updateFcmToken(String fcmToken) {
         this.fcmToken = fcmToken;
     }
