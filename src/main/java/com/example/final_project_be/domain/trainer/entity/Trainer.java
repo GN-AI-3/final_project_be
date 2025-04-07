@@ -2,7 +2,7 @@ package com.example.final_project_be.domain.trainer.entity;
 
 import com.example.final_project_be.domain.trainer.dto.TrainerJoinRequestDTO;
 import com.example.final_project_be.entity.BaseEntity;
-import com.example.final_project_be.entity.PtLinked;
+import com.example.final_project_be.entity.PtSessions;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -54,7 +54,7 @@ public class Trainer extends BaseEntity {
 
     @OneToMany(mappedBy = "trainer", cascade = CascadeType.ALL)
     @Builder.Default
-    private List<PtLinked> ptLinkedList = new ArrayList<>();
+    private List<PtSessions> ptSessionList = new ArrayList<>();
 
     @OneToOne(mappedBy = "trainer", cascade = CascadeType.ALL)
     private Subscribe subscribe;
