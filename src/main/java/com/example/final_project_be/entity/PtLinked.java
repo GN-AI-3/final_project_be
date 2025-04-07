@@ -17,7 +17,6 @@ import org.hibernate.annotations.DynamicUpdate;
 public class PtLinked extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "pt_linked_id")
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
