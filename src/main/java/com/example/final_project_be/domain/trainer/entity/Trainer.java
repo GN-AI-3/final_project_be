@@ -2,7 +2,7 @@ package com.example.final_project_be.domain.trainer.entity;
 
 import com.example.final_project_be.domain.trainer.dto.TrainerJoinRequestDTO;
 import com.example.final_project_be.entity.BaseEntity;
-import com.example.final_project_be.entity.PtSessions;
+import com.example.final_project_be.domain.pt.entity.PtContract;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -18,7 +18,7 @@ import java.util.List;
 @Getter
 @Entity
 @Table(name = "trainer")
-@ToString(exclude = { "ptLinkedList"})
+@ToString(exclude = { "ptContractList"})
 public class Trainer extends BaseEntity {
 
     @Id
@@ -54,7 +54,7 @@ public class Trainer extends BaseEntity {
 
     @OneToMany(mappedBy = "trainer", cascade = CascadeType.ALL)
     @Builder.Default
-    private List<PtSessions> ptSessionList = new ArrayList<>();
+    private List<PtContract> ptContractList = new ArrayList<>();
 
     @OneToOne(mappedBy = "trainer", cascade = CascadeType.ALL)
     private Subscribe subscribe;

@@ -1,11 +1,15 @@
-package com.example.final_project_be.entity;
+package com.example.final_project_be.domain.pt.entity;
 
 import com.example.final_project_be.domain.member.entity.Member;
+import com.example.final_project_be.domain.pt.enums.ContractStatus;
 import com.example.final_project_be.domain.trainer.entity.Trainer;
+import com.example.final_project_be.entity.BaseEntity;
+
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.DynamicUpdate;
+import java.time.LocalDateTime;
 
 @DynamicUpdate
 @SuperBuilder
@@ -13,8 +17,8 @@ import org.hibernate.annotations.DynamicUpdate;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "pt_sessions")
-public class PtSessions extends BaseEntity {
+@Table(name = "pt_contract")
+public class PtContract extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -34,7 +38,17 @@ public class PtSessions extends BaseEntity {
     @Builder.Default
     private Integer usedCount = 0;
 
-    @Column(name = "is_active", nullable = false)
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
     @Builder.Default
-    private boolean isActive = true;
+    private ContractStatus status = ContractStatus.ACTIVE;
+
+    @Column(name = "start_date", nullable = false)
+    private LocalDateTime startDate;
+
+    @Column(name = "end_date")
+    private LocalDateTime endDate;
+
+    @Column(name = "memo")
+    private String memo;
 }
