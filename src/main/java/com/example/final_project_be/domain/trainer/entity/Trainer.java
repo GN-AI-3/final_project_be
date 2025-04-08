@@ -43,14 +43,20 @@ public class Trainer extends BaseEntity {
     @Column
     private String career;
     
-    @Column
-    private String certification;
+    @ElementCollection
+    @CollectionTable(name = "trainer_certification", joinColumns = @JoinColumn(name = "trainer_id"))
+    @Column(name = "certification")
+    @Builder.Default
+    private List<String> certifications = new ArrayList<>();
     
     @Column
     private String introduction;
     
-    @Column
-    private String speciality;
+    @ElementCollection
+    @CollectionTable(name = "trainer_speciality", joinColumns = @JoinColumn(name = "trainer_id"))
+    @Column(name = "speciality")
+    @Builder.Default
+    private List<String> specialities = new ArrayList<>();
 
     @OneToMany(mappedBy = "trainer", cascade = CascadeType.ALL)
     @Builder.Default
@@ -63,14 +69,14 @@ public class Trainer extends BaseEntity {
         this.fcmToken = fcmToken;
     }
     
-    public void updateProfile(String name, String phone, String career, String certification, 
-                             String introduction, String speciality) {
+    public void updateProfile(String name, String phone, String career, List<String> certifications, 
+                             String introduction, List<String> specialities) {
         this.name = name;
         this.phone = phone;
         this.career = career;
-        this.certification = certification;
+        this.certifications = certifications;
         this.introduction = introduction;
-        this.speciality = speciality;
+        this.specialities = specialities;
     }
     
     public void updatePassword(String password) {
@@ -90,9 +96,9 @@ public class Trainer extends BaseEntity {
                 .profileImage("354dd23b-ee2e-4b35-91e0-9d8ef62219d6-default_image.png")
                 .fcmToken(request.getFcmToken())
                 .career(request.getCareer())
-                .certification(request.getCertification())
+                .certifications(request.getCertifications())
                 .introduction(request.getIntroduction())
-                .speciality(request.getSpeciality())
+                .specialities(request.getSpecialities())
                 .build();
     }
 } 

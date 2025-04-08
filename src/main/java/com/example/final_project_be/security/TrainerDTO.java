@@ -8,6 +8,7 @@ import org.springframework.security.core.userdetails.User;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Getter
@@ -21,7 +22,8 @@ public class TrainerDTO extends User {
     private String name;
     private String userType;
     private String career;
-    private String speciality;
+    private List<String> certifications;
+    private List<String> specialities;
 
     public TrainerDTO(
             String email,
@@ -30,7 +32,8 @@ public class TrainerDTO extends User {
             String name,
             String userType,
             String career,
-            String speciality
+            List<String> certifications,
+            List<String> specialities
     ) {
         // userType에 따라 단일 권한 부여 ("ROLE_TRAINER")
         super(email, password, Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + userType)));
@@ -40,7 +43,8 @@ public class TrainerDTO extends User {
         this.name = name;
         this.userType = userType;
         this.career = career;
-        this.speciality = speciality;
+        this.certifications = certifications;
+        this.specialities = specialities;
     }
 
     public Map<String, Object> getClaims() {
@@ -52,7 +56,8 @@ public class TrainerDTO extends User {
         dataMap.put("name", this.name);
         dataMap.put("userType", this.userType);
         dataMap.put("career", this.career);
-        dataMap.put("speciality", this.speciality);
+        dataMap.put("certifications", this.certifications);
+        dataMap.put("specialities", this.specialities);
 
         return dataMap;
     }

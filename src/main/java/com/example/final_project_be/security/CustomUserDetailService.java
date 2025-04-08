@@ -49,7 +49,8 @@ public class CustomUserDetailService implements UserDetailsService {
                                         trainer.getName(),
                                         trainer.getUserType(),
                                         trainer.getCareer(),
-                                        trainer.getSpeciality()
+                                        trainer.getCertifications(),
+                                        trainer.getSpecialities()
                                 );
                                 log.info("loadUserByUsername found trainer: {}", trainerDTO);
                                 return (UserDetails) trainerDTO;

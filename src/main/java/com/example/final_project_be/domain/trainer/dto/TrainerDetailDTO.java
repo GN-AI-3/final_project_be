@@ -7,6 +7,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @Builder
 @AllArgsConstructor
@@ -21,9 +23,10 @@ public class TrainerDetailDTO {
     private String phone;
     private String userType;
     private String career;
-    private String certification;
+    private List<String> certifications;
     private String introduction;
-    private String speciality;
+    private List<String> specialities;
+    private SubscribeDTO subscribe;
     
     public static TrainerDetailDTO from(Trainer trainer) {
         return TrainerDetailDTO.builder()
@@ -34,9 +37,10 @@ public class TrainerDetailDTO {
                 .phone(trainer.getPhone())
                 .userType(trainer.getUserType())
                 .career(trainer.getCareer())
-                .certification(trainer.getCertification())
+                .certifications(trainer.getCertifications())
                 .introduction(trainer.getIntroduction())
-                .speciality(trainer.getSpeciality())
+                .specialities(trainer.getSpecialities())
+                .subscribe(SubscribeDTO.from(trainer.getSubscribe()))
                 .build();
     }
 } 

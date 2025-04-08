@@ -3,8 +3,8 @@ server:
   tomcat:
     uri-encoding: UTF-8
     # 특수문자 허용 설정
-    relaxed-query-chars: '|,{,},[,],^,`,<,>,\,;,/,?,@,#,$,%,&,=,+'
-    relaxed-path-chars: '|,{,},[,],^,`,<,>,\,;,/,?,@,#,$,%,&,=,+'
+    relaxed-query-chars: '.,_,-,~'
+    relaxed-path-chars: '.,_,-,~'
 
   servlet:
     encoding:

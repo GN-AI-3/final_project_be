@@ -1,5 +1,6 @@
 package com.example.final_project_be.domain.trainer.controller;
 
+import com.example.final_project_be.domain.trainer.dto.SubscribeRequestDTO;
 import com.example.final_project_be.domain.trainer.dto.TrainerDetailDTO;
 import com.example.final_project_be.domain.trainer.dto.TrainerJoinRequestDTO;
 import com.example.final_project_be.domain.trainer.dto.TrainerLoginRequestDTO;
@@ -24,6 +25,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 import static com.example.final_project_be.util.TimeUtil.checkTime;
@@ -39,6 +42,7 @@ public class TrainerController {
     private final JWTUtil jwtUtil;
     private final JwtProps jwtProps;
 
+
     @Operation(summary = "트레이너 회원가입 및 정보 db 저장 api")
     @PostMapping("/join")
     public ResponseEntity<?> join(@Valid @RequestBody TrainerJoinRequestDTO joinRequestDTO) {
@@ -46,6 +50,7 @@ public class TrainerController {
         trainerService.join(joinRequestDTO);
         return ResponseEntity.ok().build();
     }
+
 
     @Operation(summary = "트레이너 로그인, 인증처리 api")
     @PostMapping("/login")
@@ -66,12 +71,14 @@ public class TrainerController {
                 .userType(loginClaims.getOrDefault("userType", "TRAINER").toString())
                 .accessToken(accessToken)
                 .career(loginClaims.getOrDefault("career", "").toString())
-                .speciality(loginClaims.getOrDefault("speciality", "").toString())
+                .certifications((List<String>) loginClaims.getOrDefault("certifications", Collections.emptyList()))
+                .specialities((List<String>) loginClaims.getOrDefault("specialities", Collections.emptyList()))
                 .build();
 
         log.info("Trainer Login response: {}", loginResponseDTO);
         return ResponseEntity.ok(loginResponseDTO);
     }
+
 
     @PostMapping("/logout")
     public ResponseEntity<String> logout(HttpServletResponse response) {
@@ -79,6 +86,7 @@ public class TrainerController {
         CookieUtil.removeTokenCookie(response, "refreshToken");
         return ResponseEntity.ok("logout success!");
     }
+
 
     @Operation(summary = "토큰 갱신", description = "refreshToken으로 새로운 accessToken을 발급합니다.")
     @ApiResponses(value = {
@@ -88,6 +96,8 @@ public class TrainerController {
             @ApiResponse(responseCode = "401", description = "인증 실패 - 유효하지 않은 refreshToken"),
             @ApiResponse(responseCode = "500", description = "서버 오류")
     })
+
+
     @GetMapping("/refresh")
     public ResponseEntity<TrainerLoginResponseDTO> refresh(
             @Parameter(description = "refreshToken 쿠키", required = true)
@@ -116,12 +126,14 @@ public class TrainerController {
                 .userType(loginClaims.getOrDefault("userType", "TRAINER").toString())
                 .accessToken(newAccessToken)
                 .career(loginClaims.getOrDefault("career", "").toString())
-                .speciality(loginClaims.getOrDefault("speciality", "").toString())
+                .certifications((List<String>) loginClaims.getOrDefault("certifications", Collections.emptyList()))
+                .specialities((List<String>) loginClaims.getOrDefault("specialities", Collections.emptyList()))
                 .build();
 
         log.info("refresh loginResponseDTO: {}", loginResponseDTO);
         return ResponseEntity.ok(loginResponseDTO);
     }
+
 
     // 회원가입시, 아이디(email) 중복확인 -> false, true 반환
     @GetMapping("/check-email/{email}")
@@ -130,6 +142,7 @@ public class TrainerController {
         return ResponseEntity.ok(trainerService.checkEmail(email));
     }
 
+
     @GetMapping("/me")
     public TrainerDetailDTO getMyInfo(@AuthenticationPrincipal TrainerDTO trainer) {
         log.info("getMyInfo: {}", trainer);
@@ -137,5 +150,42 @@ public class TrainerController {
             return TrainerDetailDTO.builder().build();
         }
         return trainerService.getMyInfo(trainer.getEmail());
+    }
+
+
+    @Operation(summary = "트레이너 구독 업그레이드 api")
+    @PostMapping("/subscribe_upgrade")
+    public ResponseEntity<String> subscribeUpgrade(
+            @AuthenticationPrincipal TrainerDTO trainer,
+            @Valid @RequestBody SubscribeRequestDTO subscribeRequestDTO) {
+        log.info("subscribeUpgrade: {}, subscriptionType: {}", trainer, subscribeRequestDTO.getSubscriptionType());
+        if(trainer == null) {
+            return ResponseEntity.badRequest().body("인증된 트레이너 정보가 없습니다.");
+        }
+        
+        Boolean result = trainerService.subscribeUpgrade(trainer.getEmail(), subscribeRequestDTO.getSubscriptionType());
+        
+        if (result) {
+            return ResponseEntity.ok("구독 업그레이드가 성공적으로 완료되었습니다.");
+        } else {
+            return ResponseEntity.badRequest().body("구독 업그레이드에 실패했습니다. 유효한 구독 유형인지 확인해주세요.");
+        }
+    }
+
+    @Operation(summary = "트레이너 구독 취소 api")
+    @PostMapping("/subscribe_cancel")
+    public ResponseEntity<String> subscribeCancel(@AuthenticationPrincipal TrainerDTO trainer) {
+        log.info("subscribeCancel: {}", trainer);
+        if(trainer == null) {
+            return ResponseEntity.badRequest().body("인증된 트레이너 정보가 없습니다.");
+        }
+        
+        Boolean result = trainerService.cancelSubscription(trainer.getEmail());
+        
+        if (result) {
+            return ResponseEntity.ok("구독이 성공적으로 취소되었습니다.");
+        } else {
+            return ResponseEntity.badRequest().body("구독 취소에 실패했습니다. 활성화된 구독이 있는지 확인해주세요.");
+        }
     }
 } 
