@@ -3,19 +3,23 @@ package com.example.final_project_be.domain.food.entity;
 import com.example.final_project_be.domain.member.entity.Member;
 import com.example.final_project_be.entity.BaseEntity;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.math.BigDecimal;
 
 @SuperBuilder
 @Entity
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 @Table(name = "meal_records")
 public class MealRecords extends BaseEntity {
 
@@ -23,14 +27,15 @@ public class MealRecords extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private Member member;
 
+    @NotNull
     @Column(name = "food_name", nullable = false, length = 255)
     private String foodName;
 
-    @Column(name = "portion", nullable = false, precision = 5, scale = 2)
+    @Column(name = "portion", nullable = false)
     private Double portion;
 
     @Column(name = "unit", nullable = false, length = 10)
@@ -46,16 +51,16 @@ public class MealRecords extends BaseEntity {
     @Column(name = "meal_type", nullable = false, length = 10)
     private MealType mealType;
 
-    @Column(name = "calories", nullable = false, precision = 7, scale = 2)
+    @Column(name = "calories", nullable = false)
     private Double calories;
 
-    @Column(name = "protein", nullable = false, precision = 5, scale = 2)
+    @Column(name = "protein", nullable = false)
     private Double protein;
 
-    @Column(name = "carbs", nullable = false, precision = 5, scale = 2)
+    @Column(name = "carbs", nullable = false)
     private Double carbs;
 
-    @Column(name = "fat", nullable = false, precision = 5, scale = 2)
+    @Column(name = "fat", nullable = false)
     private Double fat;
 
     public enum MealType {
