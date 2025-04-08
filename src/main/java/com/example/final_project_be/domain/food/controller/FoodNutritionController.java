@@ -2,25 +2,29 @@ package com.example.final_project_be.domain.food.controller;
 
 import com.example.final_project_be.domain.food.entity.FoodNutrition;
 import com.example.final_project_be.domain.food.service.FoodNutritionService;
-import org.springframework.beans.factory.annotation.Autowired;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Optional;
-
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/foodnutritions")
+@Tag(name = "Food Nutrition", description = "음식 영양 정보 관련 API")
 public class FoodNutritionController {
 
     private final FoodNutritionService foodNutritionService;
 
-    @Autowired
-    public FoodNutritionController(FoodNutritionService foodNutritionService) {
-        this.foodNutritionService = foodNutritionService;
-    }
-
-    // 음식 이름을 기준으로 영양 정보를 조회
     @GetMapping("/nutrition")
-    public Optional<FoodNutrition> getFoodNutrition(@RequestParam String foodName) {
-        return foodNutritionService.getFoodNutritionByName(foodName);
+    @Operation(summary = "음식 영양 정보 조회", description = "음식 이름을 기준으로 해당 음식의 영양 정보를 조회합니다.")
+    public ResponseEntity<?> getFoodNutrition(
+            @Parameter(description = "음식 이름", example = "닭가슴살")
+            @RequestParam String foodName
+    ) {
+        return foodNutritionService.getFoodNutritionByName(foodName)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 }

@@ -1,6 +1,5 @@
 package com.example.final_project_be.domain.member.entity;
 
-
 import com.example.final_project_be.domain.chatmessage.entity.ChatMessage;
 import com.example.final_project_be.domain.exercise_record.entity.ExerciseRecord;
 import com.example.final_project_be.domain.member.dto.JoinRequestDTO;
@@ -21,7 +20,7 @@ import java.util.List;
 @Getter
 @Entity
 @Table(name = "member")
-@ToString(exclude = {"memberGoalList", "exerciseRecords", "chatMessages"})
+@ToString(exclude = { "memberGoalList", "exerciseRecords", "chatMessages" })
 public class Member extends BaseEntity {
 
     @Id
@@ -37,7 +36,7 @@ public class Member extends BaseEntity {
 
     @Column
     private String fcmToken;
-    
+
     @Column(nullable = false)
     @Builder.Default
     private String userType = "MEMBER";
@@ -57,7 +56,9 @@ public class Member extends BaseEntity {
     @Builder.Default
     private List<ChatMessage> chatMessages = new ArrayList<>();
 
-    public void updateFcmToken(String fcmToken) {this.fcmToken = fcmToken;}
+    public void updateFcmToken(String fcmToken) {
+        this.fcmToken = fcmToken;
+    }
 
     public static Member from(JoinRequestDTO request) {
         return Member.builder()

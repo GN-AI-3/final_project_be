@@ -1,23 +1,21 @@
 package com.example.final_project_be.domain.food.service;
 
-import com.example.final_project_be.domain.food.entity.DietPlans;
+import com.example.final_project_be.domain.food.dto.DietRecommendationRequestDTO;
+import com.example.final_project_be.domain.food.dto.DietRecommendationResponseDTO;
 import com.example.final_project_be.domain.food.repository.DietPlanRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
+import java.util.List;
 
+@RequiredArgsConstructor
 @Service
 public class DietPlanService {
 
     private final DietPlanRepository dietPlanRepository;
 
-    @Autowired
-    public DietPlanService(DietPlanRepository dietPlanRepository) {
-        this.dietPlanRepository = dietPlanRepository;
-    }
 
-    public Optional<DietPlans> getDietPlan(String dietType, String userGender) {
-        return dietPlanRepository.getDietPlan(dietType, userGender);
+    public List<DietRecommendationResponseDTO> getDietPlan(DietRecommendationRequestDTO dietTypeDTO ){
+        return dietPlanRepository.getDietPlan(dietTypeDTO.getDietType(), dietTypeDTO.getGoal());
     }
 }
