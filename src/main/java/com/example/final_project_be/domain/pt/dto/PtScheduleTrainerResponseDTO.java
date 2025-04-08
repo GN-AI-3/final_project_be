@@ -7,7 +7,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 @Getter
 @Builder
@@ -16,8 +16,8 @@ import java.time.LocalDateTime;
 public class PtScheduleTrainerResponseDTO {
     private Long id;
     private Long ptContractId;
-    private LocalDateTime startTime;
-    private LocalDateTime endTime;
+    private Long startTime;
+    private Long endTime;
     private PtScheduleStatus status;
     private String reservationId;
     private Long memberId;
@@ -28,8 +28,8 @@ public class PtScheduleTrainerResponseDTO {
         return PtScheduleTrainerResponseDTO.builder()
                 .id(ptSchedule.getId())
                 .ptContractId(ptSchedule.getPtContract().getId())
-                .startTime(ptSchedule.getStartTime())
-                .endTime(ptSchedule.getEndTime())
+                .startTime(ptSchedule.getStartTime().atZone(ZoneId.systemDefault()).toEpochSecond())
+                .endTime(ptSchedule.getEndTime().atZone(ZoneId.systemDefault()).toEpochSecond())
                 .status(ptSchedule.getStatus())
                 .reservationId(ptSchedule.getReservationId())
                 .memberId(ptSchedule.getPtContract().getMember().getId())
