@@ -27,10 +27,5 @@ public class Exercise {
 
     @Column(name = "exercise_type")
     private String exerciseType;
-
-//    @OneToMany(mappedBy = "exercise", cascade = CascadeType.ALL)
-//    @Builder.Default
-//    private List<CategoryBridge> categoryBridges = new ArrayList<>();
-
-
+    
 }
