@@ -36,9 +36,6 @@ public class PtSchedule extends BaseEntity {
     @Builder.Default
     private PtScheduleStatus status = PtScheduleStatus.SCHEDULED;
 
-    @Column(name = "reservation_status", nullable = false)
-    private String reservationStatus;
-
     @Column(name = "reason")
     private String reason;
 
