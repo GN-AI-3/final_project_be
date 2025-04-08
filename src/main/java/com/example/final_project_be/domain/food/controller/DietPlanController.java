@@ -2,14 +2,15 @@ package com.example.final_project_be.domain.food.controller;
 
 import com.example.final_project_be.domain.food.dto.DietRecommendationRequestDTO;
 import com.example.final_project_be.domain.food.dto.DietRecommendationResponseDTO;
-import com.example.final_project_be.domain.food.entity.DietPlans;
 import com.example.final_project_be.domain.food.service.DietPlanService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
