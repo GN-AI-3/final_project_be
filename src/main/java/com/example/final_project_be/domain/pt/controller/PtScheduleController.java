@@ -38,8 +38,9 @@ public class PtScheduleController {
 
         LocalDateTime startDateTime = Instant.ofEpochSecond(startTime).atZone(ZoneId.systemDefault()).toLocalDateTime();
         LocalDateTime endDateTime = endTime != null ?
-                Instant.ofEpochSecond(endTime).atZone(ZoneId.systemDefault()).toLocalDateTime() : null;
-
+                Instant.ofEpochSecond(endTime).atZone(ZoneId.systemDefault()).toLocalDateTime() :
+                LocalDateTime.now().plusYears(1);
+            
         return ResponseEntity.ok(ptScheduleService.getSchedulesByDateRange(startDateTime, endDateTime, status, trainer));
     }
 
@@ -53,8 +54,9 @@ public class PtScheduleController {
 
         LocalDateTime startDateTime = Instant.ofEpochSecond(startTime).atZone(ZoneId.systemDefault()).toLocalDateTime();
         LocalDateTime endDateTime = endTime != null ?
-                Instant.ofEpochSecond(endTime).atZone(ZoneId.systemDefault()).toLocalDateTime() : null;
-
+                Instant.ofEpochSecond(endTime).atZone(ZoneId.systemDefault()).toLocalDateTime() :
+                LocalDateTime.now().plusYears(1);
+            
         return ResponseEntity.ok(ptScheduleService.getSchedulesByDateRange(startDateTime, endDateTime, status, member));
     }
 } 
