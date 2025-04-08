@@ -1,18 +1,23 @@
 package com.example.final_project_be.domain.trainer.entity;
 
+import com.example.final_project_be.domain.trainer.enums.SubscriptionStatus;
+import com.example.final_project_be.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
+
+import java.time.LocalDateTime;
 
 @Entity
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
+@SuperBuilder
 @Table(name = "subscribe")
-public class Subscribe {
+public class Subscribe extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -26,6 +31,17 @@ public class Subscribe {
 
     @Column
     private String management_person;
+    
+    @Column(name = "start_date")
+    private LocalDateTime startDate;
+    
+    @Column(name = "end_date")
+    private LocalDateTime endDate;
+    
+    @Column(name = "status")
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+    private SubscriptionStatus status = SubscriptionStatus.ACTIVE;
 
     @OneToOne
     @JoinColumn(name = "trainer_id")

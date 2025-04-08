@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
@@ -18,5 +20,6 @@ public class TrainerLoginResponseDTO {
     private String userType;
     private String accessToken;
     private String career;
-    private String speciality;
+    private List<String> certifications;
+    private List<String> specialities;
 } 

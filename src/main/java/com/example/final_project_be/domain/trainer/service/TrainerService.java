@@ -10,6 +10,7 @@ import jakarta.validation.constraints.NotBlank;
 import java.util.Map;
 
 public interface TrainerService {
+
     void join(@Valid TrainerJoinRequestDTO trainerJoinRequestDTO);
 
     Map<String, Object> login(@NotBlank(message = "이메일을 입력해주세요") String email, @NotBlank(message = "패스워드를 입력해주세요") String password);
@@ -19,6 +20,12 @@ public interface TrainerService {
     TrainerDetailDTO getMyInfo(String email);
     
     Boolean checkEmail(String email);
+    
+    Boolean subscribeUpgrade(String email, String subscriptionType);
+    
+    void checkAndUpdateExpiredSubscriptions();
+    
+    Boolean cancelSubscription(String email);
 
     default TrainerDTO entityToDTO(Trainer trainer) {
         return new TrainerDTO(
@@ -28,7 +35,8 @@ public interface TrainerService {
                 trainer.getName(),
                 trainer.getUserType(),
                 trainer.getCareer(),
-                trainer.getSpeciality()
+                trainer.getCertifications(),
+                trainer.getSpecialities()
         );
     }
 } 
