@@ -1,14 +1,15 @@
 package com.example.final_project_be.domain.exercise.entity;
 
-import com.example.final_project_be.domain.exercise_record.entity.ExerciseRecord;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
 @NoArgsConstructor
@@ -23,12 +24,9 @@ public class Exercise {
     private Long id;
 
     private String name;
-    private int reps;
-    private int distance;
 
-    @OneToMany(mappedBy = "exercise", cascade = CascadeType.ALL)
-    @Builder.Default
-    private List<ExerciseRecord> records = new ArrayList<>();
+    @Column(name = "exercise_type")
+    private String exerciseType;
 
 //    @OneToMany(mappedBy = "exercise", cascade = CascadeType.ALL)
 //    @Builder.Default

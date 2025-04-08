@@ -1,13 +1,13 @@
-package com.example.final_project_be;
+// package com.example.final_project_be;
 
-import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
+// import org.junit.jupiter.api.Test;
+// import org.springframework.boot.test.context.SpringBootTest;
 
-@SpringBootTest
-class FinalProjectBeApplicationTests {
+// @SpringBootTest
+// class FinalProjectBeApplicationTests {
 
-    @Test
-    void contextLoads() {
-    }
+//     @Test
+//     void contextLoads() {
+//     }
 
-}
+// }

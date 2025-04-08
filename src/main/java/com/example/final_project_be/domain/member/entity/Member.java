@@ -32,7 +32,7 @@ public class Member extends BaseEntity {
     private String password;
     private String name;
     private String profileImage;
-
+    private String goal;
     private String phone;
 
     @Column
