@@ -38,6 +38,8 @@ spring:
         highlight_sql: true
         use_sql_comments: true
         default_batch_fetch_size: 100
+#        hbm2ddl:
+#          auto: validate
 
 app:
   props:
@@ -65,6 +67,10 @@ spring:
     url: ${LOCAL_POSTGRES_URL}
     username: ${LOCAL_POSTGRES_USERNAME}
     password: ${LOCAL_POSTGRES_PASSWORD}
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
 
 logging:
   level:

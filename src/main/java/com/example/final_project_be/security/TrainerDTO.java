@@ -6,41 +6,41 @@ import lombok.ToString;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Getter
 @Setter
 @ToString
-public class MemberDTO extends User {
+public class TrainerDTO extends User {
 
     private String email;
     private String password;
     private String phone;
     private String name;
     private String userType;
-    private List<String> goals = new ArrayList<>();
+    private String career;
+    private String speciality;
 
-    public MemberDTO(
+    public TrainerDTO(
             String email,
             String password,
             String phone,
             String name,
             String userType,
-            List<String> goals
+            String career,
+            String speciality
     ) {
-        // userType에 따라 단일 권한 부여 ("ROLE_MEMBER" 또는 "ROLE_TRAINER")
+        // userType에 따라 단일 권한 부여 ("ROLE_TRAINER")
         super(email, password, Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + userType)));
         this.email = email;
         this.password = password;
         this.phone = phone;
         this.name = name;
         this.userType = userType;
-        this.goals = goals;
+        this.career = career;
+        this.speciality = speciality;
     }
 
     public Map<String, Object> getClaims() {
@@ -51,8 +51,9 @@ public class MemberDTO extends User {
         dataMap.put("phone", this.phone);
         dataMap.put("name", this.name);
         dataMap.put("userType", this.userType);
-        dataMap.put("goals", this.goals);
+        dataMap.put("career", this.career);
+        dataMap.put("speciality", this.speciality);
 
         return dataMap;
     }
-}
+} 

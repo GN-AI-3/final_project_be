@@ -55,9 +55,27 @@ public class SecurityConfig {
                         .requestMatchers(new AntPathRequestMatcher("/api/member/login")).permitAll()
                         .requestMatchers(new AntPathRequestMatcher("/api/member/logout")).permitAll()
                         .requestMatchers(new AntPathRequestMatcher("/api/member/refresh")).permitAll()
-                        .requestMatchers(new AntPathRequestMatcher("/api/member/me")).permitAll()
                         .requestMatchers(new AntPathRequestMatcher("/api/member/check-email/**")).permitAll()
+                        
+                        // /api/trainer/ 공개 엔드포인트
+                        .requestMatchers(new AntPathRequestMatcher("/api/trainer/join")).permitAll()
+                        .requestMatchers(new AntPathRequestMatcher("/api/trainer/login")).permitAll()
+                        .requestMatchers(new AntPathRequestMatcher("/api/trainer/logout")).permitAll()
+                        .requestMatchers(new AntPathRequestMatcher("/api/trainer/refresh")).permitAll()
+                        .requestMatchers(new AntPathRequestMatcher("/api/trainer/check-email/**")).permitAll()
+                        
+                        // MEMBER 권한 필요 엔드포인트
+                        .requestMatchers(new AntPathRequestMatcher("/api/member/**")).hasRole("MEMBER")
+                        
+                        // TRAINER 권한 필요 엔드포인트
+                        .requestMatchers(new AntPathRequestMatcher("/api/trainer/**")).hasRole("TRAINER")
+                        
+                        // 공통 엔드포인트
+                        .requestMatchers(new AntPathRequestMatcher("/api/member/me")).permitAll()
+                        .requestMatchers(new AntPathRequestMatcher("/api/trainer/me")).permitAll()
                         .requestMatchers(new AntPathRequestMatcher("/api/image/**")).permitAll()
+                        // chat_message
+                        .requestMatchers(new AntPathRequestMatcher("/api/chat/**")).permitAll()
                         // health check
                         .requestMatchers(new AntPathRequestMatcher("/health/**")).permitAll()
 //                        // api path에 admin 포함되면 ROLE_ADMIN 권한이 있어야 접근 가능,
