@@ -22,6 +22,7 @@ public class PtScheduleMemberResponseDTO {
     private String reservationId;
     private Long trainerId;
     private String trainerName;
+    private Long memberId;
     private Integer currentPtCount;
     private Integer totalCount;
 
@@ -35,6 +36,7 @@ public class PtScheduleMemberResponseDTO {
                 .reservationId(ptSchedule.getReservationId())
                 .trainerId(ptSchedule.getPtContract().getTrainer().getId())
                 .trainerName(ptSchedule.getPtContract().getTrainer().getName())
+                .memberId(ptSchedule.getPtContract().getMember().getId())
                 .currentPtCount(ptSchedule.getCurrentPtCount())
                 .totalCount(ptSchedule.getPtContract().getTotalCount())
                 .build();

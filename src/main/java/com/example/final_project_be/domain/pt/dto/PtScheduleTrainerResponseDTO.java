@@ -20,6 +20,7 @@ public class PtScheduleTrainerResponseDTO {
     private Long endTime;
     private PtScheduleStatus status;
     private String reservationId;
+    private Long trainerId;
     private Long memberId;
     private String memberName;
     private Integer remainingPtCount;
@@ -32,6 +33,7 @@ public class PtScheduleTrainerResponseDTO {
                 .endTime(ptSchedule.getEndTime().atZone(ZoneId.systemDefault()).toEpochSecond())
                 .status(ptSchedule.getStatus())
                 .reservationId(ptSchedule.getReservationId())
+                .trainerId(ptSchedule.getPtContract().getTrainer().getId())
                 .memberId(ptSchedule.getPtContract().getMember().getId())
                 .memberName(ptSchedule.getPtContract().getMember().getName())
                 .remainingPtCount(ptSchedule.getPtContract().getRemainingCount())
