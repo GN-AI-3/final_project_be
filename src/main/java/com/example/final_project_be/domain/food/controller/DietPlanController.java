@@ -1,26 +1,30 @@
 package com.example.final_project_be.domain.food.controller;
 
+import com.example.final_project_be.domain.food.dto.DietRecommendationRequestDTO;
+import com.example.final_project_be.domain.food.dto.DietRecommendationResponseDTO;
 import com.example.final_project_be.domain.food.entity.DietPlans;
 import com.example.final_project_be.domain.food.service.DietPlanService;
-import org.springframework.beans.factory.annotation.Autowired;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Optional;
+import java.util.List;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/dietplans")
+@Tag(name = "Diet Plan", description = "식단 추천 관련 API")
 public class DietPlanController {
 
     private final DietPlanService dietPlanService;
 
-    @Autowired
-    public DietPlanController(DietPlanService dietPlanService) {
-        this.dietPlanService = dietPlanService;
-    }
-
-    // 식단 계획을 조회 (dietType, userGender에 따라)
     @GetMapping("/plan")
-    public Optional<DietPlans> getDietPlan(@RequestParam String dietType, @RequestParam String userGender) {
-        return dietPlanService.getDietPlan(dietType, userGender);
+    @Operation(summary = "식단 계획 조회", description = "식단 유형과 사용자 성별에 따라 식단 계획을 조회합니다.")
+    public ResponseEntity<List<DietRecommendationResponseDTO>> getDietPlan(
+            @RequestBody DietRecommendationRequestDTO dietTypeDTO) {
+        return ResponseEntity.ok(dietPlanService.getDietPlan(dietTypeDTO));
     }
 }

@@ -8,8 +8,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
-import java.time.LocalDateTime;
-
 @SuperBuilder
 @Entity
 @Getter
@@ -44,6 +42,6 @@ public class UserDietInfo extends BaseEntity {
     private String specialRequirements;
 
     @ManyToOne
-    @JoinColumn(name = "Member_id")
+    @JoinColumn(name = "member_id")
     private Member member;
 }
