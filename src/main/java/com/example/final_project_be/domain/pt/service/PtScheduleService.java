@@ -11,7 +11,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -23,13 +22,12 @@ public class PtScheduleService {
 
     private final PtScheduleRepository ptScheduleRepository;
 
-    public <T> List<T> getSchedulesByDateRange(LocalDate startDate, LocalDate endDate, PtScheduleStatus status, Object user) {
-        LocalDateTime startDateTime = startDate.atStartOfDay();
-        LocalDateTime endDateTime = endDate != null ? endDate.plusDays(1).atStartOfDay() : LocalDateTime.MAX;
+    public <T> List<T> getSchedulesByDateRange(LocalDateTime startTime, LocalDateTime endTime, PtScheduleStatus status, Object user) {
+        LocalDateTime endDateTime = endTime != null ? endTime : LocalDateTime.MAX;
 
         List<PtSchedule> schedules = status != null ?
-                ptScheduleRepository.findByStartTimeBetweenAndStatus(startDateTime, endDateTime, status) :
-                ptScheduleRepository.findByStartTimeBetween(startDateTime, endDateTime);
+                ptScheduleRepository.findByStartTimeBetweenAndStatus(startTime, endDateTime, status) :
+                ptScheduleRepository.findByStartTimeBetween(startTime, endDateTime);
 
         return convertToResponseDTO(schedules, user);
     }
