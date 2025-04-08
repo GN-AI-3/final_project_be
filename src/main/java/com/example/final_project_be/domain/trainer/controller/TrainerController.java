@@ -188,4 +188,5 @@ public class TrainerController {
             return ResponseEntity.badRequest().body("구독 취소에 실패했습니다. 활성화된 구독이 있는지 확인해주세요.");
         }
     }
+
 } 

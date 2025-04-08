@@ -1,5 +1,6 @@
 package com.example.final_project_be.domain.trainer.entity;
 
+import com.example.final_project_be.domain.trainer.enums.SubscriptionStatus;
 import com.example.final_project_be.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -45,8 +46,4 @@ public class Subscribe extends BaseEntity {
     @OneToOne
     @JoinColumn(name = "trainer_id")
     private Trainer trainer;
-    
-    public enum SubscriptionStatus {
-        ACTIVE, EXPIRED, CANCELED
-    }
 }

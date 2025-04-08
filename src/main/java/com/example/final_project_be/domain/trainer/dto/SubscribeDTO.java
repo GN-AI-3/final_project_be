@@ -1,6 +1,7 @@
 package com.example.final_project_be.domain.trainer.dto;
 
 import com.example.final_project_be.domain.trainer.entity.Subscribe;
+import com.example.final_project_be.domain.trainer.enums.SubscriptionStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -21,7 +22,7 @@ public class SubscribeDTO {
     private LocalDateTime endDate;
     private LocalDateTime createdAt;
     private LocalDateTime modifiedAt;
-    private Subscribe.SubscriptionStatus status;
+    private SubscriptionStatus status;
     
     public static SubscribeDTO from(Subscribe subscribe) {
         if (subscribe == null) {

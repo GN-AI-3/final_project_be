@@ -4,6 +4,7 @@ import com.example.final_project_be.domain.trainer.dto.TrainerDetailDTO;
 import com.example.final_project_be.domain.trainer.dto.TrainerJoinRequestDTO;
 import com.example.final_project_be.domain.trainer.entity.Subscribe;
 import com.example.final_project_be.domain.trainer.entity.Trainer;
+import com.example.final_project_be.domain.trainer.enums.SubscriptionStatus;
 import com.example.final_project_be.domain.trainer.repository.TrainerRepository;
 import com.example.final_project_be.props.JwtProps;
 import com.example.final_project_be.security.CustomUserDetailService;
@@ -120,7 +121,7 @@ public class TrainerServiceImpl implements TrainerService {
                             .management_person("10")
                             .startDate(existingSubscribe.getStartDate()) // 기존 시작일 유지
                             .endDate(endDate) // 구독 종료일 갱신
-                            .status(Subscribe.SubscriptionStatus.ACTIVE) // 상태 활성화
+                            .status(SubscriptionStatus.ACTIVE) // 상태 활성화
                             .trainer(trainer)
                             .build();
                 } else if ("STANDARD".equals(subscriptionType)) {
@@ -131,7 +132,7 @@ public class TrainerServiceImpl implements TrainerService {
                             .management_person("20")
                             .startDate(existingSubscribe.getStartDate()) // 기존 시작일 유지
                             .endDate(endDate) // 구독 종료일 갱신
-                            .status(Subscribe.SubscriptionStatus.ACTIVE) // 상태 활성화
+                            .status(SubscriptionStatus.ACTIVE) // 상태 활성화
                             .trainer(trainer)
                             .build();
                 } else if ("PREMIUM".equals(subscriptionType)) {
@@ -142,7 +143,7 @@ public class TrainerServiceImpl implements TrainerService {
                             .management_person("30")
                             .startDate(existingSubscribe.getStartDate()) // 기존 시작일 유지
                             .endDate(endDate) // 구독 종료일 갱신
-                            .status(Subscribe.SubscriptionStatus.ACTIVE) // 상태 활성화
+                            .status(SubscriptionStatus.ACTIVE) // 상태 활성화
                             .trainer(trainer)
                             .build();
                 } else {
@@ -160,7 +161,7 @@ public class TrainerServiceImpl implements TrainerService {
                             .management_person("10")
                             .startDate(now) // 현재 시간으로 시작일 설정
                             .endDate(endDate) // 30일 후로 종료일 설정
-                            .status(Subscribe.SubscriptionStatus.ACTIVE) // 상태 활성화
+                            .status(SubscriptionStatus.ACTIVE) // 상태 활성화
                             .trainer(trainer)
                             .build();
                 } else if ("STANDARD".equals(subscriptionType)) {
@@ -170,7 +171,7 @@ public class TrainerServiceImpl implements TrainerService {
                             .management_person("20")
                             .startDate(now) // 현재 시간으로 시작일 설정
                             .endDate(endDate) // 30일 후로 종료일 설정
-                            .status(Subscribe.SubscriptionStatus.ACTIVE) // 상태 활성화
+                            .status(SubscriptionStatus.ACTIVE) // 상태 활성화
                             .trainer(trainer)
                             .build();
                 } else if ("PREMIUM".equals(subscriptionType)) {
@@ -180,7 +181,7 @@ public class TrainerServiceImpl implements TrainerService {
                             .management_person("30")
                             .startDate(now) // 현재 시간으로 시작일 설정
                             .endDate(endDate) // 30일 후로 종료일 설정
-                            .status(Subscribe.SubscriptionStatus.ACTIVE) // 상태 활성화
+                            .status(SubscriptionStatus.ACTIVE) // 상태 활성화
                             .trainer(trainer)
                             .build();
                 } else {
@@ -212,7 +213,7 @@ public class TrainerServiceImpl implements TrainerService {
             
             // 구독이 있고, 활성 상태이며, 종료일이 현재 시간보다 이전인 경우
             if (subscribe != null && 
-                Subscribe.SubscriptionStatus.ACTIVE.equals(subscribe.getStatus()) && 
+                SubscriptionStatus.ACTIVE.equals(subscribe.getStatus()) && 
                 subscribe.getEndDate() != null && 
                 subscribe.getEndDate().isBefore(now)) {
                 
@@ -226,7 +227,7 @@ public class TrainerServiceImpl implements TrainerService {
                         .management_person(subscribe.getManagement_person())
                         .startDate(subscribe.getStartDate())
                         .endDate(subscribe.getEndDate())
-                        .status(Subscribe.SubscriptionStatus.EXPIRED) // 상태를 만료로 변경
+                        .status(SubscriptionStatus.EXPIRED) // 상태를 만료로 변경
                         .trainer(trainer)
                         .build();
                 
@@ -242,7 +243,7 @@ public class TrainerServiceImpl implements TrainerService {
             Trainer trainer = getEntity(email);
             Subscribe subscribe = trainer.getSubscribe();
             
-            if (subscribe != null && Subscribe.SubscriptionStatus.ACTIVE.equals(subscribe.getStatus())) {
+            if (subscribe != null && SubscriptionStatus.ACTIVE.equals(subscribe.getStatus())) {
                 log.info("Canceling subscription for trainer: {}", trainer.getEmail());
                 
                 // 구독 상태를 취소로 변경
@@ -253,7 +254,7 @@ public class TrainerServiceImpl implements TrainerService {
                         .management_person(subscribe.getManagement_person())
                         .startDate(subscribe.getStartDate())
                         .endDate(subscribe.getEndDate())
-                        .status(Subscribe.SubscriptionStatus.CANCELED) // 상태를 취소로 변경
+                        .status(SubscriptionStatus.CANCELED) // 상태를 취소로 변경
                         .trainer(trainer)
                         .build();
                 
