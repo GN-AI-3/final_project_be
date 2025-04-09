@@ -4,11 +4,14 @@ import com.example.final_project_be.domain.member.entity.Member;
 import com.example.final_project_be.domain.pt.enums.ContractStatus;
 import com.example.final_project_be.domain.trainer.entity.Trainer;
 import com.example.final_project_be.entity.BaseEntity;
-
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.DynamicUpdate;
+
 import java.time.LocalDateTime;
 
 @DynamicUpdate
@@ -51,4 +54,8 @@ public class PtContract extends BaseEntity {
 
     @Column(name = "memo")
     private String memo;
+
+    public Integer getRemainingCount() {
+        return totalCount - usedCount;
+    }
 }

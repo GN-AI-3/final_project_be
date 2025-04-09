@@ -2,11 +2,14 @@ package com.example.final_project_be.domain.pt.entity;
 
 import com.example.final_project_be.domain.pt.enums.PtScheduleStatus;
 import com.example.final_project_be.entity.BaseEntity;
-
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.DynamicUpdate;
+
 import java.time.LocalDateTime;
 
 @DynamicUpdate
@@ -42,4 +45,8 @@ public class PtSchedule extends BaseEntity {
     // 고객에게 보여줄 스케줄 예약 ID (YYMMDD_random_digits)
     @Column(name = "reservation_id")
     private String reservationId;
+
+    public Integer getCurrentPtCount() {
+        return ptContract.getUsedCount() + 1;
+    }
 }
