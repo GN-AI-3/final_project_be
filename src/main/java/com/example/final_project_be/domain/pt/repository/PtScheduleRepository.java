@@ -8,7 +8,11 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public interface PtScheduleRepository extends JpaRepository<PtSchedule, Long> {
-    List<PtSchedule> findByStartTimeBetween(LocalDateTime startTime, LocalDateTime endTime);
+    List<PtSchedule> findByStartTimeBetweenAndPtContract_Trainer_Id(LocalDateTime startTime, LocalDateTime endTime, Long trainerId);
 
-    List<PtSchedule> findByStartTimeBetweenAndStatus(LocalDateTime startTime, LocalDateTime endTime, PtScheduleStatus status);
+    List<PtSchedule> findByStartTimeBetweenAndPtContract_Trainer_IdAndStatus(LocalDateTime startTime, LocalDateTime endTime, Long trainerId, PtScheduleStatus status);
+
+    List<PtSchedule> findByStartTimeBetweenAndPtContract_Member_Id(LocalDateTime startTime, LocalDateTime endTime, Long memberId);
+
+    List<PtSchedule> findByStartTimeBetweenAndPtContract_Member_IdAndStatus(LocalDateTime startTime, LocalDateTime endTime, Long memberId, PtScheduleStatus status);
 } 

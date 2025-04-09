@@ -1,10 +1,11 @@
 package com.example.final_project_be.domain.pt.service;
 
-import com.example.final_project_be.domain.pt.dto.PtScheduleMemberResponseDTO;
-import com.example.final_project_be.domain.pt.dto.PtScheduleTrainerResponseDTO;
+import com.example.final_project_be.domain.member.repository.MemberRepository;
+import com.example.final_project_be.domain.pt.dto.PtScheduleResponseDTO;
 import com.example.final_project_be.domain.pt.entity.PtSchedule;
 import com.example.final_project_be.domain.pt.enums.PtScheduleStatus;
 import com.example.final_project_be.domain.pt.repository.PtScheduleRepository;
+import com.example.final_project_be.domain.trainer.repository.TrainerRepository;
 import com.example.final_project_be.security.MemberDTO;
 import com.example.final_project_be.security.TrainerDTO;
 import lombok.RequiredArgsConstructor;
@@ -21,29 +22,37 @@ import java.util.stream.Collectors;
 public class PtScheduleService {
 
     private final PtScheduleRepository ptScheduleRepository;
+    private final MemberRepository memberRepository;
+    private final TrainerRepository trainerRepository;
 
-    public <T> List<T> getSchedulesByDateRange(LocalDateTime startTime, LocalDateTime endTime, PtScheduleStatus status, Object user) {
+    public List<PtScheduleResponseDTO> getSchedulesByDateRange(LocalDateTime startTime, LocalDateTime endTime, PtScheduleStatus status, Object user) {
         LocalDateTime endDateTime = endTime != null ? endTime : LocalDateTime.MAX;
+        List<PtSchedule> schedules;
 
-        List<PtSchedule> schedules = status != null ?
-                ptScheduleRepository.findByStartTimeBetweenAndStatus(startTime, endDateTime, status) :
-                ptScheduleRepository.findByStartTimeBetween(startTime, endDateTime);
-
-        return convertToResponseDTO(schedules, user);
-    }
-
-    @SuppressWarnings("unchecked")
-    private <T> List<T> convertToResponseDTO(List<PtSchedule> schedules, Object user) {
-        if (user instanceof MemberDTO) {
-            return (List<T>) schedules.stream()
-                    .map(PtScheduleMemberResponseDTO::from)
-                    .collect(Collectors.toList());
-        } else if (user instanceof TrainerDTO) {
-            return (List<T>) schedules.stream()
-                    .map(PtScheduleTrainerResponseDTO::from)
-                    .collect(Collectors.toList());
+        if (user instanceof MemberDTO member) {
+            Long memberId = memberRepository.findByEmail(member.getEmail())
+                    .orElseThrow(() -> new IllegalArgumentException("Member not found"))
+                    .getId();
+            schedules = status != null ?
+                    ptScheduleRepository.findByStartTimeBetweenAndPtContract_Member_IdAndStatus(startTime, endDateTime, memberId, status) :
+                    ptScheduleRepository.findByStartTimeBetweenAndPtContract_Member_Id(startTime, endDateTime, memberId);
+        } else if (user instanceof TrainerDTO trainer) {
+            Long trainerId = trainerRepository.findByEmail(trainer.getEmail())
+                    .orElseThrow(() -> new IllegalArgumentException("Trainer not found"))
+                    .getId();
+            schedules = status != null ?
+                    ptScheduleRepository.findByStartTimeBetweenAndPtContract_Trainer_IdAndStatus(startTime, endDateTime, trainerId, status) :
+                    ptScheduleRepository.findByStartTimeBetweenAndPtContract_Trainer_Id(startTime, endDateTime, trainerId);
         } else {
             throw new IllegalArgumentException("Invalid user type");
         }
+
+        return convertToResponseDTO(schedules);
+    }
+
+    private List<PtScheduleResponseDTO> convertToResponseDTO(List<PtSchedule> schedules) {
+        return schedules.stream()
+                .map(PtScheduleResponseDTO::from)
+                .collect(Collectors.toList());
     }
 } 
