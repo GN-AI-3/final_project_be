@@ -78,8 +78,8 @@ public class SecurityConfig {
                         .requestMatchers(new AntPathRequestMatcher("/api/chat/**")).permitAll()
                         // health check
                         .requestMatchers(new AntPathRequestMatcher("/health/**")).permitAll()
-//                        // api path에 admin 포함되면 ROLE_ADMIN 권한이 있어야 접근 가능,
-//                        .requestMatchers(new AntPathRequestMatcher("/api/admin/**")).hasRole("ADMIN")
+                        // 익명 채팅 엔드포인트 허용
+                        .requestMatchers(new AntPathRequestMatcher("/api/anonymous-chat/**")).permitAll()
                         // 정적 리소스에 대한 접근 허용
                         .requestMatchers(new AntPathRequestMatcher("/favicon.ico")).permitAll()
                         .requestMatchers(new AntPathRequestMatcher("/v2/api-docs")).permitAll()

@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -39,7 +40,7 @@ public class ChatMessageServiceImpl implements ChatMessageService {
     @Override
     public ChatMessageResponseDTO saveMessage(String content, String email) {
         log.info("메시지 저장 요청 - 회원 이메일: {}, 내용: {}", email, content);
-        
+
         // 회원 정보 확인
         Member member = memberRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다. 이메일: " + email));
@@ -51,14 +52,14 @@ public class ChatMessageServiceImpl implements ChatMessageService {
                     .role("member")
                     .member(member)
                     .build();
-            
+
             chatMessageRepository.save(userMessage);
             log.debug("사용자 메시지 저장 완료 - ID: {}", userMessage.getId());
 
-            // 2. AI 서버 호출
+            // 2. AI 서버 호출 - 회원 객체 전달 (수정된 부분)
             String aiResponse;
             try {
-                aiResponse = sendToAiServer(member.getId(), content);
+                aiResponse = sendToAiServer(member, content);
                 log.debug("AI 서버 응답 받음 - 길이: {}", aiResponse.length());
             } catch (Exception e) {
                 // AI 서버 호출 실패 시 기본 응답 제공
@@ -72,7 +73,7 @@ public class ChatMessageServiceImpl implements ChatMessageService {
                     .role("assistant")
                     .member(member)
                     .build();
-            
+
             ChatMessage savedAiMessage = chatMessageRepository.save(aiMessage);
             log.debug("AI 응답 메시지 저장 완료 - ID: {}", savedAiMessage.getId());
 
@@ -83,11 +84,14 @@ public class ChatMessageServiceImpl implements ChatMessageService {
         }
     }
 
-    private String sendToAiServer(Long memberId, String content) {
-        log.info("AI 서버 호출 - 회원 ID: {}, 메시지 길이: {}", memberId, content.length());
-        
+    // 메소드 시그니처 변경: Member 객체를 받도록 수정 (수정된 부분)
+    private String sendToAiServer(Member member, String content) {
+        log.info("AI 서버 호출 - 회원 ID: {}, 이메일: {}, 메시지 길이: {}",
+                member.getId(), member.getEmail(), content.length());
+
         Map<String, Object> requestBody = new HashMap<>();
-        requestBody.put("member_id", memberId.toString());
+        requestBody.put("member_id", member.getId().toString());
+        requestBody.put("email", member.getEmail());  // 이메일 추가 (수정된 부분)
         requestBody.put("message", content);
 
         HttpHeaders headers = new HttpHeaders();
@@ -98,18 +102,18 @@ public class ChatMessageServiceImpl implements ChatMessageService {
 
         try {
             ResponseEntity<Map> response = restTemplate.postForEntity(aiApiUrl, entity, Map.class);
-            
+
             if (response.getBody() == null) {
                 log.warn("AI 서버 응답이 비어있습니다.");
                 return "죄송합니다. AI 응답을 받지 못했습니다.";
             }
-            
+
             String aiResponse = (String) response.getBody().get("response");
             if (aiResponse == null || aiResponse.isEmpty()) {
                 log.warn("AI 서버 응답에 'response' 필드가 없거나 비어있습니다.");
                 return "죄송합니다. AI 응답 형식이 올바르지 않습니다.";
             }
-            
+
             return aiResponse;
         } catch (RestClientException e) {
             log.error("AI 서버 통신 오류", e);
@@ -124,7 +128,7 @@ public class ChatMessageServiceImpl implements ChatMessageService {
     @Override
     public List<ChatMessageResponseDTO> getRecentMessages(String email, int limit) {
         log.info("최근 메시지 조회 - 회원 이메일: {}, 제한: {}", email, limit);
-        
+
         Member member = memberRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다. 이메일: " + email));
 
@@ -137,5 +141,23 @@ public class ChatMessageServiceImpl implements ChatMessageService {
         return messages.stream()
                 .map(ChatMessageResponseDTO::from)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public ChatMessageResponseDTO generateAnonymousResponse(String content) {
+        // AI 응답 생성 (실제로는 AI 서버와 통신)
+        String aiResponse = generateAIResponse(content);
+
+        return ChatMessageResponseDTO.builder()
+                .content(aiResponse)
+                .role("assistant")
+                .createdAt(LocalDateTime.now())
+                .build();
+    }
+
+    private String generateAIResponse(String content) {
+        // TODO: 실제 AI 서버와 통신하는 로직 구현
+        // 임시로 간단한 응답 생성
+        return "AI 응답: " + content;
     }
 }
