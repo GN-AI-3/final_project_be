@@ -58,7 +58,7 @@ public class JWTCheckFilter extends OncePerRequestFilter {
         }
 
         // 채팅 엔드포인트 추가
-        if (path.startsWith("/api/anonymous-chat")) {
+        if (path.startsWith("/api/anonymous-chat/")) {
             return true;
         }
 

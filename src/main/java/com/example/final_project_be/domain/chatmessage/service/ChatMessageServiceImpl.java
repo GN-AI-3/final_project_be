@@ -86,12 +86,15 @@ public class ChatMessageServiceImpl implements ChatMessageService {
 
     // 메소드 시그니처 변경: Member 객체를 받도록 수정 (수정된 부분)
     private String sendToAiServer(Member member, String content) {
-        log.info("AI 서버 호출 - 회원 ID: {}, 이메일: {}, 메시지 길이: {}",
-                member.getId(), member.getEmail(), content.length());
+        log.info("AI 서버 호출 - 회원: {}, 메시지 길이: {}", 
+                member != null ? member.getEmail() : "익명", 
+                content.length());
 
         Map<String, Object> requestBody = new HashMap<>();
-        requestBody.put("member_id", member.getId().toString());
-        requestBody.put("email", member.getEmail());  // 이메일 추가 (수정된 부분)
+        if (member != null) {
+            requestBody.put("member_id", member.getId().toString());
+            requestBody.put("email", member.getEmail());
+        }
         requestBody.put("message", content);
 
         HttpHeaders headers = new HttpHeaders();
@@ -145,14 +148,27 @@ public class ChatMessageServiceImpl implements ChatMessageService {
 
     @Override
     public ChatMessageResponseDTO generateAnonymousResponse(String content) {
-        // AI 응답 생성 (실제로는 AI 서버와 통신)
-        String aiResponse = generateAIResponse(content);
+        log.info("익명 사용자 메시지 처리 시작 - 내용: {}", content);
+        
+        try {
+            // AI 서버 호출
+            String aiResponse = sendToAiServer(null, content);
+            log.info("AI 서버 응답 받음 - 길이: {}", aiResponse.length());
 
-        return ChatMessageResponseDTO.builder()
-                .content(aiResponse)
-                .role("assistant")
-                .createdAt(LocalDateTime.now())
-                .build();
+            return ChatMessageResponseDTO.builder()
+                    .content(aiResponse)
+                    .role("assistant")
+                    .createdAt(LocalDateTime.now())
+                    .build();
+        } catch (Exception e) {
+            log.error("AI 서버 호출 실패", e);
+            // AI 서버 호출 실패 시 기본 응답 제공
+            return ChatMessageResponseDTO.builder()
+                    .content("죄송합니다. 현재 AI 서비스에 연결할 수 없습니다. 잠시 후 다시 시도해주세요.")
+                    .role("assistant")
+                    .createdAt(LocalDateTime.now())
+                    .build();
+        }
     }
 
     private String generateAIResponse(String content) {
