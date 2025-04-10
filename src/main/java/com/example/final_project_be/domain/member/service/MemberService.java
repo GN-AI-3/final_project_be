@@ -20,6 +20,7 @@ public interface MemberService {
 
     Boolean checkEmail(String email);
 
+    MemberDetailDTO getMemberInfo(Long memberId);
 
     default MemberDTO entityToDTO(Member member) {
         return new MemberDTO(

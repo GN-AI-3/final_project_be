@@ -93,4 +93,11 @@ public class MemberServiceImpl implements MemberService {
     public Boolean checkEmail(String email) {
         return memberRepository.existsByEmail(email);
     }
+
+    @Override
+    public MemberDetailDTO getMemberInfo(Long memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
+        return MemberDetailDTO.from(member);
+    }
 }
