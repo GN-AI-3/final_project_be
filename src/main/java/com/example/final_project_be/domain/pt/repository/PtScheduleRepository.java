@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface PtScheduleRepository extends JpaRepository<PtSchedule, Long> {
@@ -24,6 +25,9 @@ public interface PtScheduleRepository extends JpaRepository<PtSchedule, Long> {
     @Query("SELECT ps FROM PtSchedule ps JOIN FETCH ps.ptContract pc JOIN FETCH pc.member JOIN FETCH pc.trainer WHERE ps.startTime BETWEEN :startTime AND :endTime AND pc.trainer.id = :trainerId AND ps.status = :status")
     List<PtSchedule> findByStartTimeBetweenAndPtContract_Trainer_IdAndStatus(@Param("startTime") LocalDateTime startTime, @Param("endTime") LocalDateTime endTime, @Param("trainerId") Long trainerId, @Param("status") PtScheduleStatus status);
 
-    @Query("SELECT ps FROM PtSchedule ps JOIN FETCH ps.ptContract pc JOIN FETCH pc.member JOIN FETCH pc.trainer WHERE pc.id = :ptContractId AND ps.status = :status")
+    @Query("SELECT ps FROM PtSchedule ps JOIN FETCH ps.ptContract pc JOIN FETCH pc.member JOIN FETCH pc.trainer WHERE ps.ptContract.id = :ptContractId AND ps.status = :status")
     List<PtSchedule> findByPtContractIdAndStatus(@Param("ptContractId") Long ptContractId, @Param("status") PtScheduleStatus status);
+
+    @Query("SELECT ps FROM PtSchedule ps JOIN FETCH ps.ptContract pc JOIN FETCH pc.member JOIN FETCH pc.trainer WHERE ps.id = :id")
+    Optional<PtSchedule> findByIdWithContractAndMembers(@Param("id") Long id);
 } 

@@ -30,6 +30,7 @@ public class PtScheduleService {
     private final PtContractRepository ptContractRepository;
     private final MemberService memberService;
 
+    @Transactional(readOnly = true)
     public List<PtScheduleResponseDTO> getSchedulesByDateRange(
             @NonNull LocalDateTime startTime,
             @NonNull LocalDateTime endTime,
@@ -62,7 +63,24 @@ public class PtScheduleService {
 
     private List<PtScheduleResponseDTO> convertToResponseDTO(List<PtSchedule> schedules) {
         return schedules.stream()
-                .map(PtScheduleResponseDTO::from)
+                .map(schedule -> {
+                    PtContract contract = schedule.getPtContract();
+                    return PtScheduleResponseDTO.builder()
+                            .id(schedule.getId())
+                            .ptContractId(contract.getId())
+                            .startTime(schedule.getStartTime().atZone(ZoneId.systemDefault()).toEpochSecond())
+                            .endTime(schedule.getEndTime().atZone(ZoneId.systemDefault()).toEpochSecond())
+                            .status(schedule.getStatus())
+                            .reservationId(schedule.getReservationId())
+                            .trainerId(contract.getTrainer().getId())
+                            .trainerName(contract.getTrainer().getName())
+                            .memberId(contract.getMember().getId())
+                            .memberName(contract.getMember().getName())
+                            .currentPtCount(schedule.getCurrentPtCount())
+                            .totalCount(contract.getTotalCount())
+                            .remainingPtCount(contract.getRemainingCount())
+                            .build();
+                })
                 .collect(Collectors.toList());
     }
 
@@ -101,7 +119,7 @@ public class PtScheduleService {
 
     @Transactional(readOnly = true)
     public PtSchedule getPtSchedule(Long ptScheduleId) {
-        return ptScheduleRepository.findById(ptScheduleId)
+        return ptScheduleRepository.findByIdWithContractAndMembers(ptScheduleId)
                 .orElseThrow(() -> new IllegalArgumentException("PT 스케줄을 찾을 수 없습니다."));
     }
 
