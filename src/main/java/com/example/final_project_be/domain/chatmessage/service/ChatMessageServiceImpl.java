@@ -86,13 +86,13 @@ public class ChatMessageServiceImpl implements ChatMessageService {
 
     // 메소드 시그니처 변경: Member 객체를 받도록 수정 (수정된 부분)
     private String sendToAiServer(Member member, String content) {
-        log.info("AI 서버 호출 - 회원: {}, 메시지 길이: {}", 
-                member != null ? member.getEmail() : "익명", 
+        log.info("AI 서버 호출 - 회원: {}, 메시지 길이: {}",
+                member != null ? member.getEmail() : "익명",
                 content.length());
 
         Map<String, Object> requestBody = new HashMap<>();
         if (member != null) {
-            requestBody.put("member_id", member.getId().toString());
+            // member_id 제거하고 email만 전송 (수정된 부분)
             requestBody.put("email", member.getEmail());
         }
         requestBody.put("message", content);
@@ -149,7 +149,7 @@ public class ChatMessageServiceImpl implements ChatMessageService {
     @Override
     public ChatMessageResponseDTO generateAnonymousResponse(String content) {
         log.info("익명 사용자 메시지 처리 시작 - 내용: {}", content);
-        
+
         try {
             // AI 서버 호출
             String aiResponse = sendToAiServer(null, content);
