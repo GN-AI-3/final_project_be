@@ -29,6 +29,7 @@ public interface TrainerService {
 
     default TrainerDTO entityToDTO(Trainer trainer) {
         return new TrainerDTO(
+                trainer.getId(),
                 trainer.getEmail(),
                 trainer.getPassword(),
                 trainer.getPhone(),

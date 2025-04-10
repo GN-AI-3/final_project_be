@@ -28,6 +28,7 @@ public class CustomUserDetailService implements UserDetailsService {
         return memberRepository.findByEmail(username)
                 .map(member -> {
                     MemberDTO memberDTO = new MemberDTO(
+                            member.getId(),
                             member.getEmail(),
                             member.getPassword(),
                             member.getPhone(),
@@ -43,6 +44,7 @@ public class CustomUserDetailService implements UserDetailsService {
                     return trainerRepository.findByEmail(username)
                             .map(trainer -> {
                                 TrainerDTO trainerDTO = new TrainerDTO(
+                                        trainer.getId(),
                                         trainer.getEmail(),
                                         trainer.getPassword(),
                                         trainer.getPhone(),

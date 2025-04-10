@@ -65,6 +65,7 @@ public class MemberController {
                 .email(loginClaims.get("email").toString())
                 .name(loginClaims.get("name").toString())
                 .userType(loginClaims.getOrDefault("userType", "MEMBER").toString())
+                .id(((Number) loginClaims.get("id")).longValue())
                 .accessToken(accessToken)
                 .build();
 
@@ -120,6 +121,7 @@ public class MemberController {
                 .email(loginClaims.get("email").toString())
                 .name(loginClaims.get("name").toString())
                 .userType(loginClaims.getOrDefault("userType", "MEMBER").toString())
+                .id(((Number) loginClaims.get("id")).longValue())
                 .accessToken(newAccessToken)
                 .build();
 

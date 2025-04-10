@@ -105,6 +105,9 @@ public class JWTCheckFilter extends OncePerRequestFilter {
             // claims에서 사용자 타입 확인 (기본값은 MEMBER)
             String userType = (String) claims.getOrDefault("userType", "MEMBER");
             String email = (String) claims.get("email");
+            Long id = ((Number) claims.get("id")).longValue(); // id 추출
+            
+            log.info("JWT claims - userType: {}, email: {}, id: {}", userType, email, id);
             
             UserDetails userDetails;
             // URL 경로에 따라 권한 체크

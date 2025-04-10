@@ -16,6 +16,7 @@ import java.util.Map;
 @ToString
 public class TrainerDTO extends User {
 
+    private Long id;
     private String email;
     private String password;
     private String phone;
@@ -26,6 +27,7 @@ public class TrainerDTO extends User {
     private List<String> specialities;
 
     public TrainerDTO(
+            Long id,
             String email,
             String password,
             String phone,
@@ -37,6 +39,7 @@ public class TrainerDTO extends User {
     ) {
         // userType에 따라 단일 권한 부여 ("ROLE_TRAINER")
         super(email, password, Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + userType)));
+        this.id = id;
         this.email = email;
         this.password = password;
         this.phone = phone;
@@ -50,6 +53,7 @@ public class TrainerDTO extends User {
     public Map<String, Object> getClaims() {
         Map<String, Object> dataMap = new HashMap<>();
 
+        dataMap.put("id", this.id);
         dataMap.put("email", this.email);
         dataMap.put("password", this.password);
         dataMap.put("phone", this.phone);

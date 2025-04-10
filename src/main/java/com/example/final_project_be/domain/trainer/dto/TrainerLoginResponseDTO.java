@@ -15,6 +15,7 @@ import java.util.List;
 @Schema(description = "트레이너 로그인 성공 시 응답하는 정보가 담긴 dto")
 public class TrainerLoginResponseDTO {
 
+    private Long id;
     private String email;
     private String name;
     private String userType;

@@ -23,6 +23,7 @@ public interface MemberService {
 
     default MemberDTO entityToDTO(Member member) {
         return new MemberDTO(
+                member.getId(),
                 member.getEmail(),
                 member.getPassword(),
                 member.getPhone(),
