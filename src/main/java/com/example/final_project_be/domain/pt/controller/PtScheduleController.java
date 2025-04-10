@@ -1,17 +1,19 @@
 package com.example.final_project_be.domain.pt.controller;
 
+import com.example.final_project_be.domain.pt.dto.PtScheduleCreateRequestDTO;
 import com.example.final_project_be.domain.pt.dto.PtScheduleResponseDTO;
+import com.example.final_project_be.domain.pt.entity.PtSchedule;
 import com.example.final_project_be.domain.pt.enums.PtScheduleStatus;
 import com.example.final_project_be.domain.pt.service.PtScheduleService;
+import com.example.final_project_be.security.MemberDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -41,8 +43,18 @@ public class PtScheduleController {
                 LocalDateTime.now();
         LocalDateTime endDateTime = endTime != null ?
                 Instant.ofEpochSecond(endTime).atZone(ZoneId.systemDefault()).toLocalDateTime() :
-                LocalDateTime.now().plusYears(1);
+                startDateTime.plusYears(1);
 
         return ResponseEntity.ok(ptScheduleService.getSchedulesByDateRange(startDateTime, endDateTime, status, user));
+    }
+
+    @PostMapping("/api/pt_schedules")
+    @Operation(summary = "PT 일정 등록", description = "새로운 PT 일정을 등록합니다.")
+    public ResponseEntity<PtScheduleResponseDTO> createPtSchedule(
+            @Valid @RequestBody PtScheduleCreateRequestDTO request,
+            @AuthenticationPrincipal MemberDTO member) {
+        Long ptScheduleId = ptScheduleService.createSchedule(request, member);
+        PtSchedule ptSchedule = ptScheduleService.getPtSchedule(ptScheduleId);
+        return ResponseEntity.ok(PtScheduleResponseDTO.from(ptSchedule));
     }
 } 

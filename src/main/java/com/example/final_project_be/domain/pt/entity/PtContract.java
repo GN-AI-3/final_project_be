@@ -58,4 +58,8 @@ public class PtContract extends BaseEntity {
     public Integer getRemainingCount() {
         return totalCount - usedCount;
     }
+
+    public boolean isActive() {
+        return status == ContractStatus.ACTIVE;
+    }
 }
