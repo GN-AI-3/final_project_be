@@ -66,7 +66,7 @@ public class SecurityConfig {
                         
                         // MEMBER 권한 필요 엔드포인트
                         .requestMatchers(new AntPathRequestMatcher("/api/member/**")).hasRole("MEMBER")
-                        
+                        .requestMatchers(new AntPathRequestMatcher("/api/pt_contracts/members/**")).hasRole("TRAINER")
                         // TRAINER 권한 필요 엔드포인트
                         .requestMatchers(new AntPathRequestMatcher("/api/trainer/**")).hasRole("TRAINER")
                         
