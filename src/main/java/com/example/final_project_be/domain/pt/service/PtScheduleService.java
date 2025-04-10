@@ -164,4 +164,45 @@ public class PtScheduleService {
                 ZoneId.systemDefault()
         );
     }
+
+    @Transactional
+    public PtSchedule cancelSchedule(Long scheduleId, String reason, Object user) {
+        PtSchedule schedule = getPtSchedule(scheduleId);
+
+        // 권한 체크
+        if (user instanceof MemberDTO member) {
+            if (!schedule.getPtContract().getMember().getId().equals(member.getId())) {
+                throw new IllegalArgumentException("해당 PT 일정에 대한 취소 권한이 없습니다.");
+            }
+        } else if (user instanceof TrainerDTO trainer) {
+            if (!schedule.getPtContract().getTrainer().getId().equals(trainer.getId())) {
+                throw new IllegalArgumentException("해당 PT 일정에 대한 취소 권한이 없습니다.");
+            }
+        } else {
+            throw new IllegalArgumentException("유효하지 않은 사용자 타입입니다.");
+        }
+
+        // 취소 가능 여부 체크
+        if (schedule.getStatus() != PtScheduleStatus.SCHEDULED) {
+            throw new IllegalArgumentException("이미 취소되었거나 완료된 PT 일정입니다.");
+        }
+
+        // 시작 시간 체크
+        if (schedule.getStartTime().isBefore(LocalDateTime.now())) {
+            throw new IllegalArgumentException("이미 시작된 PT 일정은 취소할 수 없습니다.");
+        }
+
+        // usedCount 감소
+        PtContract contract = schedule.getPtContract();
+        if (contract.getUsedCount() > 0) {
+            contract.setUsedCount(contract.getUsedCount() - 1);
+            ptContractRepository.save(contract);
+        }
+
+        // 상태 변경
+        schedule.setStatus(PtScheduleStatus.CANCELLED);
+        schedule.setReason(reason);
+
+        return ptScheduleRepository.save(schedule);
+    }
 } 

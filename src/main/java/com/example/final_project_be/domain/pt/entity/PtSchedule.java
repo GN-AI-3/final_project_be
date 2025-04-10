@@ -49,4 +49,12 @@ public class PtSchedule extends BaseEntity {
     public Integer getCurrentPtCount() {
         return ptContract.getUsedCount() + 1;
     }
+
+    public void setStatus(PtScheduleStatus status) {
+        this.status = status;
+    }
+
+    public void setReason(String reason) {
+        this.reason = reason;
+    }
 }
