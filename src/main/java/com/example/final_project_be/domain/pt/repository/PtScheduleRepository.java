@@ -2,7 +2,9 @@ package com.example.final_project_be.domain.pt.repository;
 
 import com.example.final_project_be.domain.pt.entity.PtSchedule;
 import com.example.final_project_be.domain.pt.enums.PtScheduleStatus;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -67,5 +69,18 @@ public interface PtScheduleRepository extends JpaRepository<PtSchedule, Long> {
             @Param("endTime") LocalDateTime endTime,
             @Param("status") PtScheduleStatus status,
             @Param("trainerId") Long trainerId
+    );
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT ps FROM PtSchedule ps " +
+            "WHERE ps.ptContract.id = :contractId " +
+            "AND ps.status = :status " +
+            "AND ((ps.startTime <= :endTime AND ps.endTime >= :startTime) " +
+            "OR (ps.startTime >= :startTime AND ps.startTime < :endTime))")
+    List<PtSchedule> findOverlappingSchedules(
+            @Param("contractId") Long contractId,
+            @Param("startTime") LocalDateTime startTime,
+            @Param("endTime") LocalDateTime endTime,
+            @Param("status") PtScheduleStatus status
     );
 } 

@@ -260,13 +260,15 @@ public class PtScheduleService {
     }
 
     private void checkTimeOverlap(LocalDateTime startTime, LocalDateTime endTime, Long ptContractId) {
-        List<PtSchedule> existingSchedules = ptScheduleRepository.findByPtContractIdAndStatus(
-                ptContractId, PtScheduleStatus.SCHEDULED);
+        List<PtSchedule> existingSchedules = ptScheduleRepository.findOverlappingSchedules(
+                ptContractId,
+                startTime,
+                endTime,
+                PtScheduleStatus.SCHEDULED
+        );
 
-        for (PtSchedule schedule : existingSchedules) {
-            if ((startTime.isBefore(schedule.getEndTime()) && endTime.isAfter(schedule.getStartTime()))) {
-                throw new IllegalArgumentException("이미 예약된 시간과 중복됩니다.");
-            }
+        if (!existingSchedules.isEmpty()) {
+            throw new IllegalArgumentException("이미 예약된 시간과 중복됩니다.");
         }
     }
 
