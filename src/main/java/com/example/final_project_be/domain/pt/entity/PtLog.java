@@ -9,6 +9,9 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.DynamicUpdate;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @DynamicUpdate
 @SuperBuilder
 @Entity
@@ -43,4 +46,7 @@ public class PtLog extends BaseEntity {
 
     @Column(name = "modified_by")
     private Long modified_by;
+
+    @OneToMany(mappedBy = "ptLogs", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PtLogExercise> exercises = new ArrayList<>();
 }

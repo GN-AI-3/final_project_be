@@ -3,6 +3,7 @@ package com.example.final_project_be.domain.pt.service;
 import com.example.final_project_be.domain.exercise.entity.Exercise;
 import com.example.final_project_be.domain.exercise.repository.ExerciseRepository;
 import com.example.final_project_be.domain.pt.dto.PtLogCreateRequestDTO;
+import com.example.final_project_be.domain.pt.dto.PtLogResponseDTO;
 import com.example.final_project_be.domain.pt.entity.PtLog;
 import com.example.final_project_be.domain.pt.entity.PtLogExercise;
 import com.example.final_project_be.domain.pt.entity.PtSchedule;
@@ -69,5 +70,12 @@ public class PtLogService {
         ptLogExerciseRepository.saveAll(exercises);
 
         return savedPtLog.getId();
+    }
+
+    @Transactional(readOnly = true)
+    public PtLogResponseDTO getPtLog(Long id) {
+        PtLog ptLog = ptLogRepository.findByIdWithMemberAndExercises(id)
+                .orElseThrow(() -> new IllegalArgumentException("PT 로그를 찾을 수 없습니다."));
+        return PtLogResponseDTO.from(ptLog);
     }
 } 

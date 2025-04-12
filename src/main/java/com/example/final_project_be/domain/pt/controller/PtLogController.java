@@ -1,6 +1,7 @@
 package com.example.final_project_be.domain.pt.controller;
 
 import com.example.final_project_be.domain.pt.dto.PtLogCreateRequestDTO;
+import com.example.final_project_be.domain.pt.dto.PtLogResponseDTO;
 import com.example.final_project_be.domain.pt.service.PtLogService;
 import com.example.final_project_be.security.TrainerDTO;
 import io.swagger.v3.oas.annotations.Operation;
@@ -26,9 +27,10 @@ public class PtLogController {
     @PostMapping
     @PreAuthorize("hasRole('TRAINER')")
     @Operation(summary = "PT 로그 생성", description = "트레이너가 PT 로그를 생성합니다.")
-    public ResponseEntity<Long> createPtLog(
+    public ResponseEntity<PtLogResponseDTO> createPtLog(
             @Valid @RequestBody PtLogCreateRequestDTO request,
             @AuthenticationPrincipal TrainerDTO trainer) {
-        return ResponseEntity.ok(ptLogService.createPtLog(request, trainer));
+        Long ptLogId = ptLogService.createPtLog(request, trainer);
+        return ResponseEntity.ok(ptLogService.getPtLog(ptLogId));
     }
 } 
