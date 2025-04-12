@@ -1,8 +1,6 @@
 package com.example.final_project_be.domain.pt.controller;
 
-import com.example.final_project_be.domain.pt.dto.PtScheduleCancelRequestDTO;
-import com.example.final_project_be.domain.pt.dto.PtScheduleCreateRequestDTO;
-import com.example.final_project_be.domain.pt.dto.PtScheduleResponseDTO;
+import com.example.final_project_be.domain.pt.dto.*;
 import com.example.final_project_be.domain.pt.entity.PtSchedule;
 import com.example.final_project_be.domain.pt.enums.PtScheduleStatus;
 import com.example.final_project_be.domain.pt.service.PtScheduleService;
@@ -54,7 +52,7 @@ public class PtScheduleController {
     public ResponseEntity<PtScheduleResponseDTO> createPtSchedule(
             @Valid @RequestBody PtScheduleCreateRequestDTO request,
             @AuthenticationPrincipal MemberDTO member) {
-        Long ptScheduleId = ptScheduleService.createSchedule(request, member);
+        Long ptScheduleId = ptScheduleService.createSchedule(request, member, true);
         PtSchedule ptSchedule = ptScheduleService.getPtSchedule(ptScheduleId);
         return ResponseEntity.ok(PtScheduleResponseDTO.from(ptSchedule));
     }
@@ -74,5 +72,15 @@ public class PtScheduleController {
         );
         
         return ResponseEntity.ok(PtScheduleResponseDTO.from(ptSchedule));
+    }
+
+    @PatchMapping("/api/pt_schedules/{scheduleId}/change")
+    @Operation(summary = "PT 스케줄 변경", description = "기존 PT 스케줄을 변경하고 새로운 스케줄을 생성합니다.")
+    public ResponseEntity<PtScheduleChangeResponseDTO> changePtSchedule(
+            @Parameter(description = "변경할 PT 스케줄 ID")
+            @PathVariable Long scheduleId,
+            @Valid @RequestBody PtScheduleChangeRequestDTO request,
+            @AuthenticationPrincipal Object user) {
+        return ResponseEntity.ok(ptScheduleService.changeSchedule(scheduleId, request, user));
     }
 } 

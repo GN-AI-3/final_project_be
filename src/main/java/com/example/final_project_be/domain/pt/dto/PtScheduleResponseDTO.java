@@ -44,7 +44,7 @@ public class PtScheduleResponseDTO {
                 .memberName(ptSchedule.getPtContract().getMember().getName())
                 .currentPtCount(ptSchedule.getCurrentPtCount())
                 .totalCount(ptSchedule.getPtContract().getTotalCount())
-                .remainingPtCount(ptSchedule.getPtContract().getRemainingCount())
+                .remainingPtCount(ptSchedule.getPtContract().getTotalCount() - ptSchedule.getPtContract().getUsedCount())
                 .build();
     }
 } 

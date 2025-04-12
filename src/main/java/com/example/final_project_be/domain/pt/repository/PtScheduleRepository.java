@@ -30,4 +30,42 @@ public interface PtScheduleRepository extends JpaRepository<PtSchedule, Long> {
 
     @Query("SELECT ps FROM PtSchedule ps JOIN FETCH ps.ptContract pc JOIN FETCH pc.member JOIN FETCH pc.trainer WHERE ps.id = :id")
     Optional<PtSchedule> findByIdWithContractAndMembers(@Param("id") Long id);
+
+    @Query("SELECT ps FROM PtSchedule ps " +
+            "JOIN FETCH ps.ptContract pc " +
+            "JOIN FETCH pc.member " +
+            "JOIN FETCH pc.trainer " +
+            "WHERE ps.startTime <= :endTime " +
+            "AND pc.id IN " +
+            "(SELECT DISTINCT pc2.id FROM PtSchedule ps2 " +
+            "JOIN ps2.ptContract pc2 " +
+            "WHERE ps2.startTime BETWEEN :startTime AND :endTime " +
+            "AND (:status is null OR ps2.status = :status) " +
+            "AND pc2.member.id = :memberId) " +
+            "ORDER BY ps.startTime ASC")
+    List<PtSchedule> findSchedulesForCountCalculationByMember(
+            @Param("startTime") LocalDateTime startTime,
+            @Param("endTime") LocalDateTime endTime,
+            @Param("status") PtScheduleStatus status,
+            @Param("memberId") Long memberId
+    );
+
+    @Query("SELECT ps FROM PtSchedule ps " +
+            "JOIN FETCH ps.ptContract pc " +
+            "JOIN FETCH pc.member " +
+            "JOIN FETCH pc.trainer " +
+            "WHERE ps.startTime <= :endTime " +
+            "AND pc.id IN " +
+            "(SELECT DISTINCT pc2.id FROM PtSchedule ps2 " +
+            "JOIN ps2.ptContract pc2 " +
+            "WHERE ps2.startTime BETWEEN :startTime AND :endTime " +
+            "AND (:status is null OR ps2.status = :status) " +
+            "AND pc2.trainer.id = :trainerId) " +
+            "ORDER BY ps.startTime ASC")
+    List<PtSchedule> findSchedulesForCountCalculationByTrainer(
+            @Param("startTime") LocalDateTime startTime,
+            @Param("endTime") LocalDateTime endTime,
+            @Param("status") PtScheduleStatus status,
+            @Param("trainerId") Long trainerId
+    );
 } 
