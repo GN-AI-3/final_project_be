@@ -1,8 +1,8 @@
 package com.example.final_project_be.domain.trainer.entity;
 
+import com.example.final_project_be.domain.pt.entity.PtContract;
 import com.example.final_project_be.domain.trainer.dto.TrainerJoinRequestDTO;
 import com.example.final_project_be.entity.BaseEntity;
-import com.example.final_project_be.domain.pt.entity.PtContract;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -64,6 +64,14 @@ public class Trainer extends BaseEntity {
 
     @OneToOne(mappedBy = "trainer", cascade = CascadeType.ALL)
     private Subscribe subscribe;
+
+    @Column(name = "schedule_cancel_limit_hours", nullable = false)
+    @Builder.Default
+    private Integer scheduleCancelLimitHours = 12;
+
+    @Column(name = "schedule_change_limit_hours", nullable = false)
+    @Builder.Default
+    private Integer scheduleChangeLimitHours = 12;
 
     public void updateFcmToken(String fcmToken) {
         this.fcmToken = fcmToken;

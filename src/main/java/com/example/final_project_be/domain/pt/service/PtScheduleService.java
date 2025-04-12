@@ -11,6 +11,7 @@ import com.example.final_project_be.domain.pt.entity.PtSchedule;
 import com.example.final_project_be.domain.pt.enums.PtScheduleStatus;
 import com.example.final_project_be.domain.pt.repository.PtContractRepository;
 import com.example.final_project_be.domain.pt.repository.PtScheduleRepository;
+import com.example.final_project_be.domain.trainer.entity.Trainer;
 import com.example.final_project_be.security.MemberDTO;
 import com.example.final_project_be.security.TrainerDTO;
 import lombok.RequiredArgsConstructor;
@@ -116,15 +117,7 @@ public class PtScheduleService {
     @Transactional
     public PtSchedule cancelSchedule(Long scheduleId, String reason, Object user) {
         PtSchedule schedule = getPtSchedule(scheduleId);
-        validateScheduleAuthority(schedule, user);
-
-        if (schedule.getStatus() != PtScheduleStatus.SCHEDULED) {
-            throw new IllegalArgumentException("이미 취소되었거나 완료된 PT 일정입니다.");
-        }
-
-        if (schedule.getStartTime().isBefore(LocalDateTime.now())) {
-            throw new IllegalArgumentException("이미 시작된 PT 일정은 취소할 수 없습니다.");
-        }
+        validateScheduleModification(schedule, LocalDateTime.now(), true, user);
 
         // 스케줄 취소
         schedule.setStatus(PtScheduleStatus.CANCELLED);
@@ -138,9 +131,9 @@ public class PtScheduleService {
 
     @Transactional
     public PtScheduleChangeResponseDTO changeSchedule(Long scheduleId, PtScheduleChangeRequestDTO request, Object user) {
-        // 1. 기존 일정 조회 및 권한 검증
+        // 1. 기존 일정 조회 및 검증
         PtSchedule oldSchedule = getPtSchedule(scheduleId);
-        validateScheduleAuthority(oldSchedule, user);
+        validateScheduleModification(oldSchedule, LocalDateTime.now(), false, user);
 
         // 2. 기존 일정 상태를 CHANGED로 변경
         oldSchedule.setStatus(PtScheduleStatus.CHANGED);
@@ -277,5 +270,75 @@ public class PtScheduleService {
                 java.time.Instant.ofEpochSecond(timestamp),
                 ZoneId.systemDefault()
         );
+    }
+
+    private void validateScheduleModification(PtSchedule schedule, LocalDateTime changeTime, boolean isCancel, Object user) {
+        // 1. 권한 검증
+        if (user instanceof MemberDTO member) {
+            if (!schedule.getPtContract().getMember().getId().equals(member.getId())) {
+                throw new IllegalArgumentException("해당 PT 일정에 대한 변경 권한이 없습니다.");
+            }
+        } else if (user instanceof TrainerDTO trainer) {
+            if (!schedule.getPtContract().getTrainer().getId().equals(trainer.getId())) {
+                throw new IllegalArgumentException("해당 PT 일정에 대한 변경 권한이 없습니다.");
+            }
+        } else {
+            throw new IllegalArgumentException("유효하지 않은 사용자 타입입니다.");
+        }
+
+        // 2. 상태 검증
+        if (schedule.getStatus() != PtScheduleStatus.SCHEDULED) {
+            throw new IllegalArgumentException("이미 취소, 변경, 완료 또는 불참 처리된 PT 일정입니다.");
+        }
+
+        // 3. 시간 검증
+        LocalDateTime scheduleStartTime = schedule.getStartTime();
+        if (scheduleStartTime.isBefore(LocalDateTime.now())) {
+            throw new IllegalArgumentException("이미 시작된 PT 일정은 변경할 수 없습니다.");
+        }
+
+        // 4. 제한 시간 검증
+        Trainer trainer = schedule.getPtContract().getTrainer();
+        long hoursUntilStart = java.time.Duration.between(changeTime, scheduleStartTime).toHours();
+        int limitHours = isCancel ? trainer.getScheduleCancelLimitHours() : trainer.getScheduleChangeLimitHours();
+
+        if (hoursUntilStart < limitHours) {
+            String action = isCancel ? "취소" : "변경";
+            throw new IllegalArgumentException(
+                    String.format("%s는 PT 시작 %d시간 전까지만 가능합니다.",
+                            action, limitHours)
+            );
+        }
+    }
+
+    private void validateNoShow(PtSchedule schedule, Object user) {
+        // 1. 권한 검증
+        if (!schedule.getPtContract().getTrainer().getId().equals(((TrainerDTO) user).getId())) {
+            throw new IllegalArgumentException("해당 PT 일정에 대한 변경 권한이 없습니다.");
+        }
+
+        // 2. 상태 검증
+        if (schedule.getStatus() != PtScheduleStatus.SCHEDULED) {
+            throw new IllegalArgumentException("이미 취소, 변경, 완료 또는 불참 처리된 PT 일정입니다.");
+        }
+
+        // 3. 시간 검증
+        if (schedule.getStartTime().isAfter(LocalDateTime.now())) {
+            throw new IllegalArgumentException("아직 시작되지 않은 PT 일정은 불참 처리할 수 없습니다.");
+        }
+    }
+
+    @Transactional
+    public PtSchedule markAsNoShow(Long scheduleId, String reason, Object user) {
+        PtSchedule schedule = getPtSchedule(scheduleId);
+        validateNoShow(schedule, user);
+
+        schedule.setStatus(PtScheduleStatus.NO_SHOW);
+        schedule.setReason(reason);
+
+        // 회차 정보 업데이트
+        recalculatePtCounts(schedule.getPtContract(), schedule.getStartTime());
+
+        return schedule;
     }
 } 
