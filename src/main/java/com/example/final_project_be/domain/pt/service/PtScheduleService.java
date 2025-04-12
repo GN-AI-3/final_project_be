@@ -47,23 +47,28 @@ public class PtScheduleService {
 
         List<PtSchedule> schedules;
         if (user instanceof MemberDTO member) {
-            schedules = ptScheduleRepository.findSchedulesForCountCalculationByMember(
-                    startTime, endTime, status, member.getId()
+            schedules = ptScheduleRepository.findByStartTimeBetweenAndPtContract_Member_Id(
+                    startTime, endTime, member.getId()
             );
+            if (status != null) {
+                schedules = schedules.stream()
+                        .filter(schedule -> schedule.getStatus() == status)
+                        .collect(Collectors.toList());
+            }
         } else if (user instanceof TrainerDTO trainer) {
-            schedules = ptScheduleRepository.findSchedulesForCountCalculationByTrainer(
-                    startTime, endTime, status, trainer.getId()
+            schedules = ptScheduleRepository.findByStartTimeBetweenAndPtContract_Trainer_Id(
+                    startTime, endTime, trainer.getId()
             );
+            if (status != null) {
+                schedules = schedules.stream()
+                        .filter(schedule -> schedule.getStatus() == status)
+                        .collect(Collectors.toList());
+            }
         } else {
             throw new IllegalArgumentException("유효하지 않은 사용자 타입입니다.");
         }
 
         return schedules.stream()
-                .filter(schedule ->
-                        schedule.getStartTime().isAfter(startTime.minusSeconds(1)) &&
-                                schedule.getStartTime().isBefore(endTime.plusSeconds(1)) &&
-                                (status == null || schedule.getStatus() == status)
-                )
                 .map(PtScheduleResponseDTO::from)
                 .collect(Collectors.toList());
     }

@@ -73,7 +73,10 @@ public interface PtScheduleRepository extends JpaRepository<PtSchedule, Long> {
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT ps FROM PtSchedule ps " +
-            "WHERE ps.ptContract.id = :contractId " +
+            "JOIN FETCH ps.ptContract pc " +
+            "JOIN FETCH pc.member " +
+            "JOIN FETCH pc.trainer " +
+            "WHERE pc.id = :contractId " +
             "AND ps.status = :status " +
             "AND ((ps.startTime <= :endTime AND ps.endTime >= :startTime) " +
             "OR (ps.startTime >= :startTime AND ps.startTime < :endTime))")
