@@ -4,6 +4,7 @@ import com.example.final_project_be.domain.pt.dto.*;
 import com.example.final_project_be.domain.pt.entity.PtSchedule;
 import com.example.final_project_be.domain.pt.enums.PtScheduleStatus;
 import com.example.final_project_be.domain.pt.service.PtScheduleService;
+import com.example.final_project_be.security.MemberDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -51,8 +52,8 @@ public class PtScheduleController {
     @Operation(summary = "PT 스케줄 등록", description = "새로운 PT 스케줄을 등록합니다.")
     public ResponseEntity<PtScheduleResponseDTO> createPtSchedule(
             @Valid @RequestBody PtScheduleCreateRequestDTO request,
-            @AuthenticationPrincipal Object user) {
-        Long ptScheduleId = ptScheduleService.createSchedule(request, user, true);
+            @AuthenticationPrincipal MemberDTO member) {
+        Long ptScheduleId = ptScheduleService.createSchedule(request, member, true);
         PtSchedule ptSchedule = ptScheduleService.getPtSchedule(ptScheduleId);
         return ResponseEntity.ok(PtScheduleResponseDTO.from(ptSchedule));
     }
