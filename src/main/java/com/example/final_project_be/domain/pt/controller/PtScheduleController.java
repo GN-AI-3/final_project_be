@@ -1,7 +1,6 @@
 package com.example.final_project_be.domain.pt.controller;
 
-import com.example.final_project_be.domain.pt.dto.PtScheduleCreateRequestDTO;
-import com.example.final_project_be.domain.pt.dto.PtScheduleResponseDTO;
+import com.example.final_project_be.domain.pt.dto.*;
 import com.example.final_project_be.domain.pt.entity.PtSchedule;
 import com.example.final_project_be.domain.pt.enums.PtScheduleStatus;
 import com.example.final_project_be.domain.pt.service.PtScheduleService;
@@ -12,6 +11,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -49,12 +49,57 @@ public class PtScheduleController {
     }
 
     @PostMapping("/api/pt_schedules")
-    @Operation(summary = "PT 일정 등록", description = "새로운 PT 일정을 등록합니다.")
+    @Operation(summary = "PT 스케줄 등록", description = "새로운 PT 스케줄을 등록합니다.")
     public ResponseEntity<PtScheduleResponseDTO> createPtSchedule(
             @Valid @RequestBody PtScheduleCreateRequestDTO request,
             @AuthenticationPrincipal MemberDTO member) {
-        Long ptScheduleId = ptScheduleService.createSchedule(request, member);
+        Long ptScheduleId = ptScheduleService.createSchedule(request, member, true);
         PtSchedule ptSchedule = ptScheduleService.getPtSchedule(ptScheduleId);
+        return ResponseEntity.ok(PtScheduleResponseDTO.from(ptSchedule));
+    }
+
+    @PatchMapping("/api/pt_schedules/{scheduleId}/cancel")
+    @Operation(summary = "PT 스케줄 취소", description = "예약된 PT 스케줄을 취소합니다.")
+    public ResponseEntity<PtScheduleResponseDTO> cancelPtSchedule(
+            @Parameter(description = "취소할 PT 스케줄 ID")
+            @PathVariable Long scheduleId,
+            @RequestBody(required = false) PtScheduleCancelRequestDTO request,
+            @AuthenticationPrincipal Object user) {
+
+        PtSchedule ptSchedule = ptScheduleService.cancelSchedule(
+                scheduleId,
+                request != null ? request.getReason() : null,
+                user
+        );
+        
+        return ResponseEntity.ok(PtScheduleResponseDTO.from(ptSchedule));
+    }
+
+    @PatchMapping("/api/pt_schedules/{scheduleId}/change")
+    @Operation(summary = "PT 스케줄 변경", description = "기존 PT 스케줄을 변경하고 새로운 스케줄을 생성합니다.")
+    public ResponseEntity<PtScheduleChangeResponseDTO> changePtSchedule(
+            @Parameter(description = "변경할 PT 스케줄 ID")
+            @PathVariable Long scheduleId,
+            @Valid @RequestBody PtScheduleChangeRequestDTO request,
+            @AuthenticationPrincipal Object user) {
+        return ResponseEntity.ok(ptScheduleService.changeSchedule(scheduleId, request, user));
+    }
+
+    @PatchMapping("/api/pt_schedules/{scheduleId}/no_show")
+    @Operation(summary = "PT 스케줄 불참 처리", description = "트레이너가 PT 스케줄을 불참으로 처리합니다.")
+    @PreAuthorize("hasRole('TRAINER')")
+    public ResponseEntity<PtScheduleResponseDTO> markAsNoShow(
+            @Parameter(description = "불참 처리할 PT 스케줄 ID")
+            @PathVariable Long scheduleId,
+            @RequestBody(required = false) PtScheduleCancelRequestDTO request,
+            @AuthenticationPrincipal Object user) {
+
+        PtSchedule ptSchedule = ptScheduleService.markAsNoShow(
+                scheduleId,
+                request != null ? request.getReason() : null,
+                user
+        );
+
         return ResponseEntity.ok(PtScheduleResponseDTO.from(ptSchedule));
     }
 } 

@@ -5,10 +5,7 @@ import com.example.final_project_be.domain.pt.enums.ContractStatus;
 import com.example.final_project_be.domain.trainer.entity.Trainer;
 import com.example.final_project_be.entity.BaseEntity;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.DynamicUpdate;
 
@@ -38,6 +35,7 @@ public class PtContract extends BaseEntity {
     private Integer totalCount;
 
     @Column(name = "used_count", nullable = false)
+    @Setter
     @Builder.Default
     private Integer usedCount = 0;
 
@@ -61,5 +59,11 @@ public class PtContract extends BaseEntity {
 
     public boolean isActive() {
         return status == ContractStatus.ACTIVE;
+    }
+
+    public void decrementUsedCount() {
+        if (this.usedCount > 0) {
+            this.usedCount--;
+        }
     }
 }
