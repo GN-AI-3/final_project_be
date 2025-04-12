@@ -34,7 +34,6 @@ public class PtLogCreateRequestDTO {
         private Integer weight;
 
         private Integer restTime;
-        private String correctionNote;
         private String feedback;
     }
 } 

@@ -6,6 +6,7 @@ import com.example.final_project_be.domain.pt.dto.PtLogCreateRequestDTO;
 import com.example.final_project_be.domain.pt.entity.PtLog;
 import com.example.final_project_be.domain.pt.entity.PtLogExercise;
 import com.example.final_project_be.domain.pt.entity.PtSchedule;
+import com.example.final_project_be.domain.pt.repository.PtLogExerciseRepository;
 import com.example.final_project_be.domain.pt.repository.PtLogRepository;
 import com.example.final_project_be.domain.pt.repository.PtScheduleRepository;
 import com.example.final_project_be.security.TrainerDTO;
@@ -22,6 +23,7 @@ import java.util.stream.IntStream;
 public class PtLogService {
 
     private final PtLogRepository ptLogRepository;
+    private final PtLogExerciseRepository ptLogExerciseRepository;
     private final PtScheduleRepository ptScheduleRepository;
     private final ExerciseRepository exerciseRepository;
 
@@ -45,7 +47,7 @@ public class PtLogService {
 
         // 운동 로그 생성
         List<PtLogExercise> exercises = IntStream.range(0, request.getExercises().size())
-                .mapToObj(i -> {
+                .<PtLogExercise>mapToObj(i -> {
                     PtLogCreateRequestDTO.ExerciseLogDTO exerciseDto = request.getExercises().get(i);
                     Exercise exercise = exerciseRepository.findById(exerciseDto.getExerciseId())
                             .orElseThrow(() -> new IllegalArgumentException("운동을 찾을 수 없습니다."));
@@ -58,15 +60,13 @@ public class PtLogService {
                             .reps(exerciseDto.getReps())
                             .weight(exerciseDto.getWeight())
                             .restTime(exerciseDto.getRestTime())
-                            .correctionNote(exerciseDto.getCorrectionNote())
                             .feedback(exerciseDto.getFeedback())
-                            .created_by(trainer.getId())
                             .build();
                 })
                 .toList();
 
         // 운동 로그 저장
-        ptLogRepository.saveAll(exercises);
+        ptLogExerciseRepository.saveAll(exercises);
 
         return savedPtLog.getId();
     }
