@@ -19,6 +19,8 @@ public class PtLogResponseDTO {
     private Long ptScheduleId;
     private Long memberId;
     private String memberName;
+    private Long trainerId;
+    private String trainerName;
     private String feedback;
     private boolean injuryCheck;
     private String nextPlan;
@@ -30,6 +32,8 @@ public class PtLogResponseDTO {
                 .ptScheduleId(ptLog.getPtSchedule().getId())
                 .memberId(ptLog.getMember().getId())
                 .memberName(ptLog.getMember().getName())
+                .trainerId(ptLog.getTrainer().getId())
+                .trainerName(ptLog.getTrainer().getName())
                 .feedback(ptLog.getFeedback())
                 .injuryCheck(ptLog.isInjuryCheck())
                 .nextPlan(ptLog.getNextPlan())

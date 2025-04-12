@@ -1,6 +1,7 @@
 package com.example.final_project_be.domain.pt.entity;
 
 import com.example.final_project_be.domain.member.entity.Member;
+import com.example.final_project_be.domain.trainer.entity.Trainer;
 import com.example.final_project_be.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -31,6 +32,10 @@ public class PtLog extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id")
     private Member member;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "trainer_id")
+    private Trainer trainer;
 
     @Column(name = "feedback")
     private String feedback;
