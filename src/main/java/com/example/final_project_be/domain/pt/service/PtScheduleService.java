@@ -105,6 +105,12 @@ public class PtScheduleService {
         // 중복 체크
         checkTimeOverlap(startTime, endTime, request.getPtContractId());
 
+        // 현재 PT 회차 계산
+        int currentCount = calculatePreviousPtCount(contract, startTime);
+        if (shouldCheckRemaining) {
+            currentCount++; // 새로운 일정이므로 회차 증가
+        }
+
         // PT 스케줄 생성
         PtSchedule ptSchedule = PtSchedule.builder()
                 .ptContract(contract)
@@ -112,10 +118,9 @@ public class PtScheduleService {
                 .endTime(endTime)
                 .status(PtScheduleStatus.SCHEDULED)
                 .isDeducted(true)
+                .currentPtCount(currentCount)
                 .build();
 
-        // 회차 계산 및 저장
-        recalculatePtCounts(contract, startTime);
         return ptScheduleRepository.save(ptSchedule).getId();
     }
 
