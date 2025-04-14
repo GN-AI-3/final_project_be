@@ -124,7 +124,18 @@ public class PtLogService {
             throw new IllegalArgumentException("해당 PT 로그를 삭제할 권한이 없습니다.");
         }
 
-        // 소프트 삭제
+        // PT 로그 운동 목록 조회
+        List<PtLogExercise> exercises = ptLog.getExercises();
+
+        // PT 로그 운동들도 함께 삭제 처리
+        for (PtLogExercise exercise : exercises) {
+            exercise.setIsDeleted(true);
+        }
+
+        // PT 로그 운동 저장
+        ptLogExerciseRepository.saveAll(exercises);
+
+        // PT 로그 소프트 삭제
         ptLog.setIsDeleted(true);
         ptLogRepository.save(ptLog);
     }

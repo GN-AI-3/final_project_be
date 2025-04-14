@@ -41,6 +41,7 @@ public class PtLogResponseDTO {
                 .injuryCheck(ptLog.isInjuryCheck())
                 .nextPlan(ptLog.getNextPlan())
                 .exercises(ptLog.getExercises().stream()
+                        .filter(exercise -> !exercise.getIsDeleted())
                         .map(ExerciseLogResponseDTO::from)
                         .collect(Collectors.toList()))
                 .createdAt(ptLog.getCreatedAt() != null ? ptLog.getCreatedAt().atZone(ZoneId.systemDefault()).toEpochSecond() : null)
