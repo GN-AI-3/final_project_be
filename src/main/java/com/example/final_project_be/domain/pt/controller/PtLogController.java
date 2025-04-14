@@ -3,6 +3,9 @@ package com.example.final_project_be.domain.pt.controller;
 import com.example.final_project_be.domain.pt.dto.PtLogCreateRequestDTO;
 import com.example.final_project_be.domain.pt.dto.PtLogResponseDTO;
 import com.example.final_project_be.domain.pt.dto.PtLogUpdateRequestDTO;
+import com.example.final_project_be.domain.pt.dto.request.CreatePtLogExerciseRequest;
+import com.example.final_project_be.domain.pt.dto.request.UpdatePtLogExerciseRequest;
+import com.example.final_project_be.domain.pt.service.PtLogExerciseService;
 import com.example.final_project_be.domain.pt.service.PtLogService;
 import com.example.final_project_be.security.TrainerDTO;
 import io.swagger.v3.oas.annotations.Operation;
@@ -21,6 +24,7 @@ import org.springframework.web.bind.annotation.*;
 public class PtLogController {
 
     private final PtLogService ptLogService;
+    private final PtLogExerciseService ptLogExerciseService;
 
     @PostMapping
     @PreAuthorize("hasRole('TRAINER')")
@@ -56,6 +60,40 @@ public class PtLogController {
             @PathVariable Long ptLogId,
             @AuthenticationPrincipal TrainerDTO trainer) {
         ptLogService.deletePtLog(ptLogId, trainer);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/{ptLogId}/exercises")
+    @PreAuthorize("hasRole('TRAINER')")
+    @Operation(summary = "PT 로그 운동 추가", description = "PT 로그에 운동을 추가합니다.")
+    public ResponseEntity<Void> createPtLogExercise(
+            @PathVariable Long ptLogId,
+            @Valid @RequestBody CreatePtLogExerciseRequest request
+    ) {
+        ptLogExerciseService.createPtLogExercise(ptLogId, request);
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/{ptLogId}/exercises/{exerciseLogId}")
+    @PreAuthorize("hasRole('TRAINER')")
+    @Operation(summary = "PT 로그 운동 삭제", description = "PT 로그에서 운동을 삭제합니다.")
+    public ResponseEntity<Void> deletePtLogExercise(
+            @PathVariable Long ptLogId,
+            @PathVariable Long exerciseLogId
+    ) {
+        ptLogExerciseService.deletePtLogExercise(ptLogId, exerciseLogId);
+        return ResponseEntity.ok().build();
+    }
+
+    @PatchMapping("/{ptLogId}/exercises/{exerciseLogId}")
+    @PreAuthorize("hasRole('TRAINER')")
+    @Operation(summary = "PT 로그 운동 수정", description = "PT 로그의 운동 정보를 수정합니다.")
+    public ResponseEntity<Void> updatePtLogExercise(
+            @PathVariable Long ptLogId,
+            @PathVariable Long exerciseLogId,
+            @Valid @RequestBody UpdatePtLogExerciseRequest request
+    ) {
+        ptLogExerciseService.updatePtLogExercise(ptLogId, exerciseLogId, request);
         return ResponseEntity.ok().build();
     }
 } 
