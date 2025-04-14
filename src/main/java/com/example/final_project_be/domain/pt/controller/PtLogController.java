@@ -38,15 +38,15 @@ public class PtLogController {
         return ResponseEntity.ok(ptLogService.getPtLog(ptLogId));
     }
 
-    @PutMapping("/{ptLogId}")
+    @PatchMapping("/{ptLogId}")
     @PreAuthorize("hasRole('TRAINER')")
     @Operation(summary = "PT 로그 수정", description = "트레이너가 PT 로그를 수정합니다.")
     public ResponseEntity<PtLogResponseDTO> updatePtLog(
             @PathVariable Long ptLogId,
             @Valid @RequestBody PtLogUpdateRequestDTO request,
             @AuthenticationPrincipal TrainerDTO trainer) {
-        ptLogService.updatePtLog(ptLogId, request, trainer);
-        return ResponseEntity.ok(ptLogService.getPtLog(ptLogId));
+        Long updatedPtLogId = ptLogService.updatePtLog(ptLogId, request, trainer);
+        return ResponseEntity.ok(ptLogService.getPtLog(updatedPtLogId));
     }
 
     @DeleteMapping("/{ptLogId}")
