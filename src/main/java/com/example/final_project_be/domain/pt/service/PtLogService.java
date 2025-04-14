@@ -37,6 +37,11 @@ public class PtLogService {
         PtSchedule ptSchedule = ptScheduleRepository.findByIdWithContractAndMembers(request.getPtScheduleId())
                 .orElseThrow(() -> new IllegalArgumentException("PT 스케줄을 찾을 수 없습니다."));
 
+        // PT 로그 중복 체크
+        if (ptLogRepository.existsByPtScheduleId(request.getPtScheduleId())) {
+            throw new IllegalArgumentException("이미 해당 PT 스케줄에 대한 로그가 존재합니다.");
+        }
+
         // PT 로그 생성
         PtLog ptLog = PtLog.builder()
                 .ptSchedule(ptSchedule)
