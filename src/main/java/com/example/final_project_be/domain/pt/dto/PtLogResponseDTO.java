@@ -26,8 +26,8 @@ public class PtLogResponseDTO {
     private List<ExerciseLogResponseDTO> exercises;
     private LocalDateTime createdAt;
     private LocalDateTime modifiedAt;
-    private String createdBy;
-    private String modifiedBy;
+    private Long createdBy;
+    private Long modifiedBy;
 
     public static PtLogResponseDTO from(PtLog ptLog) {
         return PtLogResponseDTO.builder()

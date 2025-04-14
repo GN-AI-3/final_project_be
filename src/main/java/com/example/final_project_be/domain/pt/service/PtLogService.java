@@ -45,6 +45,8 @@ public class PtLogService {
         // PT 로그 생성
         PtLog ptLog = PtLog.builder()
                 .ptSchedule(ptSchedule)
+                .member(ptSchedule.getPtContract().getMember())
+                .trainer(ptSchedule.getPtContract().getTrainer())
                 .feedback(request.getFeedback())
                 .injuryCheck(request.isInjuryCheck())
                 .nextPlan(request.getNextPlan())
