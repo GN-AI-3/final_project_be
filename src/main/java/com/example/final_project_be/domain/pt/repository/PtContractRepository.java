@@ -2,6 +2,7 @@ package com.example.final_project_be.domain.pt.repository;
 
 import com.example.final_project_be.domain.pt.entity.PtContract;
 import com.example.final_project_be.domain.pt.enums.ContractStatus;
+import com.example.final_project_be.domain.member.entity.Member;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -30,4 +31,7 @@ public interface PtContractRepository extends JpaRepository<PtContract, Long> {
             "WHERE pc.trainer.id = :trainerId " +
             "ORDER BY m.name ASC")
     List<PtContract> findByTrainerId(@Param("trainerId") Long trainerId);
+    
+    // 회원의 가장 최근 활성 계약 조회
+    Optional<PtContract> findTop1ByMemberAndStatusOrderByCreatedAtDesc(Member member, ContractStatus status);
 } 

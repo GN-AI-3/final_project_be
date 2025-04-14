@@ -1,6 +1,6 @@
 package com.example.final_project_be.domain.chatmessage.entity;
 
-import com.example.final_project_be.domain.member.entity.Member;
+import com.example.final_project_be.domain.trainer.entity.Trainer;
 import com.example.final_project_be.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -15,8 +15,8 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "chat_message")
-public class ChatMessage extends BaseEntity {
+@Table(name = "trainer_chat_message")
+public class TrainerChatMessage extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -29,10 +29,10 @@ public class ChatMessage extends BaseEntity {
     @Column(nullable = false, length = 20)
     private String role;
 
-    // Member와 직접 연관관계 맺기
+    // Trainer와 직접 연관관계 맺기
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id")
-    private Member member;
+    @JoinColumn(name = "trainer_id")
+    private Trainer trainer;
 
     // AI 서버 응답 관련 필드
     @Column(name = "server_member_id")
@@ -61,4 +61,4 @@ public class ChatMessage extends BaseEntity {
 
     @Column(name = "execution_time")
     private Float executionTime;
-}
+} 
