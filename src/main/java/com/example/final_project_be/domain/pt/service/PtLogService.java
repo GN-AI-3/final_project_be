@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.IntStream;
 
 @Service
@@ -101,30 +102,53 @@ public class PtLogService {
         ptLog.setNextPlan(request.getNextPlan());
         ptLog.setModified_by(trainer.getId());
 
-        // 기존 운동 로그 삭제
-        ptLogExerciseRepository.deleteAll(ptLog.getExercises());
+        // 기존 운동 로그 목록
+        List<PtLogExercise> existingExercises = ptLog.getExercises();
 
-        // 새로운 운동 로그 생성
-        List<PtLogExercise> exercises = IntStream.range(0, request.getExercises().size())
-                .<PtLogExercise>mapToObj(i -> {
-                    PtLogExerciseUpdateRequestDTO exerciseDto = request.getExercises().get(i);
-                    Exercise exercise = exerciseRepository.findById(exerciseDto.getExerciseId())
-                            .orElseThrow(() -> new IllegalArgumentException("운동을 찾을 수 없습니다."));
+        // 새로운 운동 로그 처리
+        for (int i = 0; i < request.getExercises().size(); i++) {
+            PtLogExerciseUpdateRequestDTO exerciseDto = request.getExercises().get(i);
+            Exercise exercise = exerciseRepository.findById(exerciseDto.getExerciseId())
+                    .orElseThrow(() -> new IllegalArgumentException("운동을 찾을 수 없습니다."));
 
-                    return PtLogExercise.builder()
-                            .ptLogs(ptLog)
-                            .exercise(exercise)
-                            .sequence(i + 1)
-                            .sets(exerciseDto.getSets())
-                            .reps(exerciseDto.getReps())
-                            .weight(exerciseDto.getWeight())
-                            .restTime(exerciseDto.getRestTime())
-                            .feedback(exerciseDto.getFeedback())
-                            .build();
-                })
+            if (exerciseDto.getId() != null) {
+                // 기존 운동 로그 수정
+                PtLogExercise existingExercise = existingExercises.stream()
+                        .filter(e -> e.getId().equals(exerciseDto.getId()))
+                        .findFirst()
+                        .orElseThrow(() -> new IllegalArgumentException("운동 로그를 찾을 수 없습니다."));
+
+                existingExercise.setExercise(exercise);
+                existingExercise.setSequence(i + 1);
+                existingExercise.setSets(exerciseDto.getSets());
+                existingExercise.setReps(exerciseDto.getReps());
+                existingExercise.setWeight(exerciseDto.getWeight());
+                existingExercise.setRestTime(exerciseDto.getRestTime());
+                existingExercise.setFeedback(exerciseDto.getFeedback());
+            } else {
+                // 새로운 운동 로그 추가
+                PtLogExercise newExercise = PtLogExercise.builder()
+                        .ptLogs(ptLog)
+                        .exercise(exercise)
+                        .sequence(i + 1)
+                        .sets(exerciseDto.getSets())
+                        .reps(exerciseDto.getReps())
+                        .weight(exerciseDto.getWeight())
+                        .restTime(exerciseDto.getRestTime())
+                        .feedback(exerciseDto.getFeedback())
+                        .build();
+                ptLogExerciseRepository.save(newExercise);
+            }
+        }
+
+        // 요청에 없는 기존 운동 로그 삭제
+        List<Long> requestExerciseIds = request.getExercises().stream()
+                .map(PtLogExerciseUpdateRequestDTO::getId)
+                .filter(Objects::nonNull)
                 .toList();
 
-        // 운동 로그 저장
-        ptLogExerciseRepository.saveAll(exercises);
+        existingExercises.stream()
+                .filter(exercise -> !requestExerciseIds.contains(exercise.getId()))
+                .forEach(ptLogExerciseRepository::delete);
     }
 } 

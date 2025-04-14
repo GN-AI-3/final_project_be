@@ -8,6 +8,8 @@ import lombok.Setter;
 @Getter
 @Setter
 public class PtLogExerciseUpdateRequestDTO {
+    private Long id;
+
     @NotNull
     private Long exerciseId;
 
