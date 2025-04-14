@@ -32,8 +32,10 @@ public interface PtLogRepository extends JpaRepository<PtLog, Long> {
             "JOIN FETCH pl.trainer " +
             "JOIN FETCH pl.exercises e " +
             "JOIN FETCH e.exercise " +
-            "WHERE pl.member.id = :memberId AND pl.isDeleted = false")
-    List<PtLog> findByMemberIdAndNotDeleted(@Param("memberId") Long memberId);
+            "JOIN pl.ptSchedule ps " +
+            "JOIN ps.ptContract pc " +
+            "WHERE pc.id = :ptContractId AND pl.isDeleted = false")
+    List<PtLog> findByPtContractIdAndNotDeleted(@Param("ptContractId") Long ptContractId);
 
     boolean existsByPtScheduleId(Long ptScheduleId);
 } 

@@ -45,9 +45,9 @@ public class PtLogController {
     }
 
     @GetMapping
-    @Operation(summary = "회원별 PT 로그 조회", description = "회원 ID로 PT 로그 목록을 조회합니다.")
-    public ResponseEntity<List<PtLogResponseDTO>> getPtLogsByMemberId(@RequestParam Long memberId) {
-        return ResponseEntity.ok(ptLogService.getPtLogsByMemberId(memberId));
+    @Operation(summary = "PT 계약별 PT 로그 조회", description = "PT 계약 ID로 PT 로그 목록을 조회합니다.")
+    public ResponseEntity<List<PtLogResponseDTO>> getPtLogsByPtContractId(@RequestParam Long ptContractId) {
+        return ResponseEntity.ok(ptLogService.getPtLogsByPtContractId(ptContractId));
     }
 
     @PatchMapping("/{ptLogId}")

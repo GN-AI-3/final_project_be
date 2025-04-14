@@ -92,8 +92,8 @@ public class PtLogService {
     }
 
     @Transactional(readOnly = true)
-    public List<PtLogResponseDTO> getPtLogsByMemberId(Long memberId) {
-        List<PtLog> ptLogs = ptLogRepository.findByMemberIdAndNotDeleted(memberId);
+    public List<PtLogResponseDTO> getPtLogsByPtContractId(Long ptContractId) {
+        List<PtLog> ptLogs = ptLogRepository.findByPtContractIdAndNotDeleted(ptContractId);
         return ptLogs.stream()
                 .map(ptLog -> {
                     PtLogResponseDTO responseDTO = PtLogResponseDTO.from(ptLog);
