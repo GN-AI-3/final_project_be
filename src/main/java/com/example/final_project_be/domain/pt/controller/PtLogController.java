@@ -11,10 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -31,6 +28,12 @@ public class PtLogController {
             @Valid @RequestBody PtLogCreateRequestDTO request,
             @AuthenticationPrincipal TrainerDTO trainer) {
         Long ptLogId = ptLogService.createPtLog(request, trainer);
+        return ResponseEntity.ok(ptLogService.getPtLog(ptLogId));
+    }
+
+    @GetMapping("/{ptLogId}")
+    @Operation(summary = "PT 로그 단건 조회", description = "PT 로그 ID로 단건 조회합니다.")
+    public ResponseEntity<PtLogResponseDTO> getPtLog(@PathVariable Long ptLogId) {
         return ResponseEntity.ok(ptLogService.getPtLog(ptLogId));
     }
 } 

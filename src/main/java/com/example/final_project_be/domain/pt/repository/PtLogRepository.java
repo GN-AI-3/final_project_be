@@ -12,6 +12,7 @@ import java.util.Optional;
 public interface PtLogRepository extends JpaRepository<PtLog, Long> {
     @Query("SELECT pl FROM PtLog pl " +
             "JOIN FETCH pl.member " +
+            "JOIN FETCH pl.trainer " +
             "JOIN FETCH pl.exercises e " +
             "JOIN FETCH e.exercise " +
             "WHERE pl.id = :id")

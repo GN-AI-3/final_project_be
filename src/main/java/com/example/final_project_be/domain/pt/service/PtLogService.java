@@ -28,6 +28,7 @@ public class PtLogService {
     private final PtScheduleRepository ptScheduleRepository;
     private final ExerciseRepository exerciseRepository;
 
+    @Transactional
     public Long createPtLog(PtLogCreateRequestDTO request, TrainerDTO trainer) {
         // PT 스케줄 조회
         PtSchedule ptSchedule = ptScheduleRepository.findByIdWithContractAndMembers(request.getPtScheduleId())
@@ -37,10 +38,12 @@ public class PtLogService {
         PtLog ptLog = PtLog.builder()
                 .ptSchedule(ptSchedule)
                 .member(ptSchedule.getPtContract().getMember())
+                .trainer(ptSchedule.getPtContract().getTrainer())
                 .feedback(request.getFeedback())
                 .injuryCheck(request.isInjuryCheck())
                 .nextPlan(request.getNextPlan())
                 .created_by(trainer.getId())
+                .modified_by(trainer.getId())
                 .build();
 
         // PT 로그 저장
