@@ -17,6 +17,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/pt_logs")
@@ -40,6 +42,12 @@ public class PtLogController {
     @Operation(summary = "PT 로그 단건 조회", description = "PT 로그 ID로 단건 조회합니다.")
     public ResponseEntity<PtLogResponseDTO> getPtLog(@PathVariable Long ptLogId) {
         return ResponseEntity.ok(ptLogService.getPtLog(ptLogId));
+    }
+
+    @GetMapping
+    @Operation(summary = "회원별 PT 로그 조회", description = "회원 ID로 PT 로그 목록을 조회합니다.")
+    public ResponseEntity<List<PtLogResponseDTO>> getPtLogsByMemberId(@RequestParam Long memberId) {
+        return ResponseEntity.ok(ptLogService.getPtLogsByMemberId(memberId));
     }
 
     @PatchMapping("/{ptLogId}")

@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 @Service
@@ -88,6 +89,19 @@ public class PtLogService {
         responseDTO.setMemberId(ptLog.getMember().getId());
         responseDTO.setTrainerId(ptLog.getTrainer().getId());
         return responseDTO;
+    }
+
+    @Transactional(readOnly = true)
+    public List<PtLogResponseDTO> getPtLogsByMemberId(Long memberId) {
+        List<PtLog> ptLogs = ptLogRepository.findByMemberIdAndNotDeleted(memberId);
+        return ptLogs.stream()
+                .map(ptLog -> {
+                    PtLogResponseDTO responseDTO = PtLogResponseDTO.from(ptLog);
+                    responseDTO.setMemberId(ptLog.getMember().getId());
+                    responseDTO.setTrainerId(ptLog.getTrainer().getId());
+                    return responseDTO;
+                })
+                .collect(Collectors.toList());
     }
 
     @Transactional

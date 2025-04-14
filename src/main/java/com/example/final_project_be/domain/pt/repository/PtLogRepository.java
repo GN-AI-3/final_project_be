@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -25,6 +26,14 @@ public interface PtLogRepository extends JpaRepository<PtLog, Long> {
             "JOIN FETCH e.exercise " +
             "WHERE pl.id = :id AND pl.isDeleted = false")
     Optional<PtLog> findByIdWithMemberAndExercisesAndNotDeleted(@Param("id") Long id);
+
+    @Query("SELECT pl FROM PtLog pl " +
+            "JOIN FETCH pl.member " +
+            "JOIN FETCH pl.trainer " +
+            "JOIN FETCH pl.exercises e " +
+            "JOIN FETCH e.exercise " +
+            "WHERE pl.member.id = :memberId AND pl.isDeleted = false")
+    List<PtLog> findByMemberIdAndNotDeleted(@Param("memberId") Long memberId);
 
     boolean existsByPtScheduleId(Long ptScheduleId);
 } 
