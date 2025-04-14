@@ -8,8 +8,6 @@ import com.example.final_project_be.domain.pt.entity.PtLog;
 import com.example.final_project_be.domain.pt.entity.PtLogExercise;
 import com.example.final_project_be.domain.pt.repository.PtLogExerciseRepository;
 import com.example.final_project_be.domain.pt.repository.PtLogRepository;
-import com.example.final_project_be.global.error.exception.BusinessException;
-import com.example.final_project_be.global.error.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,10 +24,10 @@ public class PtLogExerciseService {
     @Transactional
     public void createPtLogExercise(Long ptLogId, CreatePtLogExerciseRequest request) {
         PtLog ptLog = ptLogRepository.findById(ptLogId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.PT_LOG_NOT_FOUND));
+                .orElseThrow(() -> new IllegalArgumentException("PT 로그를 찾을 수 없습니다."));
 
         Exercise exercise = exerciseRepository.findById(request.getExerciseId())
-                .orElseThrow(() -> new BusinessException(ErrorCode.EXERCISE_NOT_FOUND));
+                .orElseThrow(() -> new IllegalArgumentException("운동을 찾을 수 없습니다."));
 
         PtLogExercise ptLogExercise = PtLogExercise.builder()
                 .ptLogs(ptLog)
@@ -48,13 +46,13 @@ public class PtLogExerciseService {
     @Transactional
     public void deletePtLogExercise(Long ptLogId, Long exerciseLogId) {
         PtLog ptLog = ptLogRepository.findById(ptLogId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.PT_LOG_NOT_FOUND));
+                .orElseThrow(() -> new IllegalArgumentException("PT 로그를 찾을 수 없습니다."));
 
         PtLogExercise ptLogExercise = ptLogExerciseRepository.findById(exerciseLogId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.PT_LOG_EXERCISE_NOT_FOUND));
+                .orElseThrow(() -> new IllegalArgumentException("PT 로그 운동을 찾을 수 없습니다."));
 
         if (!ptLogExercise.getPtLogs().getId().equals(ptLogId)) {
-            throw new BusinessException(ErrorCode.PT_LOG_EXERCISE_NOT_FOUND);
+            throw new IllegalArgumentException("PT 로그 운동을 찾을 수 없습니다.");
         }
 
         ptLogExerciseRepository.delete(ptLogExercise);
@@ -63,13 +61,13 @@ public class PtLogExerciseService {
     @Transactional
     public void updatePtLogExercise(Long ptLogId, Long exerciseLogId, UpdatePtLogExerciseRequest request) {
         PtLog ptLog = ptLogRepository.findById(ptLogId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.PT_LOG_NOT_FOUND));
+                .orElseThrow(() -> new IllegalArgumentException("PT 로그를 찾을 수 없습니다."));
 
         PtLogExercise ptLogExercise = ptLogExerciseRepository.findById(exerciseLogId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.PT_LOG_EXERCISE_NOT_FOUND));
+                .orElseThrow(() -> new IllegalArgumentException("PT 로그 운동을 찾을 수 없습니다."));
 
         if (!ptLogExercise.getPtLogs().getId().equals(ptLogId)) {
-            throw new BusinessException(ErrorCode.PT_LOG_EXERCISE_NOT_FOUND);
+            throw new IllegalArgumentException("PT 로그 운동을 찾을 수 없습니다.");
         }
 
         if (request.getSequence() != null) {
