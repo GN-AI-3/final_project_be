@@ -28,6 +28,7 @@ public class PtScheduleResponseDTO {
     private Integer currentPtCount;
     private Integer totalCount;
     private Integer remainingPtCount;
+    private Long ptLogId;
 
     public static PtScheduleResponseDTO from(PtSchedule ptSchedule) {
         return PtScheduleResponseDTO.builder()
@@ -45,6 +46,7 @@ public class PtScheduleResponseDTO {
                 .currentPtCount(ptSchedule.getCurrentPtCount())
                 .totalCount(ptSchedule.getPtContract().getTotalCount())
                 .remainingPtCount(ptSchedule.getPtContract().getTotalCount() - ptSchedule.getPtContract().getUsedCount())
+                .ptLogId(ptSchedule.getPtLogId())
                 .build();
     }
 } 
