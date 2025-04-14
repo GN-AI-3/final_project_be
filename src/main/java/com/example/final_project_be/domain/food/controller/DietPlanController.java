@@ -16,13 +16,13 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/dietplans")
+@RequestMapping("/api/diet_plans")
 @Tag(name = "Diet Plan", description = "식단 추천 관련 API")
 public class DietPlanController {
 
     private final DietPlanService dietPlanService;
 
-    @GetMapping("/plan")
+    @GetMapping("")
     @Operation(summary = "식단 계획 조회", description = "식단 유형과 사용자 성별에 따라 식단 계획을 조회합니다.")
     public ResponseEntity<List<DietRecommendationResponseDTO>> getDietPlan(
             @RequestBody DietRecommendationRequestDTO dietTypeDTO) {

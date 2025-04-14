@@ -14,7 +14,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/mealrecords")
+@RequestMapping("/api/meal_records")
 @Tag(name = "Meal Records", description = "식사 기록 관련 API")
 public class MealRecordController {
 
@@ -34,7 +34,7 @@ public class MealRecordController {
         return ResponseEntity.ok(mealRecordService.getWeeklyMeals(memberId));
     }
 
-    @PostMapping("/save")
+    @PostMapping("")
     @Operation(summary = "식사 기록 저장", description = "새로운 식사 기록을 저장합니다.")
     public ResponseEntity<MealRecordResponseDTO> saveMealRecord(
             @Parameter(description = "저장할 식사 기록 객체") @RequestBody MealRecordRequestDTO requestDTO) {
