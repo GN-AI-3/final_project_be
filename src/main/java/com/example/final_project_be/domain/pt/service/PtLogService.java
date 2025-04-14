@@ -45,8 +45,6 @@ public class PtLogService {
         // PT 로그 생성
         PtLog ptLog = PtLog.builder()
                 .ptSchedule(ptSchedule)
-                .member(ptSchedule.getPtContract().getMember())
-                .trainer(ptSchedule.getPtContract().getTrainer())
                 .feedback(request.getFeedback())
                 .injuryCheck(request.isInjuryCheck())
                 .nextPlan(request.getNextPlan())
@@ -83,9 +81,13 @@ public class PtLogService {
 
     @Transactional(readOnly = true)
     public PtLogResponseDTO getPtLog(Long id) {
-        PtLog ptLog = ptLogRepository.findByIdWithMemberAndExercises(id)
+        PtLog ptLog = ptLogRepository.findByIdWithMemberAndExercisesAndNotDeleted(id)
                 .orElseThrow(() -> new IllegalArgumentException("PT 로그를 찾을 수 없습니다."));
-        return PtLogResponseDTO.from(ptLog);
+
+        PtLogResponseDTO responseDTO = PtLogResponseDTO.from(ptLog);
+        responseDTO.setMemberId(ptLog.getMember().getId());
+        responseDTO.setTrainerId(ptLog.getTrainer().getId());
+        return responseDTO;
     }
 
     @Transactional
@@ -152,5 +154,21 @@ public class PtLogService {
         existingExercises.stream()
                 .filter(exercise -> !requestExerciseIds.contains(exercise.getId()))
                 .forEach(ptLogExerciseRepository::delete);
+    }
+
+    @Transactional
+    public void deletePtLog(Long id, TrainerDTO trainer) {
+        // PT 로그 조회
+        PtLog ptLog = ptLogRepository.findByIdWithMemberAndExercises(id)
+                .orElseThrow(() -> new IllegalArgumentException("PT 로그를 찾을 수 없습니다."));
+
+        // 권한 체크
+        if (!ptLog.getTrainer().getId().equals(trainer.getId())) {
+            throw new IllegalArgumentException("해당 PT 로그를 삭제할 권한이 없습니다.");
+        }
+
+        // 소프트 삭제
+        ptLog.setIsDeleted(true);
+        ptLogRepository.save(ptLog);
     }
 } 

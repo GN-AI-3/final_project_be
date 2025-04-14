@@ -2,15 +2,14 @@ package com.example.final_project_be.domain.pt.dto;
 
 import com.example.final_project_be.domain.pt.entity.PtLog;
 import com.example.final_project_be.domain.pt.entity.PtLogExercise;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -25,6 +24,10 @@ public class PtLogResponseDTO {
     private boolean injuryCheck;
     private String nextPlan;
     private List<ExerciseLogResponseDTO> exercises;
+    private LocalDateTime createdAt;
+    private LocalDateTime modifiedAt;
+    private String createdBy;
+    private String modifiedBy;
 
     public static PtLogResponseDTO from(PtLog ptLog) {
         return PtLogResponseDTO.builder()
@@ -40,6 +43,10 @@ public class PtLogResponseDTO {
                 .exercises(ptLog.getExercises().stream()
                         .map(ExerciseLogResponseDTO::from)
                         .collect(Collectors.toList()))
+                .createdAt(ptLog.getCreatedAt())
+                .modifiedAt(ptLog.getModifiedAt())
+                .createdBy(ptLog.getCreatedBy())
+                .modifiedBy(ptLog.getModifiedBy())
                 .build();
     }
 

@@ -18,5 +18,13 @@ public interface PtLogRepository extends JpaRepository<PtLog, Long> {
             "WHERE pl.id = :id")
     Optional<PtLog> findByIdWithMemberAndExercises(@Param("id") Long id);
 
+    @Query("SELECT pl FROM PtLog pl " +
+            "JOIN FETCH pl.member " +
+            "JOIN FETCH pl.trainer " +
+            "JOIN FETCH pl.exercises e " +
+            "JOIN FETCH e.exercise " +
+            "WHERE pl.id = :id AND pl.isDeleted = false")
+    Optional<PtLog> findByIdWithMemberAndExercisesAndNotDeleted(@Param("id") Long id);
+
     boolean existsByPtScheduleId(Long ptScheduleId);
 } 

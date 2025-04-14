@@ -48,4 +48,14 @@ public class PtLogController {
         ptLogService.updatePtLog(ptLogId, request, trainer);
         return ResponseEntity.ok(ptLogService.getPtLog(ptLogId));
     }
+
+    @DeleteMapping("/{ptLogId}")
+    @PreAuthorize("hasRole('TRAINER')")
+    @Operation(summary = "PT 로그 삭제", description = "트레이너가 PT 로그를 소프트 삭제합니다.")
+    public ResponseEntity<Void> deletePtLog(
+            @PathVariable Long ptLogId,
+            @AuthenticationPrincipal TrainerDTO trainer) {
+        ptLogService.deletePtLog(ptLogId, trainer);
+        return ResponseEntity.ok().build();
+    }
 } 
