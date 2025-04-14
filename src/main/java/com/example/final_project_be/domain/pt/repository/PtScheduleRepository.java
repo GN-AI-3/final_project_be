@@ -86,4 +86,32 @@ public interface PtScheduleRepository extends JpaRepository<PtSchedule, Long> {
             @Param("endTime") LocalDateTime endTime,
             @Param("status") PtScheduleStatus status
     );
+
+    @Query("SELECT ps, (SELECT pl.id FROM PtLog pl WHERE pl.ptSchedule.id = ps.id) AS ptLogId " +
+            "FROM PtSchedule ps " +
+            "JOIN FETCH ps.ptContract pc " +
+            "JOIN FETCH pc.member m " +
+            "JOIN FETCH pc.trainer t " +
+            "WHERE ps.startTime BETWEEN :startTime AND :endTime " +
+            "AND pc.member.id = :memberId " +
+            "AND (:status is null OR ps.status = :status)")
+    List<Object[]> findByStartTimeBetweenAndPtContract_Member_IdWithPtLog(
+            @Param("startTime") LocalDateTime startTime,
+            @Param("endTime") LocalDateTime endTime,
+            @Param("memberId") Long memberId,
+            @Param("status") PtScheduleStatus status);
+
+    @Query("SELECT ps, (SELECT pl.id FROM PtLog pl WHERE pl.ptSchedule.id = ps.id) AS ptLogId " +
+            "FROM PtSchedule ps " +
+            "JOIN FETCH ps.ptContract pc " +
+            "JOIN FETCH pc.member m " +
+            "JOIN FETCH pc.trainer t " +
+            "WHERE ps.startTime BETWEEN :startTime AND :endTime " +
+            "AND pc.trainer.id = :trainerId " +
+            "AND (:status is null OR ps.status = :status)")
+    List<Object[]> findByStartTimeBetweenAndPtContract_Trainer_IdWithPtLog(
+            @Param("startTime") LocalDateTime startTime,
+            @Param("endTime") LocalDateTime endTime,
+            @Param("trainerId") Long trainerId,
+            @Param("status") PtScheduleStatus status);
 } 

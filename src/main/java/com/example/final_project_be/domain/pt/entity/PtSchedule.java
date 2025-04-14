@@ -53,4 +53,9 @@ public class PtSchedule extends BaseEntity {
     @Builder.Default
     @Setter
     private Boolean isDeducted = true;
+
+    @Transient
+    @Getter
+    @Setter
+    private Long ptLogId;
 }

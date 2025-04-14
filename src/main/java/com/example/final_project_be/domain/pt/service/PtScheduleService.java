@@ -47,23 +47,27 @@ public class PtScheduleService {
 
         List<PtSchedule> schedules;
         if (user instanceof MemberDTO member) {
-            schedules = ptScheduleRepository.findByStartTimeBetweenAndPtContract_Member_Id(
-                    startTime, endTime, member.getId()
+            List<Object[]> results = ptScheduleRepository.findByStartTimeBetweenAndPtContract_Member_IdWithPtLog(
+                    startTime, endTime, member.getId(), status
             );
-            if (status != null) {
-                schedules = schedules.stream()
-                        .filter(schedule -> schedule.getStatus() == status)
-                        .collect(Collectors.toList());
-            }
+            schedules = results.stream()
+                    .map(result -> {
+                        PtSchedule schedule = (PtSchedule) result[0];
+                        schedule.setPtLogId((Long) result[1]);
+                        return schedule;
+                    })
+                    .collect(Collectors.toList());
         } else if (user instanceof TrainerDTO trainer) {
-            schedules = ptScheduleRepository.findByStartTimeBetweenAndPtContract_Trainer_Id(
-                    startTime, endTime, trainer.getId()
+            List<Object[]> results = ptScheduleRepository.findByStartTimeBetweenAndPtContract_Trainer_IdWithPtLog(
+                    startTime, endTime, trainer.getId(), status
             );
-            if (status != null) {
-                schedules = schedules.stream()
-                        .filter(schedule -> schedule.getStatus() == status)
-                        .collect(Collectors.toList());
-            }
+            schedules = results.stream()
+                    .map(result -> {
+                        PtSchedule schedule = (PtSchedule) result[0];
+                        schedule.setPtLogId((Long) result[1]);
+                        return schedule;
+                    })
+                    .collect(Collectors.toList());
         } else {
             throw new IllegalArgumentException("유효하지 않은 사용자 타입입니다.");
         }
