@@ -48,12 +48,6 @@ public class PtLog extends BaseEntity {
     @Column(name = "next_plan")
     private String nextPlan;
 
-    @Column(name = "created_by", nullable = false)
-    private Long created_by;
-
-    @Column(name = "modified_by")
-    private Long modified_by;
-
     @OneToMany(mappedBy = "ptLogs", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PtLogExercise> exercises = new ArrayList<>();
 }

@@ -45,8 +45,6 @@ public class PtLogService {
                 .feedback(request.getFeedback())
                 .injuryCheck(request.isInjuryCheck())
                 .nextPlan(request.getNextPlan())
-                .created_by(trainer.getId())
-                .modified_by(trainer.getId())
                 .build();
 
         // PT 로그 저장
@@ -100,7 +98,6 @@ public class PtLogService {
         ptLog.setFeedback(request.getFeedback());
         ptLog.setInjuryCheck(request.getInjuryCheck());
         ptLog.setNextPlan(request.getNextPlan());
-        ptLog.setModified_by(trainer.getId());
 
         // 기존 운동 로그 목록
         List<PtLogExercise> existingExercises = ptLog.getExercises();
