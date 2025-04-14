@@ -2,6 +2,7 @@ package com.example.final_project_be.domain.pt.controller;
 
 import com.example.final_project_be.domain.pt.dto.PtLogCreateRequestDTO;
 import com.example.final_project_be.domain.pt.dto.PtLogResponseDTO;
+import com.example.final_project_be.domain.pt.dto.PtLogUpdateRequestDTO;
 import com.example.final_project_be.domain.pt.service.PtLogService;
 import com.example.final_project_be.security.TrainerDTO;
 import io.swagger.v3.oas.annotations.Operation;
@@ -34,6 +35,17 @@ public class PtLogController {
     @GetMapping("/{ptLogId}")
     @Operation(summary = "PT 로그 단건 조회", description = "PT 로그 ID로 단건 조회합니다.")
     public ResponseEntity<PtLogResponseDTO> getPtLog(@PathVariable Long ptLogId) {
+        return ResponseEntity.ok(ptLogService.getPtLog(ptLogId));
+    }
+
+    @PutMapping("/{ptLogId}")
+    @PreAuthorize("hasRole('TRAINER')")
+    @Operation(summary = "PT 로그 수정", description = "트레이너가 PT 로그를 수정합니다.")
+    public ResponseEntity<PtLogResponseDTO> updatePtLog(
+            @PathVariable Long ptLogId,
+            @Valid @RequestBody PtLogUpdateRequestDTO request,
+            @AuthenticationPrincipal TrainerDTO trainer) {
+        ptLogService.updatePtLog(ptLogId, request, trainer);
         return ResponseEntity.ok(ptLogService.getPtLog(ptLogId));
     }
 } 

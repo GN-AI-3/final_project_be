@@ -3,7 +3,9 @@ package com.example.final_project_be.domain.pt.service;
 import com.example.final_project_be.domain.exercise.entity.Exercise;
 import com.example.final_project_be.domain.exercise.repository.ExerciseRepository;
 import com.example.final_project_be.domain.pt.dto.PtLogCreateRequestDTO;
+import com.example.final_project_be.domain.pt.dto.PtLogExerciseUpdateRequestDTO;
 import com.example.final_project_be.domain.pt.dto.PtLogResponseDTO;
+import com.example.final_project_be.domain.pt.dto.PtLogUpdateRequestDTO;
 import com.example.final_project_be.domain.pt.entity.PtLog;
 import com.example.final_project_be.domain.pt.entity.PtLogExercise;
 import com.example.final_project_be.domain.pt.entity.PtSchedule;
@@ -80,5 +82,49 @@ public class PtLogService {
         PtLog ptLog = ptLogRepository.findByIdWithMemberAndExercises(id)
                 .orElseThrow(() -> new IllegalArgumentException("PT 로그를 찾을 수 없습니다."));
         return PtLogResponseDTO.from(ptLog);
+    }
+
+    @Transactional
+    public void updatePtLog(Long id, PtLogUpdateRequestDTO request, TrainerDTO trainer) {
+        // PT 로그 조회
+        PtLog ptLog = ptLogRepository.findByIdWithMemberAndExercises(id)
+                .orElseThrow(() -> new IllegalArgumentException("PT 로그를 찾을 수 없습니다."));
+
+        // 권한 체크
+        if (!ptLog.getTrainer().getId().equals(trainer.getId())) {
+            throw new IllegalArgumentException("해당 PT 로그를 수정할 권한이 없습니다.");
+        }
+
+        // PT 로그 수정
+        ptLog.setFeedback(request.getFeedback());
+        ptLog.setInjuryCheck(request.getInjuryCheck());
+        ptLog.setNextPlan(request.getNextPlan());
+        ptLog.setModified_by(trainer.getId());
+
+        // 기존 운동 로그 삭제
+        ptLogExerciseRepository.deleteAll(ptLog.getExercises());
+
+        // 새로운 운동 로그 생성
+        List<PtLogExercise> exercises = IntStream.range(0, request.getExercises().size())
+                .<PtLogExercise>mapToObj(i -> {
+                    PtLogExerciseUpdateRequestDTO exerciseDto = request.getExercises().get(i);
+                    Exercise exercise = exerciseRepository.findById(exerciseDto.getExerciseId())
+                            .orElseThrow(() -> new IllegalArgumentException("운동을 찾을 수 없습니다."));
+
+                    return PtLogExercise.builder()
+                            .ptLogs(ptLog)
+                            .exercise(exercise)
+                            .sequence(i + 1)
+                            .sets(exerciseDto.getSets())
+                            .reps(exerciseDto.getReps())
+                            .weight(exerciseDto.getWeight())
+                            .restTime(exerciseDto.getRestTime())
+                            .feedback(exerciseDto.getFeedback())
+                            .build();
+                })
+                .toList();
+
+        // 운동 로그 저장
+        ptLogExerciseRepository.saveAll(exercises);
     }
 } 
