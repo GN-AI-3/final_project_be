@@ -8,5 +8,5 @@ services:
     ports:
       - "8081:8081"
     env_file: .env
-    command: ["--spring.profiles.active=prod"]
+    command: ["--spring.profiles.active=local"]
 
