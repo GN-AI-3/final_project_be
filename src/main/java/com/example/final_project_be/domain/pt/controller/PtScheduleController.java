@@ -66,12 +66,13 @@ public class PtScheduleController {
             @RequestBody(required = false) PtScheduleCancelRequestDTO request,
             @AuthenticationPrincipal Object user) {
 
-        PtSchedule ptSchedule = ptScheduleService.cancelSchedule(
+        Long updatedScheduleId = ptScheduleService.cancelSchedule(
                 scheduleId,
                 request != null ? request.getReason() : null,
                 user
         );
-        
+
+        PtSchedule ptSchedule = ptScheduleService.getPtSchedule(updatedScheduleId);
         return ResponseEntity.ok(PtScheduleResponseDTO.from(ptSchedule));
     }
 

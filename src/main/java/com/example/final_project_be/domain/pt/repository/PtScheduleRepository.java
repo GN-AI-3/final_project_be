@@ -27,8 +27,12 @@ public interface PtScheduleRepository extends JpaRepository<PtSchedule, Long> {
     @Query("SELECT ps FROM PtSchedule ps JOIN FETCH ps.ptContract pc JOIN FETCH pc.member JOIN FETCH pc.trainer WHERE ps.startTime BETWEEN :startTime AND :endTime AND pc.trainer.id = :trainerId AND ps.status = :status")
     List<PtSchedule> findByStartTimeBetweenAndPtContract_Trainer_IdAndStatus(@Param("startTime") LocalDateTime startTime, @Param("endTime") LocalDateTime endTime, @Param("trainerId") Long trainerId, @Param("status") PtScheduleStatus status);
 
-    @Query("SELECT ps FROM PtSchedule ps JOIN FETCH ps.ptContract pc JOIN FETCH pc.member JOIN FETCH pc.trainer WHERE ps.ptContract.id = :ptContractId AND ps.status = :status")
-    List<PtSchedule> findByPtContractIdAndStatus(@Param("ptContractId") Long ptContractId, @Param("status") PtScheduleStatus status);
+    @Query("SELECT ps FROM PtSchedule ps " +
+            "JOIN FETCH ps.ptContract pc " +
+            "WHERE ps.ptContract.id = :ptContractId " +
+            "AND ps.startTime >= :startTime " +
+            "ORDER BY ps.startTime ASC")
+    List<PtSchedule> findByPtContractIdAndStartTimeAfter(@Param("ptContractId") Long ptContractId, @Param("startTime") LocalDateTime startTime);
 
     @Query("SELECT ps FROM PtSchedule ps JOIN FETCH ps.ptContract pc JOIN FETCH pc.member JOIN FETCH pc.trainer WHERE ps.id = :id")
     Optional<PtSchedule> findByIdWithContractAndMembers(@Param("id") Long id);
@@ -115,4 +119,11 @@ public interface PtScheduleRepository extends JpaRepository<PtSchedule, Long> {
             @Param("trainerId") Long trainerId,
             @Param("status") PtScheduleStatus status);
 
+    @Query("SELECT ps.currentPtCount FROM PtSchedule ps " +
+            "WHERE ps.ptContract.id = :ptContractId " +
+            "AND ps.startTime < :beforeTime " +
+            "AND ps.isDeducted = true " +
+            "ORDER BY ps.startTime DESC " +
+            "LIMIT 1")
+    Integer findPreviousPtCount(@Param("ptContractId") Long ptContractId, @Param("beforeTime") LocalDateTime beforeTime);
 } 
