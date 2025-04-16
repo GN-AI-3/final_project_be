@@ -73,7 +73,7 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_PRIVATE_KEY }}
-          source: "src/main/resources/firebase-service-account-key.json"
+          source: "firebase-service-account-key.json"
           target: "/home/ubuntu/final_project_be/src/main/resources/"
 
       # 5. EC2에 SSH 접속 -> docker-compose pull & up -d
