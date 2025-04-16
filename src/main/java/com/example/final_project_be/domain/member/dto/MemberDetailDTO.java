@@ -22,6 +22,7 @@ public class MemberDetailDTO {
     private String email;
     private String phone;
     private String name;
+    private String gender;
     private String profileImage;
     private String userType;
     private List<String> goal;
@@ -32,6 +33,7 @@ public class MemberDetailDTO {
                 .email(member.getEmail())
                 .phone(member.getPhone())
                 .name(member.getName())
+                .gender(member.getGender())
                 .profileImage(member.getProfileImage())
                 .userType(member.getUserType())
                 .goal(member.getMemberGoalList().stream()

@@ -28,6 +28,9 @@ public class JoinRequestDTO {
     @NotBlank(message = "전화번호는 필수 입력 값입니다.")
     private String phone;
 
+    @NotBlank(message = "성별은 필수 입력 값입니다.")
+    private String gender;
+
     @Schema(description = "사용자 유형", example = "MEMBER", defaultValue = "MEMBER")
     @Builder.Default
     private String userType = "MEMBER";
