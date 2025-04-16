@@ -2,8 +2,8 @@ package com.example.final_project_be.domain.pt.service;
 
 import com.example.final_project_be.domain.exercise.entity.Exercise;
 import com.example.final_project_be.domain.exercise.repository.ExerciseRepository;
-import com.example.final_project_be.domain.pt.dto.request.CreatePtLogExerciseRequest;
-import com.example.final_project_be.domain.pt.dto.request.UpdatePtLogExerciseRequest;
+import com.example.final_project_be.domain.pt.dto.PtLogExerciseCreateRequestDTO;
+import com.example.final_project_be.domain.pt.dto.PtLogExerciseUpdateRequestDTO;
 import com.example.final_project_be.domain.pt.entity.PtLog;
 import com.example.final_project_be.domain.pt.entity.PtLogExercise;
 import com.example.final_project_be.domain.pt.repository.PtLogExerciseRepository;
@@ -22,7 +22,7 @@ public class PtLogExerciseService {
     private final ExerciseRepository exerciseRepository;
 
     @Transactional
-    public void createPtLogExercise(Long ptLogId, CreatePtLogExerciseRequest request) {
+    public void createPtLogExercise(Long ptLogId, PtLogExerciseCreateRequestDTO request) {
         PtLog ptLog = ptLogRepository.findById(ptLogId)
                 .orElseThrow(() -> new IllegalArgumentException("PT 로그를 찾을 수 없습니다."));
 
@@ -59,7 +59,7 @@ public class PtLogExerciseService {
     }
 
     @Transactional
-    public void updatePtLogExercise(Long ptLogId, Long exerciseLogId, UpdatePtLogExerciseRequest request) {
+    public void updatePtLogExercise(Long ptLogId, Long exerciseLogId, PtLogExerciseUpdateRequestDTO request) {
         PtLog ptLog = ptLogRepository.findById(ptLogId)
                 .orElseThrow(() -> new IllegalArgumentException("PT 로그를 찾을 수 없습니다."));
 
