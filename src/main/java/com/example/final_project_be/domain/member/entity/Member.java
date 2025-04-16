@@ -34,6 +34,7 @@ public class Member extends BaseEntity {
     private String profileImage;
     private String goal;
     private String phone;
+    private String gender;
 
     @Column
     private String fcmToken;
@@ -74,6 +75,7 @@ public class Member extends BaseEntity {
                 .password(request.getPassword())
                 .name(request.getName())
                 .phone(request.getPhone())
+                .gender(request.getGender())
                 .profileImage("354dd23b-ee2e-4b35-91e0-9d8ef62219d6-default_image.png")
                 .fcmToken(request.getFcmToken())
                 .userType(request.getUserType())

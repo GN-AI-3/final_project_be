@@ -26,6 +26,9 @@ public class PtContractResponseDTO {
     private Integer remainingCount;
     private Long memberId;
     private String memberName;
+    private String gender;
+    private String email;
+    private String phone;
     private Long trainerId;
     private String trainerName;
     private Long createdBy;
@@ -45,6 +48,9 @@ public class PtContractResponseDTO {
                 .remainingCount(contract.getRemainingCount())
                 .memberId(contract.getMember().getId())
                 .memberName(contract.getMember().getName())
+                .gender(contract.getMember().getGender())
+                .email(contract.getMember().getEmail())
+                .phone(contract.getMember().getPhone())
                 .trainerId(contract.getTrainer().getId())
                 .trainerName(contract.getTrainer().getName())
                 .createdBy(contract.getCreatedBy())
