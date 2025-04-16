@@ -115,16 +115,4 @@ public interface PtScheduleRepository extends JpaRepository<PtSchedule, Long> {
             @Param("trainerId") Long trainerId,
             @Param("status") PtScheduleStatus status);
 
-    @Query("""
-    SELECT ps FROM PtSchedule ps
-    WHERE ps.status = 'SCHEDULED'
-    AND ps.startTime BETWEEN :start AND :end
-    AND (ps.lastAlarmSentAt IS NULL OR ps.lastAlarmSentAt < :today)
-""")
-    List<PtSchedule> findSchedulesForDayBeforeAlarm(
-            @Param("start") LocalDateTime start,
-            @Param("end") LocalDateTime end,
-            @Param("today") LocalDateTime today // 오늘 오전 9시 기준
-    );
-
 } 
