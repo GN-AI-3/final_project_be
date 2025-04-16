@@ -55,7 +55,9 @@ public class PtContractController {
                     "- ACTIVE -> SUSPENDED\n" +
                     "- ACTIVE -> CANCELLED\n" +
                     "- SUSPENDED -> ACTIVE\n" +
-                    "- CANCELLED -> ACTIVE"
+                    "- CANCELLED -> ACTIVE\n" +
+                    "- SUSPENDED -> CANCELLED\n" +
+                    "- CANCELLED -> SUSPENDED"
     )
     public ResponseEntity<PtContractResponseDTO> updateContractStatus(
             @Parameter(description = "PT 계약 ID")

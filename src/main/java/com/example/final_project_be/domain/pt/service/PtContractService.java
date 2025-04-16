@@ -58,11 +58,14 @@ public class PtContractService {
      * - ACTIVE -> CANCELLED
      * - SUSPENDED -> ACTIVE
      * - CANCELLED -> ACTIVE
+     * - SUSPENDED -> CANCELLED
+     * - CANCELLED -> SUSPENDED
      */
     private boolean isValidStatusTransition(ContractStatus currentStatus, ContractStatus newStatus) {
         return switch (currentStatus) {
             case ACTIVE -> newStatus == ContractStatus.SUSPENDED || newStatus == ContractStatus.CANCELLED;
-            case SUSPENDED, CANCELLED -> newStatus == ContractStatus.ACTIVE;
+            case SUSPENDED -> newStatus == ContractStatus.ACTIVE || newStatus == ContractStatus.CANCELLED;
+            case CANCELLED -> newStatus == ContractStatus.ACTIVE || newStatus == ContractStatus.SUSPENDED;
             default -> false;
         };
     }
