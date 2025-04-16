@@ -58,4 +58,8 @@ public class PtSchedule extends BaseEntity {
     @Getter
     @Setter
     private Long ptLogId;
+
+    @Column(name = "last_alarm_sent_at")
+    @Setter
+    private LocalDateTime lastAlarmSentAt;
 }

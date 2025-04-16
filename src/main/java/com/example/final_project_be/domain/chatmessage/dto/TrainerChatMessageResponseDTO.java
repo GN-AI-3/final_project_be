@@ -20,13 +20,11 @@ public class TrainerChatMessageResponseDTO {
     private String content;
     private String role;
     private LocalDateTime createdAt;
+    private String timestamp;
     
 //    // 확장 필드 (내부 저장용, 필요시에만 반환)
 //    @JsonIgnore
 //    private String serverMemberId;
-//
-//    @JsonIgnore
-//    private String timestamp;
 //
 //    @JsonIgnore
 //    private String memberInput;
@@ -58,6 +56,7 @@ public class TrainerChatMessageResponseDTO {
                 .content(message.getContent())
                 .role(message.getRole())
                 .createdAt(message.getCreatedAt())
+                .timestamp(message.getTimestamp())
                 .build();
     }
 
@@ -70,8 +69,8 @@ public class TrainerChatMessageResponseDTO {
                 .content(message.getContent())
                 .role(message.getRole())
                 .createdAt(message.getCreatedAt())
+                .timestamp(message.getTimestamp())
 //                .serverMemberId(message.getServerMemberId())
-//                .timestamp(message.getTimestamp())
 //                .memberInput(message.getMemberInput())
 //                .clarifiedInput(message.getClarifiedInput())
 //                .selectedAgents(message.getSelectedAgents())

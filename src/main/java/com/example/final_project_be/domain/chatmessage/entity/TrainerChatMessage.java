@@ -1,22 +1,20 @@
 package com.example.final_project_be.domain.chatmessage.entity;
 
 import com.example.final_project_be.domain.trainer.entity.Trainer;
-import com.example.final_project_be.entity.BaseEntity;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.experimental.SuperBuilder;
+import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+
+import java.time.LocalDateTime;
 
 @Entity
 @Getter
 @Setter
-@SuperBuilder
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "trainer_chat_message")
-public class TrainerChatMessage extends BaseEntity {
+public class TrainerChatMessage {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -38,8 +36,14 @@ public class TrainerChatMessage extends BaseEntity {
     @Column(name = "server_member_id")
     private String serverMemberId;
 
+    // AI 서버에서 받은 타임스탬프 문자열
     @Column(name = "timestamp")
     private String timestamp;
+    
+    // 생성 시간 자동 설정
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
 
     @Column(name = "member_input", columnDefinition = "TEXT")
     private String memberInput;

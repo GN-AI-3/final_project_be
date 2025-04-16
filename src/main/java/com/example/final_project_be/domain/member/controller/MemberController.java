@@ -24,6 +24,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -44,6 +45,12 @@ public class MemberController {
     @PostMapping("/join")
     public ResponseEntity<?> join(@Valid @RequestBody JoinRequestDTO joinRequestDTO) {
         log.info("Join request: {}", joinRequestDTO);
+        
+        // goal이 null이면 빈 목록으로 초기화
+        if (joinRequestDTO.getGoal() == null) {
+            joinRequestDTO.setGoal(new ArrayList<>());
+        }
+        
         memberService.join(joinRequestDTO);
         return ResponseEntity.ok().build();
     }

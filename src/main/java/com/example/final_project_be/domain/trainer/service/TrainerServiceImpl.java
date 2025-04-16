@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -49,9 +50,39 @@ public class TrainerServiceImpl implements TrainerService {
                     throw new IllegalArgumentException("이미 존재하는 아이디입니다!");
                 });
 
+        // null 체크 및 빈 리스트 초기화
+        if (request.getCertifications() == null) {
+            request.setCertifications(new ArrayList<>());
+            log.info("Service - Certifications was null, initialized to empty list");
+        }
+        
+        if (request.getSpecialities() == null) {
+            request.setSpecialities(new ArrayList<>());
+            log.info("Service - Specialities was null, initialized to empty list");
+        }
+        
+        log.info("Service - Before saving: Certifications: {}, Specialities: {}", 
+                request.getCertifications(), 
+                request.getSpecialities());
+
         request.setPassword(passwordEncoder.encode(request.getPassword()));
         Trainer trainer = Trainer.from(request);
+        
+        // 로깅만 하고 NPE 발생 가능한 코드 제거
+        if (trainer.getCertifications() == null) {
+            log.warn("Service - Trainer's certifications is null after entity creation");
+        } else {
+            log.info("Service - Trainer's certifications size: {}", trainer.getCertifications().size());
+        }
+        
+        if (trainer.getSpecialities() == null) {
+            log.warn("Service - Trainer's specialities is null after entity creation");
+        } else {
+            log.info("Service - Trainer's specialities size: {}", trainer.getSpecialities().size());
+        }
+        
         trainerRepository.save(trainer);
+        log.info("Service - Trainer saved with id: {}", trainer.getId());
     }
 
     @Transactional(readOnly = true)

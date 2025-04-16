@@ -25,6 +25,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -47,6 +48,27 @@ public class TrainerController {
     @PostMapping("/join")
     public ResponseEntity<?> join(@Valid @RequestBody TrainerJoinRequestDTO joinRequestDTO) {
         log.info("Trainer Join request: {}", joinRequestDTO);
+        
+        // 목록 필드들이 null이면 빈 목록으로 초기화
+        if (joinRequestDTO.getCertifications() == null) {
+            joinRequestDTO.setCertifications(new ArrayList<>());
+            log.info("Certifications was null, initialized to empty list");
+        } else if (joinRequestDTO.getCertifications().isEmpty()) {
+            log.info("Certifications was empty list");
+        }
+        
+        if (joinRequestDTO.getSpecialities() == null) {
+            joinRequestDTO.setSpecialities(new ArrayList<>());
+            log.info("Specialities was null, initialized to empty list");
+        } else if (joinRequestDTO.getSpecialities().isEmpty()) {
+            log.info("Specialities was empty list");
+        }
+        
+        // 로깅을 통해 값이 제대로 설정되었는지 확인
+        log.info("After initialization - Certifications: {}, Specialities: {}", 
+                joinRequestDTO.getCertifications(), 
+                joinRequestDTO.getSpecialities());
+        
         trainerService.join(joinRequestDTO);
         return ResponseEntity.ok().build();
     }

@@ -96,6 +96,17 @@ public class Trainer extends BaseEntity {
     }
 
     public static Trainer from(TrainerJoinRequestDTO request) {
+        // certification과 specialities가 null이면 빈 리스트로 초기화
+        List<String> certifications = request.getCertifications();
+        if (certifications == null) {
+            certifications = new ArrayList<>();
+        }
+        
+        List<String> specialities = request.getSpecialities();
+        if (specialities == null) {
+            specialities = new ArrayList<>();
+        }
+        
         return Trainer.builder()
                 .email(request.getEmail())
                 .password(request.getPassword())
@@ -104,9 +115,9 @@ public class Trainer extends BaseEntity {
                 .profileImage("354dd23b-ee2e-4b35-91e0-9d8ef62219d6-default_image.png")
                 .fcmToken(request.getFcmToken())
                 .career(request.getCareer())
-                .certifications(request.getCertifications())
+                .certifications(certifications)
                 .introduction(request.getIntroduction())
-                .specialities(request.getSpecialities())
+                .specialities(specialities)
                 .build();
     }
 } 

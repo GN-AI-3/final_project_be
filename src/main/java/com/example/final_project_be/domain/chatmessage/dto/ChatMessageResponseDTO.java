@@ -17,10 +17,10 @@ public class ChatMessageResponseDTO {
     private String content;
     private String role;
     private LocalDateTime createdAt;
+    private String timestamp;
     
     // AI 서버 응답 관련 필드
 //    private String serverMemberId;
-//    private String timestamp;
 //    private String memberInput;
 //    private String clarifiedInput;
 //    private String selectedAgents;
@@ -35,8 +35,8 @@ public class ChatMessageResponseDTO {
                 .content(message.getContent())
                 .role(message.getRole())
                 .createdAt(message.getCreatedAt())
+                .timestamp(message.getTimestamp())
 //                .serverMemberId(message.getServerMemberId())
-//                .timestamp(message.getTimestamp())
 //                .memberInput(message.getMemberInput())
 //                .clarifiedInput(message.getClarifiedInput())
 //                .selectedAgents(message.getSelectedAgents())

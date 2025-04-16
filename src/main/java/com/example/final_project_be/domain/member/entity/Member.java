@@ -12,6 +12,7 @@ import org.hibernate.annotations.DynamicUpdate;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @DynamicUpdate
 @SuperBuilder
@@ -42,7 +43,7 @@ public class Member extends BaseEntity {
     private String userType = "MEMBER";
 
     @ElementCollection(fetch = FetchType.LAZY)
-    @CollectionTable(name = "member_goal_list", joinColumns = @JoinColumn(name = "email"))
+    @CollectionTable(name = "member_goal_list", joinColumns = @JoinColumn(name = "member_id"))
     @Enumerated(EnumType.STRING)
     @Column(name = "goal")
     @Builder.Default
@@ -61,6 +62,13 @@ public class Member extends BaseEntity {
     }
 
     public static Member from(JoinRequestDTO request) {
+        // goal 문자열 처리 - 목표를 쉼표로 구분된 문자열로 변환
+        String goalString = request.getGoal() != null ? 
+                request.getGoal().stream()
+                        .map(MemberGoal::getGoal)
+                        .collect(Collectors.joining(", ")) : 
+                null;
+        
         return Member.builder()
                 .email(request.getEmail())
                 .password(request.getPassword())
@@ -70,6 +78,7 @@ public class Member extends BaseEntity {
                 .fcmToken(request.getFcmToken())
                 .userType(request.getUserType())
                 .memberGoalList(request.getGoal())
+                .goal(goalString) // 문자열 목표 설정
                 .build();
     }
 }
