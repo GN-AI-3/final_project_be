@@ -17,4 +17,17 @@ public interface PtScheduleRepositoryCustom {
      * @return 알림이 필요한 PT 스케줄 목록
      */
     List<PtSchedule> findSchedulesForDayBeforeAlarm(LocalDateTime start, LocalDateTime end, LocalDate today);
+
+
+    /**
+     * 스케줄이 CANCELLED 상태이고,
+     * 당일(today) 또는 내일(today.plusDays(1))에 예정된 스케줄이면서
+     * 아직 Trainer에게 PT_CANCEL 알림이 전송되지 않은 스케줄 목록을 조회한다.
+     *
+     * @param today 기준 날짜
+     * @return 알림이 필요한 취소 스케줄 목록
+     */
+    List<PtSchedule> findCancelledSchedulesDayOfOrDayBefore(LocalDate today);
+
+
 }

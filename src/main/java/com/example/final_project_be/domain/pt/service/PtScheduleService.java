@@ -10,13 +10,16 @@ import com.example.final_project_be.domain.pt.entity.PtSchedule;
 import com.example.final_project_be.domain.pt.enums.PtScheduleStatus;
 import com.example.final_project_be.domain.pt.repository.PtContractRepository;
 import com.example.final_project_be.domain.pt.repository.PtScheduleRepository;
+import com.example.final_project_be.domain.schedule.repository.ScheduleAlarmRepository;
 import com.example.final_project_be.domain.trainer.entity.Trainer;
 import com.example.final_project_be.security.MemberDTO;
 import com.example.final_project_be.security.TrainerDTO;
+import com.example.final_project_be.util.FcmUtil;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.lang.NonNull;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -35,7 +38,10 @@ public class PtScheduleService {
 
     private final PtScheduleRepository ptScheduleRepository;
     private final PtContractRepository ptContractRepository;
+    private final ScheduleAlarmRepository scheduleAlarmRepository;
+    private final ApplicationEventPublisher eventPublisher;
     private final MemberService memberService;
+    private final FcmUtil fcmUtil;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -389,4 +395,6 @@ public class PtScheduleService {
 
         return schedule.getId();
     }
-} 
+
+
+}

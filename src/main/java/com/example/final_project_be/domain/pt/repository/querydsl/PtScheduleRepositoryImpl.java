@@ -60,4 +60,53 @@ public class PtScheduleRepositoryImpl implements PtScheduleRepositoryCustom {
         return results;
     }
 
+    @Override
+    public List<PtSchedule> findCancelledSchedulesDayOfOrDayBefore(LocalDate today) {
+        QPtSchedule ps = QPtSchedule.ptSchedule;
+        QScheduleAlarm sa = QScheduleAlarm.scheduleAlarm;
+
+        // 오늘 범위
+        LocalDateTime todayStart = today.atStartOfDay();
+        LocalDateTime todayEnd = today.atTime(23, 59, 59);
+
+        // 내일 범위
+        LocalDate tomorrow = today.plusDays(1);
+        LocalDateTime tomorrowStart = tomorrow.atStartOfDay();
+        LocalDateTime tomorrowEnd = tomorrow.atTime(23, 59, 59);
+
+        // 스케줄의 시작 날짜(YYYY-MM-DD) 추출
+        Expression<LocalDate> scheduleDateExpr =
+                Expressions.dateTemplate(LocalDate.class, "function('date', {0})", ps.startTime);
+
+        // 이미 Trainer에게 PT_CANCEL 알림 전송된 스케줄은 제외
+        JPQLQuery<Long> alarmExistsSubQuery = JPAExpressions
+                .select(sa.id)
+                .from(sa)
+                .where(
+                        sa.alarmType.eq(AlarmType.PT_CANCEL),
+                        sa.targetType.eq(AlarmTargetType.TRAINER),
+                        sa.targetId.eq(ps.ptContract.trainer.id),
+                        sa.targetDate.eq(
+                                Expressions.dateTemplate(
+                                        LocalDate.class,
+                                        "DATE({0})",
+                                        ps.startTime
+                                )
+                        )
+                );
+
+        return queryFactory
+                .selectFrom(ps)
+                .join(ps.ptContract).fetchJoin()
+                .join(ps.ptContract.member).fetchJoin()
+                .join(ps.ptContract.trainer).fetchJoin()
+                .where(
+                        ps.status.eq(PtScheduleStatus.CANCELLED),
+                        // 당일 범위 or 내일 범위
+                        ps.startTime.between(todayStart, todayEnd)
+                                .or(ps.startTime.between(tomorrowStart, tomorrowEnd)),
+                        alarmExistsSubQuery.notExists()
+                )
+                .fetch();
+    }
 }
