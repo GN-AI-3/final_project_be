@@ -34,7 +34,11 @@ public interface PtScheduleRepository extends JpaRepository<PtSchedule, Long> {
             "ORDER BY ps.startTime ASC")
     List<PtSchedule> findByPtContractIdAndStartTimeAfter(@Param("ptContractId") Long ptContractId, @Param("startTime") LocalDateTime startTime);
 
-    @Query("SELECT ps FROM PtSchedule ps JOIN FETCH ps.ptContract pc JOIN FETCH pc.member JOIN FETCH pc.trainer WHERE ps.id = :id")
+    @Query("SELECT ps FROM PtSchedule ps " +
+            "JOIN FETCH ps.ptContract pc " +
+            "JOIN FETCH pc.member m " +
+            "JOIN FETCH pc.trainer t " +
+            "WHERE ps.id = :id")
     Optional<PtSchedule> findByIdWithContractAndMembers(@Param("id") Long id);
 
     @Query("SELECT ps FROM PtSchedule ps " +
@@ -126,4 +130,6 @@ public interface PtScheduleRepository extends JpaRepository<PtSchedule, Long> {
             "ORDER BY ps.startTime DESC " +
             "LIMIT 1")
     Integer findPreviousPtCount(@Param("ptContractId") Long ptContractId, @Param("beforeTime") LocalDateTime beforeTime);
+
+    Optional<PtSchedule> findById(Long id);
 } 
