@@ -1,6 +1,6 @@
 package com.example.final_project_be.domain.pt.controller;
 
-import com.example.final_project_be.domain.pt.dto.ContractMemberResponseDTO;
+import com.example.final_project_be.domain.pt.dto.PtContractResponseDTO;
 import com.example.final_project_be.domain.pt.enums.ContractStatus;
 import com.example.final_project_be.domain.pt.service.PtContractService;
 import com.example.final_project_be.security.TrainerDTO;
@@ -30,7 +30,7 @@ public class PtContractController {
             summary = "계약 회원 목록 조회 (트레이너 전용)",
             description = "트레이너의 계약 회원 목록을 상태별로 조회합니다. 트레이너 권한이 필요합니다."
     )
-    public ResponseEntity<List<ContractMemberResponseDTO>> getContractMembers(
+    public ResponseEntity<List<PtContractResponseDTO>> getContractMembers(
             @Parameter(description = "계약 상태 (ACTIVE, COMPLETED, CANCELLED, SUSPENDED, EXPIRED)")
             @RequestParam(required = false) ContractStatus status,
             @AuthenticationPrincipal TrainerDTO trainer) {
@@ -42,10 +42,10 @@ public class PtContractController {
             summary = "PT 계약 상세 조회",
             description = "특정 PT 계약의 상세 정보를 조회합니다."
     )
-    public ResponseEntity<ContractMemberResponseDTO> getContractMember(
+    public ResponseEntity<PtContractResponseDTO> getContractMember(
             @Parameter(description = "PT 계약 ID")
             @PathVariable Long ptContractId) {
-        return ResponseEntity.ok(ptContractService.getContractMember(ptContractId));
+        return ResponseEntity.ok(ptContractService.getContract(ptContractId));
     }
 
     @PatchMapping("/{ptContractId}/status")
@@ -57,12 +57,12 @@ public class PtContractController {
                     "- SUSPENDED -> ACTIVE\n" +
                     "- CANCELLED -> ACTIVE"
     )
-    public ResponseEntity<ContractMemberResponseDTO> updateContractStatus(
+    public ResponseEntity<PtContractResponseDTO> updateContractStatus(
             @Parameter(description = "PT 계약 ID")
             @PathVariable Long ptContractId,
             @Parameter(description = "변경할 상태 (허용된 상태 변경만 가능)", required = true)
             @RequestParam(required = true) @NotNull(message = "상태는 필수입니다.") ContractStatus status) {
         Long updatedContractId = ptContractService.updateContractStatus(ptContractId, status);
-        return ResponseEntity.ok(ptContractService.getContractMember(updatedContractId));
+        return ResponseEntity.ok(ptContractService.getContract(updatedContractId));
     }
 } 

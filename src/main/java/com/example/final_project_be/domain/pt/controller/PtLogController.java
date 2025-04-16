@@ -1,10 +1,6 @@
 package com.example.final_project_be.domain.pt.controller;
 
-import com.example.final_project_be.domain.pt.dto.PtLogCreateRequestDTO;
-import com.example.final_project_be.domain.pt.dto.PtLogResponseDTO;
-import com.example.final_project_be.domain.pt.dto.PtLogUpdateRequestDTO;
-import com.example.final_project_be.domain.pt.dto.request.CreatePtLogExerciseRequest;
-import com.example.final_project_be.domain.pt.dto.request.UpdatePtLogExerciseRequest;
+import com.example.final_project_be.domain.pt.dto.*;
 import com.example.final_project_be.domain.pt.service.PtLogExerciseService;
 import com.example.final_project_be.domain.pt.service.PtLogService;
 import com.example.final_project_be.security.TrainerDTO;
@@ -52,7 +48,7 @@ public class PtLogController {
 
     @PatchMapping("/{ptLogId}")
     @PreAuthorize("hasRole('TRAINER')")
-    @Operation(summary = "PT 로그 수정", description = "트레이너가 PT 로그를 수정합니다.")
+    @Operation(summary = "PT 로그 수정", description = "트레이너가 PT 로그의 메타 정보를 수정합니다.")
     public ResponseEntity<PtLogResponseDTO> updatePtLog(
             @PathVariable Long ptLogId,
             @Valid @RequestBody PtLogUpdateRequestDTO request,
@@ -76,7 +72,7 @@ public class PtLogController {
     @Operation(summary = "PT 로그 운동 추가", description = "PT 로그에 운동을 추가합니다.")
     public ResponseEntity<Void> createPtLogExercise(
             @PathVariable Long ptLogId,
-            @Valid @RequestBody CreatePtLogExerciseRequest request
+            @Valid @RequestBody PtLogExerciseCreateRequestDTO request
     ) {
         ptLogExerciseService.createPtLogExercise(ptLogId, request);
         return ResponseEntity.ok().build();
@@ -99,7 +95,7 @@ public class PtLogController {
     public ResponseEntity<Void> updatePtLogExercise(
             @PathVariable Long ptLogId,
             @PathVariable Long exerciseLogId,
-            @Valid @RequestBody UpdatePtLogExerciseRequest request
+            @Valid @RequestBody PtLogExerciseUpdateRequestDTO request
     ) {
         ptLogExerciseService.updatePtLogExercise(ptLogId, exerciseLogId, request);
         return ResponseEntity.ok().build();

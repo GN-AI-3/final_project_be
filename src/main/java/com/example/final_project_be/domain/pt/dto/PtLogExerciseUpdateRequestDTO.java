@@ -1,28 +1,23 @@
 package com.example.final_project_be.domain.pt.dto;
 
 import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
-import lombok.Setter;
+import lombok.NoArgsConstructor;
 
 @Getter
-@Setter
+@NoArgsConstructor
 public class PtLogExerciseUpdateRequestDTO {
-    private Long id;
+    private Integer sequence;
 
-    @NotNull
-    private Long exerciseId;
-
-    @Min(1)
+    @Min(value = 1, message = "세트 수는 1 이상이어야 합니다.")
     private Integer sets;
 
-    @Min(1)
+    @Min(value = 1, message = "반복 횟수는 1 이상이어야 합니다.")
     private Integer reps;
 
-    @Min(0)
+    @Min(value = 0, message = "무게는 0 이상이어야 합니다.")
     private Integer weight;
 
-    @Min(0)
     private Integer restTime;
 
     private String feedback;

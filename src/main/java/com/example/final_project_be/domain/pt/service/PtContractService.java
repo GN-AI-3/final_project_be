@@ -1,6 +1,6 @@
 package com.example.final_project_be.domain.pt.service;
 
-import com.example.final_project_be.domain.pt.dto.ContractMemberResponseDTO;
+import com.example.final_project_be.domain.pt.dto.PtContractResponseDTO;
 import com.example.final_project_be.domain.pt.entity.PtContract;
 import com.example.final_project_be.domain.pt.enums.ContractStatus;
 import com.example.final_project_be.domain.pt.repository.PtContractRepository;
@@ -18,21 +18,21 @@ public class PtContractService {
 
     private final PtContractRepository ptContractRepository;
 
-    public List<ContractMemberResponseDTO> getContractMembers(Long trainerId, ContractStatus status) {
+    public List<PtContractResponseDTO> getContractMembers(Long trainerId, ContractStatus status) {
         List<PtContract> contracts = (status != null)
                 ? ptContractRepository.findByTrainerIdAndStatus(trainerId, status)
                 : ptContractRepository.findByTrainerId(trainerId);
 
         return contracts.stream()
-                .map(ContractMemberResponseDTO::from)
+                .map(PtContractResponseDTO::from)
                 .collect(Collectors.toList());
     }
     
     @Transactional(readOnly = true)
-    public ContractMemberResponseDTO getContractMember(Long contractId) {
+    public PtContractResponseDTO getContract(Long contractId) {
         PtContract contract = ptContractRepository.findById(contractId)
                 .orElseThrow(() -> new IllegalArgumentException("PT 계약을 찾을 수 없습니다."));
-        return ContractMemberResponseDTO.from(contract);
+        return PtContractResponseDTO.from(contract);
     }
 
     @Transactional
@@ -62,8 +62,7 @@ public class PtContractService {
     private boolean isValidStatusTransition(ContractStatus currentStatus, ContractStatus newStatus) {
         return switch (currentStatus) {
             case ACTIVE -> newStatus == ContractStatus.SUSPENDED || newStatus == ContractStatus.CANCELLED;
-            case SUSPENDED -> newStatus == ContractStatus.ACTIVE;
-            case CANCELLED -> newStatus == ContractStatus.ACTIVE;
+            case SUSPENDED, CANCELLED -> newStatus == ContractStatus.ACTIVE;
             default -> false;
         };
     }

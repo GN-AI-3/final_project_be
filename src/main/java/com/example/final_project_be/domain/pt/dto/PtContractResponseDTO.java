@@ -11,14 +11,14 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ContractMemberResponseDTO {
+public class PtContractResponseDTO {
     private Long memberId;
     private String memberName;
     private String phone;
     private ContractSummaryDTO contract;
 
-    public static ContractMemberResponseDTO from(PtContract contract) {
-        return ContractMemberResponseDTO.builder()
+    public static PtContractResponseDTO from(PtContract contract) {
+        return PtContractResponseDTO.builder()
                 .memberId(contract.getMember().getId())
                 .memberName(contract.getMember().getName())
                 .phone(contract.getMember().getPhone())
