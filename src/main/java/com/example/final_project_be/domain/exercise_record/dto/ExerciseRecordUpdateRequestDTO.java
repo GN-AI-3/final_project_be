@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 
 @Getter
 @Setter
-public class ExerciseRecordRequestDTO {
+public class ExerciseRecordUpdateRequestDTO {
     private Long memberId;
     private Long exerciseId;
     private LocalDateTime date;
