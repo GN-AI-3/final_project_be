@@ -7,38 +7,48 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.ZoneOffset;
+
 @Getter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class PtContractResponseDTO {
+    private Long id;
+    private Long createdAt;
+    private Long modifiedAt;
+    private Long startDate;
+    private Long endDate;
+    private String memo;
+    private ContractStatus status;
+    private Integer totalCount;
+    private Integer usedCount;
+    private Integer remainingCount;
     private Long memberId;
     private String memberName;
-    private String phone;
-    private ContractSummaryDTO contract;
+    private Long trainerId;
+    private String trainerName;
+    private Long createdBy;
+    private Long modifiedBy;
 
     public static PtContractResponseDTO from(PtContract contract) {
         return PtContractResponseDTO.builder()
+                .id(contract.getId())
+                .createdAt(contract.getCreatedAt().atOffset(ZoneOffset.UTC).toEpochSecond())
+                .modifiedAt(contract.getModifiedAt().atOffset(ZoneOffset.UTC).toEpochSecond())
+                .startDate(contract.getStartDate().atOffset(ZoneOffset.UTC).toEpochSecond())
+                .endDate(contract.getEndDate().atOffset(ZoneOffset.UTC).toEpochSecond())
+                .memo(contract.getMemo())
+                .status(contract.getStatus())
+                .totalCount(contract.getTotalCount())
+                .usedCount(contract.getUsedCount())
+                .remainingCount(contract.getRemainingCount())
                 .memberId(contract.getMember().getId())
                 .memberName(contract.getMember().getName())
-                .phone(contract.getMember().getPhone())
-                .contract(ContractSummaryDTO.builder()
-                        .contractId(contract.getId())
-                        .totalCount(contract.getTotalCount())
-                        .remainingCount(contract.getRemainingCount())
-                        .status(contract.getStatus())
-                        .build())
+                .trainerId(contract.getTrainer().getId())
+                .trainerName(contract.getTrainer().getName())
+                .createdBy(contract.getCreatedBy())
+                .modifiedBy(contract.getModifiedBy())
                 .build();
-    }
-
-    @Getter
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class ContractSummaryDTO {
-        private Long contractId;
-        private Integer totalCount;
-        private Integer remainingCount;
-        private ContractStatus status;
     }
 } 
