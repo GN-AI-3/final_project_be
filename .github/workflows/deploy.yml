@@ -62,20 +62,6 @@ jobs:
           source: ".env"
           target: "/home/ubuntu/final_project_be"
 
-      - name: Create Firebase Key File
-        run: |
-          mkdir -p src/main/resources
-          echo "${{ secrets.FIREBASE_KEY_JSON }}" | base64 --decode > src/main/resources/firebase-service-account-key.json
-
-      - name: Upload Firebase Key File
-        uses: appleboy/scp-action@v0.1.4
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USERNAME }}
-          key: ${{ secrets.EC2_PRIVATE_KEY }}
-          source: "/src/main/resources/firebase-service-account-key.json"
-          target: "/home/ubuntu/final_project_be"
-
       # 5. EC2에 SSH 접속 -> docker-compose pull & up -d
       - name: Deploy to EC2 via SSH
         uses: appleboy/ssh-action@v0.1.7
