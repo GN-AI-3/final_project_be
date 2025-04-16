@@ -2,6 +2,7 @@ package com.example.final_project_be.domain.pt.repository;
 
 import com.example.final_project_be.domain.pt.entity.PtSchedule;
 import com.example.final_project_be.domain.pt.enums.PtScheduleStatus;
+import com.example.final_project_be.domain.pt.repository.querydsl.PtScheduleRepositoryCustom;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
@@ -14,7 +15,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface PtScheduleRepository extends JpaRepository<PtSchedule, Long> {
+public interface PtScheduleRepository extends JpaRepository<PtSchedule, Long>, PtScheduleRepositoryCustom {
     @Query("SELECT ps FROM PtSchedule ps JOIN FETCH ps.ptContract pc JOIN FETCH pc.member JOIN FETCH pc.trainer WHERE ps.startTime BETWEEN :startTime AND :endTime AND pc.member.id = :memberId")
     List<PtSchedule> findByStartTimeBetweenAndPtContract_Member_Id(@Param("startTime") LocalDateTime startTime, @Param("endTime") LocalDateTime endTime, @Param("memberId") Long memberId);
 

@@ -72,7 +72,7 @@ dependencies {
     implementation 'net.coobird:thumbnailator:0.4.19'
 
     // Firebase Admin SDK
-    implementation 'com.google.firebase:firebase-admin:9.2.0'
+    implementation 'com.google.firebase:firebase-admin:9.3.0'
 
     // SMTP
     implementation 'org.springframework.boot:spring-boot-starter-mail'

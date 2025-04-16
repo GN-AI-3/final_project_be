@@ -16,25 +16,27 @@ public class FcmUtil {
             return;
         }
 
-        MulticastMessage message = MulticastMessage.builder()
-                .setNotification(Notification.builder()
-                    .setTitle(title)
-                    .setBody(body)
-                    .build())
-                .addAllTokens(tokens)
-                .build();
-
-        try {
-            BatchResponse response = FirebaseMessaging.getInstance().sendMulticast(message);
-            log.info("총 {}건 중 {}건 성공", response.getResponses().size(), response.getSuccessCount());
+        for (String token : tokens) {
+            Message message = Message.builder()
+                    .setToken(token)
+                    .setNotification(Notification.builder()
+                            .setTitle(title)
+                            .setBody(body)
+                            .build())
+                    .build();
 
 
-            response.getResponses().stream()
-                    .filter(r -> !r.isSuccessful())
-                    .forEach(r -> log.warn("실패: {}", r.getException().getMessage()));
-
-        } catch (FirebaseMessagingException e) {
-            log.error("다중 FCM 전송 중 오류 발생", e);
+            try {
+                String response = FirebaseMessaging.getInstance().send(message);
+                log.info("전송 성공: token={} / response={}", token, response);
+            } catch (FirebaseMessagingException e) {
+                log.error("전송 실패: token={} / error={}", token, e.getMessage(), e);
+            }
         }
+    }
+
+    // 단일 전송용 메서드도 있으면 유지
+    public void sendPush(String token, String title, String body) {
+        sendMulticast(List.of(token), title, body);
     }
 }

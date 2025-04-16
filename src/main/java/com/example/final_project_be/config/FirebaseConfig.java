@@ -12,6 +12,7 @@ import org.springframework.core.io.ClassPathResource;
 import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 
 @Slf4j
 @Configuration
@@ -23,8 +24,12 @@ public class FirebaseConfig {
             ClassPathResource resource = new ClassPathResource(FcmProps.FCM_FILE_PATH);
             InputStream serviceAccount = resource.getInputStream();
 
+            GoogleCredentials googleCredentials = GoogleCredentials.fromStream(serviceAccount)
+                    .createScoped(List.of("https://www.googleapis.com/auth/cloud-platform"));
+
             FirebaseOptions options = FirebaseOptions.builder()
-                    .setCredentials(GoogleCredentials.fromStream(serviceAccount))
+                    .setCredentials(googleCredentials)
+                    .setProjectId("gymggun-f9db2")
                     .build();
 
             if (FirebaseApp.getApps().isEmpty()) {
