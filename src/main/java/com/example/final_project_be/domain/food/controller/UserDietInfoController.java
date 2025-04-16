@@ -12,7 +12,7 @@ import java.util.Optional;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/userdietinfo")
+@RequestMapping("/api/diet_info")
 public class UserDietInfoController {
 
     private final UserDietInfoService userDietInfoService;

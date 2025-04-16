@@ -13,13 +13,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/foodnutritions")
+@RequestMapping("/api/food_nutritions")
 @Tag(name = "Food Nutrition", description = "음식 영양 정보 관련 API")
 public class FoodNutritionController {
 
     private final FoodNutritionService foodNutritionService;
 
-    @GetMapping("/nutrition")
+    @GetMapping("")
     @Operation(summary = "음식 영양 정보 조회", description = "음식 이름을 기준으로 해당 음식의 영양 정보를 조회합니다.")
     public ResponseEntity<?> getFoodNutrition(
             @Parameter(description = "음식 이름", example = "닭가슴살")

@@ -27,6 +27,7 @@ public class PtScheduleResponseDTO {
     private String memberName;
     private Integer currentPtCount;
     private Integer totalCount;
+    private Integer usedCount;
     private Integer remainingPtCount;
     private Long ptLogId;
 
@@ -45,6 +46,7 @@ public class PtScheduleResponseDTO {
                 .memberName(ptSchedule.getPtContract().getMember().getName())
                 .currentPtCount(ptSchedule.getCurrentPtCount())
                 .totalCount(ptSchedule.getPtContract().getTotalCount())
+                .usedCount(ptSchedule.getPtContract().getUsedCount())
                 .remainingPtCount(ptSchedule.getPtContract().getTotalCount() - ptSchedule.getPtContract().getUsedCount())
                 .ptLogId(ptSchedule.getPtLogId())
                 .build();
