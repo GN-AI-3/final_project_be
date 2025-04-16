@@ -1,24 +1,12 @@
 version: '3.8'
 
 services:
-  postgres:
-    image: postgres:15
-    container_name: gymggun
+  backend:
+    image: wlsgusan/gymggun_backend:latest
+    container_name: gymggun_backend
     restart: unless-stopped
-    env_file:
-      - .env
-    environment:
-      POSTGRES_USER: ${LOCAL_POSTGRES_USERNAME}
-      POSTGRES_PASSWORD: ${LOCAL_POSTGRES_PASSWORD}
-      POSTGRES_DB: gym
-      TZ: Asia/Seoul
     ports:
-      - "5433:5432"
-    volumes:
-      - ./postgres/data:/var/lib/postgresql/data
-    networks:
-      - app-network
+      - "8081:8081"
+    env_file: .env
+    command: ["--spring.profiles.active=prod"]
 
-networks:
-  app-network:
-    driver: bridge
