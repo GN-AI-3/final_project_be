@@ -32,6 +32,7 @@ public class PtContract extends BaseEntity {
     private Trainer trainer;
 
     @Column(name = "total_count", nullable = false)
+    @Setter
     private Integer totalCount;
 
     @Column(name = "used_count", nullable = false)
@@ -49,9 +50,11 @@ public class PtContract extends BaseEntity {
     private LocalDateTime startDate;
 
     @Column(name = "end_date")
+    @Setter
     private LocalDateTime endDate;
 
     @Column(name = "memo")
+    @Setter
     private String memo;
 
     public Integer getRemainingCount() {

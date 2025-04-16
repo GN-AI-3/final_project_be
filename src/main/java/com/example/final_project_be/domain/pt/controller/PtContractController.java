@@ -1,6 +1,7 @@
 package com.example.final_project_be.domain.pt.controller;
 
 import com.example.final_project_be.domain.pt.dto.PtContractResponseDTO;
+import com.example.final_project_be.domain.pt.dto.PtContractUpdateRequestDTO;
 import com.example.final_project_be.domain.pt.enums.ContractStatus;
 import com.example.final_project_be.domain.pt.service.PtContractService;
 import com.example.final_project_be.security.TrainerDTO;
@@ -65,6 +66,23 @@ public class PtContractController {
             @Parameter(description = "변경할 상태 (허용된 상태 변경만 가능)", required = true)
             @RequestParam(required = true) @NotNull(message = "상태는 필수입니다.") ContractStatus status) {
         Long updatedContractId = ptContractService.updateContractStatus(ptContractId, status);
+        return ResponseEntity.ok(ptContractService.getContract(updatedContractId));
+    }
+
+    @PatchMapping("/{ptContractId}")
+    @PreAuthorize("hasRole('TRAINER')")
+    @Operation(
+            summary = "PT 계약 정보 수정",
+            description = "PT 계약의 정보를 수정합니다. 수정 가능한 항목:\n" +
+                    "- end_date: 계약 종료일\n" +
+                    "- memo: 메모\n" +
+                    "- total_count: 총 PT 횟수"
+    )
+    public ResponseEntity<PtContractResponseDTO> updateContract(
+            @Parameter(description = "PT 계약 ID")
+            @PathVariable Long ptContractId,
+            @RequestBody PtContractUpdateRequestDTO updateRequest) {
+        Long updatedContractId = ptContractService.updateContract(ptContractId, updateRequest);
         return ResponseEntity.ok(ptContractService.getContract(updatedContractId));
     }
 } 

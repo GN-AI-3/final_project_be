@@ -1,6 +1,7 @@
 package com.example.final_project_be.domain.pt.service;
 
 import com.example.final_project_be.domain.pt.dto.PtContractResponseDTO;
+import com.example.final_project_be.domain.pt.dto.PtContractUpdateRequestDTO;
 import com.example.final_project_be.domain.pt.entity.PtContract;
 import com.example.final_project_be.domain.pt.enums.ContractStatus;
 import com.example.final_project_be.domain.pt.repository.PtContractRepository;
@@ -8,6 +9,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -47,6 +51,33 @@ public class PtContractService {
         }
 
         contract.setStatus(status);
+        ptContractRepository.save(contract);
+        return contract.getId();
+    }
+
+    @Transactional
+    public Long updateContract(Long contractId, PtContractUpdateRequestDTO updateRequest) {
+        PtContract contract = ptContractRepository.findById(contractId)
+                .orElseThrow(() -> new IllegalArgumentException("PT 계약을 찾을 수 없습니다."));
+
+        // 수정 가능한 필드 업데이트
+        if (updateRequest.getEndDate() != null) {
+            LocalDateTime endDateTime = Instant.ofEpochSecond(updateRequest.getEndDate())
+                    .atZone(ZoneId.systemDefault())
+                    .toLocalDateTime();
+            contract.setEndDate(endDateTime);
+        }
+        if (updateRequest.getMemo() != null) {
+            contract.setMemo(updateRequest.getMemo());
+        }
+        if (updateRequest.getTotalCount() != null) {
+            // 총 PT 횟수는 사용된 횟수보다 커야 함
+            if (updateRequest.getTotalCount() < contract.getUsedCount()) {
+                throw new IllegalArgumentException("총 PT 횟수는 사용된 횟수보다 커야 합니다.");
+            }
+            contract.setTotalCount(updateRequest.getTotalCount());
+        }
+
         ptContractRepository.save(contract);
         return contract.getId();
     }
