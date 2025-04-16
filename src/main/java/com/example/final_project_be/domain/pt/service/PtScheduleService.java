@@ -3,7 +3,6 @@ package com.example.final_project_be.domain.pt.service;
 import com.example.final_project_be.domain.member.dto.MemberDetailDTO;
 import com.example.final_project_be.domain.member.service.MemberService;
 import com.example.final_project_be.domain.pt.dto.PtScheduleChangeRequestDTO;
-import com.example.final_project_be.domain.pt.dto.PtScheduleChangeResponseDTO;
 import com.example.final_project_be.domain.pt.dto.PtScheduleCreateRequestDTO;
 import com.example.final_project_be.domain.pt.dto.PtScheduleResponseDTO;
 import com.example.final_project_be.domain.pt.entity.PtContract;
@@ -25,7 +24,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -135,10 +133,7 @@ public class PtScheduleService {
         checkTimeOverlap(startTime, endTime, request.getPtContractId());
 
         // 현재 PT 회차 계산
-        int currentCount = calculatePreviousPtCount(contract, startTime);
-        if (shouldCheckRemaining) {
-            currentCount++; // 새로운 일정이므로 회차 증가
-        }
+        int currentCount = calculatePreviousPtCount(request.getPtContractId(), startTime);
 
         // PT 스케줄 생성
         PtSchedule ptSchedule = PtSchedule.builder()
@@ -147,31 +142,44 @@ public class PtScheduleService {
                 .endTime(endTime)
                 .status(PtScheduleStatus.SCHEDULED)
                 .isDeducted(true)
-                .currentPtCount(currentCount)
+                .currentPtCount(currentCount + 1)
                 .build();
 
-        return ptScheduleRepository.save(ptSchedule).getId();
+        PtSchedule savedSchedule = ptScheduleRepository.save(ptSchedule);
+
+        // 회차 재계산
+        recalculatePtCounts(contract.getId(), startTime);
+
+        return savedSchedule.getId();
     }
 
     @Transactional
-    public PtSchedule cancelSchedule(Long scheduleId, String reason, Object user) {
-        PtSchedule schedule = getPtSchedule(scheduleId);
+    public Long cancelSchedule(Long scheduleId, String reason, Object user) {
+        PtSchedule schedule = ptScheduleRepository.findByIdWithContractAndMembers(scheduleId)
+                .orElseThrow(() -> new IllegalArgumentException("PT 스케줄을 찾을 수 없습니다."));
         validateScheduleModification(schedule, LocalDateTime.now(), true, user);
 
         // 스케줄 취소
         schedule.setStatus(PtScheduleStatus.CANCELLED);
         schedule.setReason(reason);
+        schedule.setIsDeducted(false);
 
         // 회차 정보 업데이트
-        recalculatePtCounts(schedule.getPtContract(), schedule.getStartTime());
+        recalculatePtCounts(schedule.getPtContract().getId(), schedule.getStartTime());
 
-        return schedule;
+        // PT 계약 테이블의 사용 횟수 감소
+        PtContract contract = schedule.getPtContract();
+        contract.setUsedCount(contract.getUsedCount() - 1);
+        ptContractRepository.save(contract);
+
+        return schedule.getId();
     }
 
     @Transactional
-    public PtScheduleChangeResponseDTO changeSchedule(Long scheduleId, PtScheduleChangeRequestDTO request, Object user) {
+    public Long changeSchedule(Long scheduleId, PtScheduleChangeRequestDTO request, Object user) {
         // 1. 기존 일정 조회 및 검증
-        PtSchedule oldSchedule = getPtSchedule(scheduleId);
+        PtSchedule oldSchedule = ptScheduleRepository.findByIdWithContractAndMembers(scheduleId)
+                .orElseThrow(() -> new IllegalArgumentException("PT 스케줄을 찾을 수 없습니다."));
         validateScheduleModification(oldSchedule, LocalDateTime.now(), false, user);
 
         // 2. 기존 일정 상태를 CHANGED로 변경
@@ -185,35 +193,34 @@ public class PtScheduleService {
         createRequest.setEndTime(request.getEndTime());
 
         Long newScheduleId = createSchedule(createRequest, user, false);  // 일정 변경은 횟수 차감 없음
-        PtSchedule newSchedule = getPtSchedule(newScheduleId);
+        PtSchedule newSchedule = ptScheduleRepository.findByIdWithContractAndMembers(newScheduleId)
+                .orElseThrow(() -> new IllegalArgumentException("새로운 PT 스케줄을 찾을 수 없습니다."));
 
         // 4. 회차 재계산 (이전 일정과 새로운 일정 중 더 이른 시간 기준)
         LocalDateTime recalculateTime = oldSchedule.getStartTime().isBefore(newSchedule.getStartTime())
                 ? oldSchedule.getStartTime()
                 : newSchedule.getStartTime();
-        recalculatePtCounts(oldSchedule.getPtContract(), recalculateTime);
+        recalculatePtCounts(oldSchedule.getPtContract().getId(), recalculateTime);
 
-        return PtScheduleChangeResponseDTO.of(oldSchedule, newSchedule);
+        return newScheduleId;
     }
 
     /**
      * PT 계약의 특정 시점 이후의 모든 스케줄 회차를 재계산합니다.
      *
-     * @param contract  PT 계약
+     * @param ptContractId PT 계약 ID
      * @param startTime 이 시점 이후의 스케줄들만 재계산
      */
     @Transactional
-    public void recalculatePtCounts(PtContract contract, LocalDateTime startTime) {
-        List<PtSchedule> schedules = ptScheduleRepository.findByPtContractIdAndStatus(
-                        contract.getId(),
-                        null  // 모든 상태의 스케줄 조회
+    public void recalculatePtCounts(Long ptContractId, LocalDateTime startTime) {
+        List<PtSchedule> schedules = ptScheduleRepository.findByPtContractIdAndStartTimeAfter(
+                        ptContractId,
+                        startTime
                 ).stream()
-                .filter(s -> s.getStartTime().isAfter(startTime))
-                .sorted(Comparator.comparing(PtSchedule::getStartTime))
-                .collect(Collectors.toList());
+                .toList();
 
-        // 시작 시점 이전의 회차 계산
-        int currentCount = calculatePreviousPtCount(contract, startTime);
+        // 시작 시점 직전의 회차 가져오기
+        int currentCount = calculatePreviousPtCount(ptContractId, startTime);
 
         // 이후 스케줄들의 회차 업데이트
         for (PtSchedule schedule : schedules) {
@@ -229,14 +236,8 @@ public class PtScheduleService {
     /**
      * 특정 시점 이전까지의 PT 회차를 계산합니다.
      */
-    private int calculatePreviousPtCount(PtContract contract, LocalDateTime beforeTime) {
-        return (int) ptScheduleRepository.findByPtContractIdAndStatus(
-                        contract.getId(),
-                        null
-                ).stream()
-                .filter(s -> s.getStartTime().isBefore(beforeTime))
-                .filter(PtSchedule::getIsDeducted)
-                .count();
+    private int calculatePreviousPtCount(Long ptContractId, LocalDateTime beforeTime) {
+        return ptScheduleRepository.findPreviousPtCount(ptContractId, beforeTime);
     }
 
     private void validateScheduleAuthority(PtSchedule schedule, Object user) {
@@ -262,9 +263,10 @@ public class PtScheduleService {
     }
 
     @Transactional(readOnly = true)
-    public PtSchedule getPtSchedule(Long ptScheduleId) {
-        return ptScheduleRepository.findByIdWithContractAndMembers(ptScheduleId)
+    public PtScheduleResponseDTO getPtScheduleById(Long ptScheduleId) {
+        PtSchedule ptSchedule = ptScheduleRepository.findByIdWithContractAndMembers(ptScheduleId)
                 .orElseThrow(() -> new IllegalArgumentException("PT 스케줄을 찾을 수 없습니다."));
+        return PtScheduleResponseDTO.from(ptSchedule);
     }
 
     private PtContract validateContract(Long ptContractId) {
@@ -368,16 +370,23 @@ public class PtScheduleService {
     }
 
     @Transactional
-    public PtSchedule markAsNoShow(Long scheduleId, String reason, Object user) {
-        PtSchedule schedule = getPtSchedule(scheduleId);
-        validateNoShow(schedule, user);
+    public Long markAsNoShow(Long scheduleId, String reason, Object user) {
+        PtSchedule schedule = ptScheduleRepository.findByIdWithContractAndMembers(scheduleId)
+                .orElseThrow(() -> new IllegalArgumentException("PT 스케줄을 찾을 수 없습니다."));
+        validateScheduleModification(schedule, LocalDateTime.now(), true, user);
 
+        // 스케줄 불참 처리
         schedule.setStatus(PtScheduleStatus.NO_SHOW);
         schedule.setReason(reason);
 
         // 회차 정보 업데이트
-        recalculatePtCounts(schedule.getPtContract(), schedule.getStartTime());
+        recalculatePtCounts(schedule.getPtContract().getId(), schedule.getStartTime());
 
-        return schedule;
+        // PT 계약 테이블의 사용 횟수 감소
+        PtContract contract = schedule.getPtContract();
+        contract.setUsedCount(contract.getUsedCount() - 1);
+        ptContractRepository.save(contract);
+
+        return schedule.getId();
     }
 } 
