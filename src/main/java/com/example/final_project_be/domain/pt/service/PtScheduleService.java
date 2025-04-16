@@ -134,9 +134,6 @@ public class PtScheduleService {
 
         // 현재 PT 회차 계산
         int currentCount = calculatePreviousPtCount(request.getPtContractId(), startTime);
-        if (shouldCheckRemaining) {
-            currentCount++; // 새로운 일정이므로 회차 증가
-        }
 
         // PT 스케줄 생성
         PtSchedule ptSchedule = PtSchedule.builder()
@@ -145,10 +142,15 @@ public class PtScheduleService {
                 .endTime(endTime)
                 .status(PtScheduleStatus.SCHEDULED)
                 .isDeducted(true)
-                .currentPtCount(currentCount)
+                .currentPtCount(currentCount + 1)
                 .build();
 
-        return ptScheduleRepository.save(ptSchedule).getId();
+        PtSchedule savedSchedule = ptScheduleRepository.save(ptSchedule);
+
+        // 회차 재계산
+        recalculatePtCounts(contract.getId(), startTime);
+
+        return savedSchedule.getId();
     }
 
     @Transactional
