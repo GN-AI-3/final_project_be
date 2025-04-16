@@ -49,9 +49,9 @@ public class PtScheduleService {
     public void updateExpiredSchedules() {
         try {
             int updatedCount = entityManager
-                    .createQuery("UPDATE PtSchedule p SET p.status = 'COMPLETED' WHERE p.endTime < CURRENT_TIMESTAMP AND p.status = 'SCHEDULED'")
+                    .createQuery("UPDATE PtSchedule p SET p.status = 'COMPLETED' WHERE p.startTime < CURRENT_TIMESTAMP AND p.status = 'SCHEDULED'")
                     .executeUpdate();
-            log.info("만료된 스케줄 {}건이 완료 처리되었습니다.", updatedCount);
+            log.info("지난 스케줄 {}건이 완료 처리되었습니다.", updatedCount);
         } catch (Exception e) {
             log.error("만료 스케줄 업데이트 중 오류 발생", e);
         }
@@ -359,7 +359,7 @@ public class PtScheduleService {
         }
 
         // 2. 상태 검증
-        if (schedule.getStatus() != PtScheduleStatus.SCHEDULED) {
+        if (schedule.getStatus() != PtScheduleStatus.COMPLETED) {
             throw new IllegalArgumentException("이미 취소, 변경, 완료 또는 불참 처리된 PT 일정입니다.");
         }
 
@@ -373,7 +373,7 @@ public class PtScheduleService {
     public Long markAsNoShow(Long scheduleId, String reason, Object user) {
         PtSchedule schedule = ptScheduleRepository.findByIdWithContractAndMembers(scheduleId)
                 .orElseThrow(() -> new IllegalArgumentException("PT 스케줄을 찾을 수 없습니다."));
-        validateScheduleModification(schedule, LocalDateTime.now(), true, user);
+        validateNoShow(schedule, user);
 
         // 스케줄 불참 처리
         schedule.setStatus(PtScheduleStatus.NO_SHOW);
