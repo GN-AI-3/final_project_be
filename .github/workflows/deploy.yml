@@ -47,7 +47,7 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_PRIVATE_KEY }}
           source: "docker-compose.yml"
-          target: "/home/ubuntu/final_project_be/docker-compose.yml"
+          target: "/home/ubuntu/final_project_be"
 
       # 만약 .env도 GitHub Secrets로 관리한다면:
       - name: Upload .env
@@ -56,8 +56,8 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_PRIVATE_KEY }}
-          source: ".env"  # 또는 Actions에서 echo "${{ secrets.ENV_FILE }}" > .env 후 scp
-          target: "/home/ubuntu/final_project_be/.env"
+          source: ".env"
+          target: "/home/ubuntu/final_project_be"
 
       # 5. EC2에 SSH 접속 -> docker-compose pull & up -d
       - name: Deploy to EC2 via SSH
