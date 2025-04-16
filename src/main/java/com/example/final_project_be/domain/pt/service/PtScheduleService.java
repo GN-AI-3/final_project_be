@@ -14,8 +14,12 @@ import com.example.final_project_be.domain.pt.repository.PtScheduleRepository;
 import com.example.final_project_be.domain.trainer.entity.Trainer;
 import com.example.final_project_be.security.MemberDTO;
 import com.example.final_project_be.security.TrainerDTO;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,6 +29,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -33,6 +38,26 @@ public class PtScheduleService {
     private final PtScheduleRepository ptScheduleRepository;
     private final PtContractRepository ptContractRepository;
     private final MemberService memberService;
+
+    @PersistenceContext
+    private EntityManager entityManager;
+
+    /**
+     * 만료된 스케줄을 완료 처리합니다.
+     * 매 60분마다 실행됩니다.
+     */
+    @Transactional
+    @Scheduled(fixedRate = 60 * 60 * 1000) // 60분마다 실행
+    public void updateExpiredSchedules() {
+        try {
+            int updatedCount = entityManager
+                    .createQuery("UPDATE PtSchedule p SET p.status = 'COMPLETED' WHERE p.endTime < CURRENT_TIMESTAMP AND p.status = 'SCHEDULED'")
+                    .executeUpdate();
+            log.info("만료된 스케줄 {}건이 완료 처리되었습니다.", updatedCount);
+        } catch (Exception e) {
+            log.error("만료 스케줄 업데이트 중 오류 발생", e);
+        }
+    }
 
     @Transactional(readOnly = true)
     public List<PtScheduleResponseDTO> getSchedulesByDateRange(

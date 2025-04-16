@@ -6,7 +6,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
-@EnableJpaRepositories
+@EnableJpaRepositories(basePackages = "com.example.final_project_be.domain")
 @EnableTransactionManagement
 @SpringBootApplication
 @EnableScheduling
