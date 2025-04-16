@@ -42,6 +42,7 @@ public class PtContract extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     @Builder.Default
+    @Setter
     private ContractStatus status = ContractStatus.ACTIVE;
 
     @Column(name = "start_date", nullable = false)

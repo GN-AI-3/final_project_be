@@ -27,4 +27,44 @@ public class PtContractService {
                 .map(ContractMemberResponseDTO::from)
                 .collect(Collectors.toList());
     }
+    
+    @Transactional(readOnly = true)
+    public ContractMemberResponseDTO getContractMember(Long contractId) {
+        PtContract contract = ptContractRepository.findById(contractId)
+                .orElseThrow(() -> new IllegalArgumentException("PT 계약을 찾을 수 없습니다."));
+        return ContractMemberResponseDTO.from(contract);
+    }
+
+    @Transactional
+    public Long updateContractStatus(Long contractId, ContractStatus status) {
+        PtContract contract = ptContractRepository.findById(contractId)
+                .orElseThrow(() -> new IllegalArgumentException("PT 계약을 찾을 수 없습니다."));
+
+        // 현재 상태와 변경하려는 상태에 따른 유효성 검사
+        ContractStatus currentStatus = contract.getStatus();
+        if (!isValidStatusTransition(currentStatus, status)) {
+            throw new IllegalArgumentException("허용되지 않은 상태 변경입니다. 현재 상태: " + currentStatus + ", 변경하려는 상태: " + status);
+        }
+
+        contract.setStatus(status);
+        ptContractRepository.save(contract);
+        return contract.getId();
+    }
+
+    /**
+     * PT 계약 상태 변경의 유효성을 검사합니다.
+     * 허용된 상태 변경:
+     * - ACTIVE -> SUSPENDED
+     * - ACTIVE -> CANCELLED
+     * - SUSPENDED -> ACTIVE
+     * - CANCELLED -> ACTIVE
+     */
+    private boolean isValidStatusTransition(ContractStatus currentStatus, ContractStatus newStatus) {
+        return switch (currentStatus) {
+            case ACTIVE -> newStatus == ContractStatus.SUSPENDED || newStatus == ContractStatus.CANCELLED;
+            case SUSPENDED -> newStatus == ContractStatus.ACTIVE;
+            case CANCELLED -> newStatus == ContractStatus.ACTIVE;
+            default -> false;
+        };
+    }
 } 
