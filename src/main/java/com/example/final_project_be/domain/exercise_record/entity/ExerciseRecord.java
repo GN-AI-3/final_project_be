@@ -55,4 +55,11 @@ public class ExerciseRecord extends BaseEntity {
     @Type(value = JsonBinaryType.class)
     private JsonNode memoData;
 
+    public void setRecordData(JsonNode recordData) {
+        this.recordData = recordData;
+    }
+
+    public void setMemoData(JsonNode memoData) {
+        this.memoData = memoData;
+    }
 }
