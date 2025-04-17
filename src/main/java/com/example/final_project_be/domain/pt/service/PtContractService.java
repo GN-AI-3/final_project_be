@@ -36,7 +36,7 @@ public class PtContractService {
      */
     @Transactional
     @Scheduled(fixedRate = 60 * 60 * 1000 * 24) // 하루마다 실행
-    public void updateExpiredSchedules() {
+    public void updateExpiredContracts() {
         try {
             int updatedCount = entityManager
                     .createQuery("UPDATE PtContract p SET p.status = 'EXPIRED' WHERE p.endDate < CURRENT_TIMESTAMP AND p.status = 'ACTIVE'")
