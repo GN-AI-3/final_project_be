@@ -1,0 +1,41 @@
+name: Deploy to EC2 on Push
+
+on:
+  push:
+    branches:
+      - main   # 혹은 dev, 원하는 브랜치
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy via SSH to EC2
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_PRIVATE_KEY }}
+          script_stop: true
+          script: |
+            # 1) 작업 디렉터리로 이동 (한 번만 클론해 두세요)
+            cd /home/ubuntu/final_project_be
+
+            # 2) 최신 코드 가져오기
+            git pull origin main
+
+            # 3) Docker 이미지 빌드
+            docker build -t gymggun_backend:latest .
+
+            # 4) 기존 컨테이너 중지·삭제
+            if docker ps -q --filter name=gymggun_backend | grep -q .; then
+              docker stop gymggun_backend
+              docker rm   gymggun_backend
+            fi
+
+            # 5) 새 컨테이너 실행 (.env 파일이 같은 디렉터리에 있어야 합니다)
+            docker run -d \
+              --name gymggun_backend \
+              --env-file .env \
+              -p 8081:8081 \
+              gymggun_backend:latest
