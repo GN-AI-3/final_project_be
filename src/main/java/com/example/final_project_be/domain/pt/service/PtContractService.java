@@ -5,7 +5,11 @@ import com.example.final_project_be.domain.pt.dto.PtContractUpdateRequestDTO;
 import com.example.final_project_be.domain.pt.entity.PtContract;
 import com.example.final_project_be.domain.pt.enums.ContractStatus;
 import com.example.final_project_be.domain.pt.repository.PtContractRepository;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,12 +19,33 @@ import java.time.ZoneId;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class PtContractService {
 
     private final PtContractRepository ptContractRepository;
+
+    @PersistenceContext
+    private EntityManager entityManager;
+
+    /**
+     * 만료된 스케줄을 완료 처리합니다.
+     * 매 60분마다 실행됩니다.
+     */
+    @Transactional
+    @Scheduled(fixedRate = 60 * 60 * 1000 * 24) // 하루마다 실행
+    public void updateExpiredSchedules() {
+        try {
+            int updatedCount = entityManager
+                    .createQuery("UPDATE PtContract p SET p.status = 'EXPIRED' WHERE p.endDate < CURRENT_TIMESTAMP AND p.status = 'ACTIVE'")
+                    .executeUpdate();
+            log.info("지난 계약 {}건이 만료 처리되었습니다.", updatedCount);
+        } catch (Exception e) {
+            log.error("계약 만료 업데이트 중 오류 발생", e);
+        }
+    }
 
     public List<PtContractResponseDTO> getContractMembers(Long trainerId, ContractStatus status) {
         List<PtContract> contracts = (status != null)
@@ -31,7 +56,7 @@ public class PtContractService {
                 .map(PtContractResponseDTO::from)
                 .collect(Collectors.toList());
     }
-    
+
     @Transactional(readOnly = true)
     public PtContractResponseDTO getContract(Long contractId) {
         PtContract contract = ptContractRepository.findById(contractId)
