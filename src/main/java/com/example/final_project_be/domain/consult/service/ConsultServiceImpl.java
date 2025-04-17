@@ -6,8 +6,11 @@ import com.example.final_project_be.domain.consult.entity.Consult;
 import com.example.final_project_be.domain.consult.repository.ConsultRepository;
 import com.example.final_project_be.domain.pt.entity.PtContract;
 import com.example.final_project_be.domain.pt.repository.PtContractRepository;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,11 +21,14 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
+@Transactional
 public class ConsultServiceImpl implements ConsultService {
 
     private final ConsultRepository consultRepository;
     private final PtContractRepository ptContractRepository;
+    
+    @PersistenceContext
+    private EntityManager entityManager;
     
     @Override
     @Transactional
@@ -54,44 +60,33 @@ public class ConsultServiceImpl implements ConsultService {
     }
     
     @Override
-    public ConsultResponseDTO getConsultById(Long consultId) {
-        log.info("Fetching consultation with ID: {}", consultId);
-        
-        Consult consult = findConsultByIdOrThrow(consultId);
-        
-        return ConsultResponseDTO.from(consult);
-    }
-    
-    @Override
-    public ConsultResponseDTO getConsultByPtContractId(Long ptContractId) {
-        log.info("Fetching consultation by PT contract ID: {}", ptContractId);
-        
-        Consult consult = consultRepository.findByPtContractId(ptContractId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 PT 계약의 상담 정보가 없습니다. 계약 ID: " + ptContractId));
-        
-        return ConsultResponseDTO.from(consult);
-    }
-    
-    @Override
-    public List<ConsultResponseDTO> getConsultsByTrainerId(Long trainerId) {
-        log.info("Fetching consultations by trainer ID: {}", trainerId);
-        
-        List<Consult> consults = consultRepository.findByTrainerId(trainerId);
-        
-        return consults.stream()
-                .map(ConsultResponseDTO::from)
-                .collect(Collectors.toList());
-    }
-    
-    @Override
+    @Transactional(readOnly = true)
     public List<ConsultResponseDTO> getConsultsByMemberId(Long memberId) {
-        log.info("Fetching consultations by member ID: {}", memberId);
+        log.info("Fetching consultations for member ID: {}", memberId);
         
-        List<Consult> consults = consultRepository.findByMemberId(memberId);
+        List<Consult> consults = consultRepository.findByMemberIdWithFetchJoin(memberId);
+        
+        // 각 Consult의 컬렉션 초기화
+        consults.forEach(this::initializeConsultCollections);
         
         return consults.stream()
                 .map(ConsultResponseDTO::from)
                 .collect(Collectors.toList());
+    }
+    
+    /**
+     * Consult 엔티티의 모든 컬렉션 필드를 초기화합니다.
+     * 여러 컬렉션을 동시에 fetch하면 MultipleBagFetchException이 발생하므로
+     * 각 컬렉션을 개별적으로 초기화합니다.
+     */
+    private void initializeConsultCollections(Consult consult) {
+        if (consult != null) {
+            Hibernate.initialize(consult.getPreferredExercises());
+            Hibernate.initialize(consult.getDislikedExercises());
+            Hibernate.initialize(consult.getBodyConcerns());
+            Hibernate.initialize(consult.getPreferredDays());
+            Hibernate.initialize(consult.getPreferredTimes());
+        }
     }
     
     /**
@@ -130,17 +125,5 @@ public class ConsultServiceImpl implements ConsultService {
                 .availableSessionsPerWeek(dto.getAvailableSessionsPerWeek())
                 .distanceToGym(dto.getDistanceToGym())
                 .build();
-    }
-    
-    /**
-     * 상담 ID로 상담 정보를 조회하며, 없으면 예외를 발생시킵니다.
-     */
-    private Consult findConsultByIdOrThrow(Long consultId) {
-        if (consultId == null) {
-            throw new IllegalArgumentException("상담 ID는 필수 입력값입니다.");
-        }
-        
-        return consultRepository.findById(consultId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 상담 정보입니다. ID: " + consultId));
     }
 } 

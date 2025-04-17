@@ -1,8 +1,6 @@
 package com.example.final_project_be.security;
 
-import com.example.final_project_be.domain.member.entity.Member;
 import com.example.final_project_be.domain.member.repository.MemberRepository;
-import com.example.final_project_be.domain.trainer.entity.Trainer;
 import com.example.final_project_be.domain.trainer.repository.TrainerRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;

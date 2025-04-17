@@ -16,34 +16,11 @@ public interface ConsultService {
     ConsultResponseDTO createConsult(ConsultRequestDTO requestDTO);
     
     /**
-     * 상담 ID로 상담 정보를 조회합니다.
-     * 
-     * @param consultId 상담 ID
-     * @return 상담 정보 응답 DTO
-     */
-    ConsultResponseDTO getConsultById(Long consultId);
-    
-    /**
-     * PT 계약 ID로 상담 정보를 조회합니다.
-     * 
-     * @param ptContractId PT 계약 ID
-     * @return 상담 정보 응답 DTO
-     */
-    ConsultResponseDTO getConsultByPtContractId(Long ptContractId);
-    
-    /**
-     * 트레이너 ID로 해당 트레이너가 진행한 모든 상담 정보를 조회합니다.
-     * 
-     * @param trainerId 트레이너 ID
-     * @return 트레이너가 진행한 상담 목록
-     */
-    List<ConsultResponseDTO> getConsultsByTrainerId(Long trainerId);
-    
-    /**
-     * 회원 ID로 해당 회원의 모든 상담 정보를 조회합니다.
+     * 회원 ID로 해당 회원의 상담 일지를 조회합니다.
+     * 회원이 자신의 상담 일지를 조회하거나 트레이너가 담당 회원의 상담 일지를 조회할 때 사용합니다.
      * 
      * @param memberId 회원 ID
-     * @return 회원의 상담 목록
+     * @return 회원의 상담 일지 목록
      */
     List<ConsultResponseDTO> getConsultsByMemberId(Long memberId);
 } 

@@ -23,7 +23,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/consults")
-@Tag(name = "상담 관리", description = "상담 정보 CRUD API")
+@Tag(name = "상담 관리", description = "상담 정보 API")
 public class ConsultController {
 
     private final ConsultService consultService;
@@ -40,41 +40,24 @@ public class ConsultController {
         return new ResponseEntity<>(responseDTO, HttpStatus.CREATED);
     }
 
-    @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('MEMBER', 'TRAINER')")
-    @Operation(summary = "상담 정보 조회", description = "상담 ID로 상담 정보를 조회합니다.")
-    public ResponseEntity<ConsultResponseDTO> getConsultById(@PathVariable("id") Long consultId) {
-        log.info("Fetching consultation with ID: {}", consultId);
-        ConsultResponseDTO responseDTO = consultService.getConsultById(consultId);
-        return ResponseEntity.ok(responseDTO);
-    }
-
-    @GetMapping("/contract/{ptContractId}")
-    @PreAuthorize("hasAnyRole('MEMBER', 'TRAINER')")
-    @Operation(summary = "PT 계약별 상담 정보 조회", description = "PT 계약 ID로 상담 정보를 조회합니다.")
-    public ResponseEntity<ConsultResponseDTO> getConsultByPtContractId(@PathVariable Long ptContractId) {
-        log.info("Fetching consultation for PT contract ID: {}", ptContractId);
-        ConsultResponseDTO responseDTO = consultService.getConsultByPtContractId(ptContractId);
-        return ResponseEntity.ok(responseDTO);
-    }
-
-    @GetMapping("/trainer")
-    @PreAuthorize("hasAnyRole('TRAINER')")
-    @Operation(summary = "트레이너별 상담 정보 조회", description = "로그인한 트레이너의 상담 정보 목록을 조회합니다.")
-    public ResponseEntity<List<ConsultResponseDTO>> getConsultsByTrainer(
-            @AuthenticationPrincipal TrainerDTO trainer) {
-        log.info("Fetching consultations for trainer: {}", trainer.getEmail());
-        List<ConsultResponseDTO> responseDTOs = consultService.getConsultsByTrainerId(trainer.getId());
-        return ResponseEntity.ok(responseDTOs);
-    }
-
     @GetMapping("/member")
     @PreAuthorize("hasAnyRole('MEMBER')")
-    @Operation(summary = "회원별 상담 정보 조회", description = "로그인한 회원의 상담 정보 목록을 조회합니다.")
-    public ResponseEntity<List<ConsultResponseDTO>> getConsultsByMember(
+    @Operation(summary = "회원 자신의 상담 일지 조회", description = "로그인한 회원의 상담 일지 목록을 조회합니다.")
+    public ResponseEntity<List<ConsultResponseDTO>> getMyConsults(
             @AuthenticationPrincipal MemberDTO member) {
-        log.info("Fetching consultations for member: {}", member.getEmail());
+        log.info("Member {} is fetching their own consultations", member.getEmail());
         List<ConsultResponseDTO> responseDTOs = consultService.getConsultsByMemberId(member.getId());
+        return ResponseEntity.ok(responseDTOs);
+    }
+    
+    @GetMapping("/member/{memberId}")
+    @PreAuthorize("hasAnyRole('TRAINER')")
+    @Operation(summary = "트레이너가 회원의 상담 일지 조회", description = "트레이너가 특정 회원의 상담 일지를 조회합니다.")
+    public ResponseEntity<List<ConsultResponseDTO>> getMemberConsults(
+            @PathVariable Long memberId,
+            @AuthenticationPrincipal TrainerDTO trainer) {
+        log.info("Trainer {} is fetching consultations for member ID: {}", trainer.getEmail(), memberId);
+        List<ConsultResponseDTO> responseDTOs = consultService.getConsultsByMemberId(memberId);
         return ResponseEntity.ok(responseDTOs);
     }
 } 
