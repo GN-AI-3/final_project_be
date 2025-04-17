@@ -1,6 +1,8 @@
 package com.example.final_project_be.domain.exercise_record.service;
 
 import com.example.final_project_be.domain.exercise.entity.Exercise;
+import com.example.final_project_be.domain.exercise_record.dto.ExerciseRecordResponseDTO;
+import com.example.final_project_be.domain.exercise_record.dto.ExerciseRecordUpdateRequestDTO;
 import com.example.final_project_be.domain.exercise_record.entity.ExerciseRecord;
 import com.example.final_project_be.domain.exercise_record.repository.ExerciseRecordRepository;
 import com.example.final_project_be.domain.member.entity.Member;
@@ -14,7 +16,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
+@Transactional(readOnly = true)
 public class ExerciseRecordService {
 
     private final ExerciseRecordRepository exerciseRecordRepository;
@@ -40,5 +42,29 @@ public class ExerciseRecordService {
     @Transactional(readOnly = true)
     public Optional<ExerciseRecord> findById(Long id) {
         return exerciseRecordRepository.findById(id);
+    }
+
+    @Transactional
+    public ExerciseRecordResponseDTO updateExerciseRecord(ExerciseRecordUpdateRequestDTO requestDTO) {
+        ExerciseRecord exerciseRecord = exerciseRecordRepository
+                .findByMemberIdAndExerciseIdAndDate(
+                        requestDTO.getMemberId(),
+                        requestDTO.getExerciseId(),
+                        requestDTO.getDate()
+                )
+                .orElseThrow(() -> new RuntimeException("Exercise record not found"));
+
+        // recordData가 있는 경우에만 업데이트
+        if (requestDTO.getRecordData() != null) {
+            exerciseRecord.setRecordData(requestDTO.getRecordData());
+        }
+
+        // memoData가 있는 경우에만 업데이트
+        if (requestDTO.getMemoData() != null) {
+            exerciseRecord.setMemoData(requestDTO.getMemoData());
+        }
+
+        ExerciseRecord updatedRecord = exerciseRecordRepository.save(exerciseRecord);
+        return ExerciseRecordResponseDTO.from(updatedRecord);
     }
 } 

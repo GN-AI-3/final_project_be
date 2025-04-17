@@ -59,7 +59,7 @@ public class PtScheduleService {
                     .executeUpdate();
             log.info("지난 스케줄 {}건이 완료 처리되었습니다.", updatedCount);
         } catch (Exception e) {
-            log.error("만료 스케줄 업데이트 중 오류 발생", e);
+            log.error("스케줄 업데이트 중 오류 발생", e);
         }
     }
 
