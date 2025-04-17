@@ -1,5 +1,6 @@
 package com.example.final_project_be.domain.pt.entity;
 
+import com.example.final_project_be.domain.consult.entity.Consult;
 import com.example.final_project_be.domain.member.entity.Member;
 import com.example.final_project_be.domain.pt.enums.ContractStatus;
 import com.example.final_project_be.domain.trainer.entity.Trainer;
@@ -56,6 +57,9 @@ public class PtContract extends BaseEntity {
     @Column(name = "memo")
     @Setter
     private String memo;
+    
+    @OneToOne(mappedBy = "ptContract", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Consult consult;
 
     public Integer getRemainingCount() {
         return totalCount - usedCount;
