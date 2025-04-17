@@ -2,6 +2,8 @@ package com.example.final_project_be.domain.chatmessage.controller;
 
 import com.example.final_project_be.domain.chatmessage.dto.TrainerChatMessageRequestDTO;
 import com.example.final_project_be.domain.chatmessage.dto.TrainerChatMessageResponseDTO;
+import com.example.final_project_be.domain.chatmessage.dto.PtLogRequestDTO;
+import com.example.final_project_be.domain.chatmessage.dto.PtLogResponseDTO;
 import com.example.final_project_be.domain.chatmessage.service.TrainerChatMessageService;
 import com.example.final_project_be.security.TrainerDTO;
 import io.swagger.v3.oas.annotations.Operation;
@@ -114,6 +116,50 @@ public class TrainerChatMessageController {
             log.error("서버 오류", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", "메시지 조회 중 오류가 발생했습니다."));
+        }
+    }
+
+    @PreAuthorize("hasRole('TRAINER')")
+    @Operation(summary = "PT 일지 챗봇", description = "PT 일지 챗봇에 메시지를 전송합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "PT 로그 전송 성공", 
+                    content = @Content(schema = @Schema(implementation = PtLogResponseDTO.class))),
+            @ApiResponse(responseCode = "400", description = "잘못된 요청"),
+            @ApiResponse(responseCode = "401", description = "인증 실패"),
+            @ApiResponse(responseCode = "500", description = "서버 오류")
+    })
+    @PostMapping("/pt_log")
+    public ResponseEntity<?> sendPtLog(
+            @AuthenticationPrincipal TrainerDTO trainer,
+            @Valid @RequestBody PtLogRequestDTO request,
+            BindingResult bindingResult) {
+
+        if (trainer == null) {
+            log.warn("인증된 트레이너 정보가 없습니다.");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "로그인이 필요한 서비스입니다."));
+        }
+
+        log.info("PT 로그 전송 요청 - 트레이너 이메일: {}, PT 스케줄 ID: {}, 메시지: {}", 
+                trainer.getEmail(), request.getPtScheduleId(), request.getMessage());
+
+        // 유효성 검사 실패 시 오류 응답
+        if (bindingResult.hasErrors()) {
+            Map<String, String> errors = new HashMap<>();
+            for (FieldError error : bindingResult.getFieldErrors()) {
+                errors.put(error.getField(), error.getDefaultMessage());
+            }
+            log.warn("유효성 검사 실패: {}", errors);
+            return ResponseEntity.badRequest().body(errors);
+        }
+
+        try {
+            PtLogResponseDTO response = trainerChatMessageService.sendPtLogToFastAPI(request);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("PT 로그 전송 중 오류 발생", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "PT 로그 전송 중 오류가 발생했습니다."));
         }
     }
 } 

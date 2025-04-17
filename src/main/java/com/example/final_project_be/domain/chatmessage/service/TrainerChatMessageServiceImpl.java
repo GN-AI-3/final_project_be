@@ -1,13 +1,11 @@
 package com.example.final_project_be.domain.chatmessage.service;
 
-import com.example.final_project_be.domain.chatmessage.dto.TrainerChatMessageResponseDTO;
-import com.example.final_project_be.domain.chatmessage.entity.TrainerChatMessage;
-import com.example.final_project_be.domain.chatmessage.repository.TrainerChatMessageRepository;
-import com.example.final_project_be.domain.trainer.entity.Trainer;
-import com.example.final_project_be.domain.trainer.repository.TrainerRepository;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -21,12 +19,17 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
-import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import com.example.final_project_be.domain.chatmessage.dto.PtLogRequestDTO;
+import com.example.final_project_be.domain.chatmessage.dto.PtLogResponseDTO;
+import com.example.final_project_be.domain.chatmessage.dto.TrainerChatMessageResponseDTO;
+import com.example.final_project_be.domain.chatmessage.entity.TrainerChatMessage;
+import com.example.final_project_be.domain.chatmessage.repository.TrainerChatMessageRepository;
+import com.example.final_project_be.domain.trainer.entity.Trainer;
+import com.example.final_project_be.domain.trainer.repository.TrainerRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
@@ -206,5 +209,54 @@ public class TrainerChatMessageServiceImpl implements TrainerChatMessageService 
             return null;
         }
         return map.get(key).toString();
+    }
+
+    @Override
+    public PtLogResponseDTO sendPtLogToFastAPI(PtLogRequestDTO request) {
+        log.info("PT 로그 FastAPI 서버로 전송 시작 - PT 스케줄 ID: {}", request.getPtScheduleId());
+        
+        try {
+            // FastAPI 요청 형식에 맞게 데이터 구성
+            Map<String, Object> requestBody = new HashMap<>();
+            requestBody.put("message", request.getMessage());
+            requestBody.put("ptScheduleId", request.getPtScheduleId());
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            
+            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
+            String fastApiUrl = aiServerBaseUrl + "/pt_log";
+            
+            ResponseEntity<Map> response = restTemplate.postForEntity(fastApiUrl, entity, Map.class);
+            
+            if (response.getBody() == null) {
+                throw new RuntimeException("FastAPI 서버 응답이 비어있습니다.");
+            }
+
+            // FastAPI 응답을 DTO로 변환
+            Map<String, Object> responseBody = response.getBody();
+            PtLogResponseDTO responseDTO = new PtLogResponseDTO();
+            responseDTO.setPtScheduleId(request.getPtScheduleId());
+            responseDTO.setTimestamp((String) responseBody.get("timestamp"));
+            responseDTO.setFinalResponse((String) responseBody.get("final_response"));
+            
+            // execution_time이 Number 타입인지 확인
+            Object executionTime = responseBody.get("execution_time");
+            if (executionTime instanceof Number) {
+                responseDTO.setExecutionTime(((Number) executionTime).doubleValue());
+            } else {
+                responseDTO.setExecutionTime(0.0);
+            }
+
+            log.info("PT 로그 FastAPI 서버 전송 완료");
+            return responseDTO;
+            
+        } catch (RestClientException e) {
+            log.error("FastAPI 서버 통신 오류", e);
+            throw new RuntimeException("FastAPI 서버와 통신 중 오류가 발생했습니다.", e);
+        } catch (Exception e) {
+            log.error("PT 로그 전송 중 예상치 못한 오류", e);
+            throw new RuntimeException("PT 로그 전송 중 오류가 발생했습니다.", e);
+        }
     }
 } 
