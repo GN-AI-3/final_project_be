@@ -48,8 +48,8 @@ app:
   props:
     jwt:
       secret-key: ${JWT_SECRET_KEY}
-      access-token-expiration-period: 6000
-      refresh-token-expiration-period: 6000
+      access-token-expiration-period: 31536000
+      refresh-token-expiration-period: 31536000
 
     aws:
       key:
