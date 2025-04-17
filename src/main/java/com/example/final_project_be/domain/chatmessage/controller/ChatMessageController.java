@@ -2,6 +2,8 @@ package com.example.final_project_be.domain.chatmessage.controller;
 
 import com.example.final_project_be.domain.chatmessage.dto.ChatMessageRequestDTO;
 import com.example.final_project_be.domain.chatmessage.dto.ChatMessageResponseDTO;
+import com.example.final_project_be.domain.chatmessage.dto.WorkoutLogRequestDTO;
+import com.example.final_project_be.domain.chatmessage.dto.WorkoutLogResponseDTO;
 import com.example.final_project_be.domain.chatmessage.service.ChatMessageService;
 import com.example.final_project_be.security.MemberDTO;
 import io.swagger.v3.oas.annotations.Operation;
@@ -111,6 +113,49 @@ public class ChatMessageController {
             log.error("서버 오류", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", "메시지 조회 중 오류가 발생했습니다."));
+        }
+    }
+
+    @Operation(summary = "운동 기록 챗봇", description = "운동 기록 챗봇에 메시지를 전송합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "운동 기록 전송 성공", 
+                    content = @Content(schema = @Schema(implementation = WorkoutLogResponseDTO.class))),
+            @ApiResponse(responseCode = "400", description = "잘못된 요청"),
+            @ApiResponse(responseCode = "401", description = "인증 실패"),
+            @ApiResponse(responseCode = "500", description = "서버 오류")
+    })
+    @PostMapping("/workout_log")
+    public ResponseEntity<?> sendWorkoutLog(
+            @AuthenticationPrincipal MemberDTO member,
+            @Valid @RequestBody WorkoutLogRequestDTO request,
+            BindingResult bindingResult) {
+
+        if (member == null) {
+            log.warn("인증된 회원 정보가 없습니다.");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "로그인이 필요한 서비스입니다."));
+        }
+
+        log.info("운동 기록 전송 요청 - 회원 ID: {}, 날짜: {}, 메시지: {}", 
+                request.getMemberId(), request.getDate(), request.getMessage());
+
+        // 유효성 검사 실패 시 오류 응답
+        if (bindingResult.hasErrors()) {
+            Map<String, String> errors = new HashMap<>();
+            for (FieldError error : bindingResult.getFieldErrors()) {
+                errors.put(error.getField(), error.getDefaultMessage());
+            }
+            log.warn("유효성 검사 실패: {}", errors);
+            return ResponseEntity.badRequest().body(errors);
+        }
+
+        try {
+            WorkoutLogResponseDTO response = chatMessageService.sendWorkoutLogToFastAPI(request);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("운동 기록 전송 중 오류 발생", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "운동 기록 전송 중 오류가 발생했습니다."));
         }
     }
 }
