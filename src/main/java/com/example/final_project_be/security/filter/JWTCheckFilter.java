@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -43,9 +44,21 @@ public class JWTCheckFilter extends OncePerRequestFilter {
         ) {
             return true;
         }
+        // /api/trainer/로 시작하는 요청은 필터를 타지 않도록 설정
+        if (path.startsWith("/api/trainer/login") || path.startsWith("/api/trainer/join")
+                || path.startsWith("/api/trainer/check-email")
+                || path.startsWith("/api/trainer/refresh") || path.startsWith("/api/trainer/logout")
+        ) {
+            return true;
+        }
         // /view 이미지 불러오기 api로 시작하는 요청은 필터를 타지 않도록 설정
         if (path.startsWith("/api/image/")
         ) {
+            return true;
+        }
+
+        // 채팅 엔드포인트 추가
+        if (path.startsWith("/api/anonymous-chat/")) {
             return true;
         }
 
@@ -80,31 +93,41 @@ public class JWTCheckFilter extends OncePerRequestFilter {
         String autHeaderStr = request.getHeader("Authorization");
         log.info("autHeaderStr Authorization: {}", autHeaderStr);
 
-//        if ((Objects.equals(autHeaderStr, "Bearer null") || (autHeaderStr == null)) && (
-//                request.getServletPath().startsWith("/api/product/")
-//
-//        )) {
-//            filterChain.doFilter(request, response);
-//            return;
-//        }
-
         try {
             // Bearer accessToken 형태로 전달되므로 Bearer 제거
             String accessToken = autHeaderStr.substring(7);// Bearer 제거
-            // 쿠키로 가져와
             log.info("JWTCheckFilter accessToken: {}", accessToken);
 
             Map<String, Object> claims = jwtUtil.validateToken(accessToken);
 
             log.info("JWT claims: {}", claims);
-
-            MemberDTO memberDTO = (MemberDTO) userDetailService.loadUserByUsername((String) claims.get("email"));
-
-            log.info("memberDTO: {}", memberDTO);
-            log.info("memberDto.getAuthorities(): {}", memberDTO.getAuthorities());
+            
+            // claims에서 사용자 타입 확인 (기본값은 MEMBER)
+            String userType = (String) claims.getOrDefault("userType", "MEMBER");
+            String email = (String) claims.get("email");
+            Long id = ((Number) claims.get("id")).longValue(); // id 추출
+            
+            log.info("JWT claims - userType: {}, email: {}, id: {}", userType, email, id);
+            
+            UserDetails userDetails;
+            // URL 경로에 따라 권한 체크
+            String path = request.getRequestURI();
+            
+            // trainer 경로에는 TRAINER만 접근 가능
+            if (path.startsWith("/api/trainer") && !"TRAINER".equals(userType)) {
+                throw new RuntimeException("트레이너 권한이 필요합니다.");
+            }
+            
+            // member 경로에는 MEMBER만 접근 가능
+            if (path.startsWith("/api/member") && !"MEMBER".equals(userType)) {
+                throw new RuntimeException("회원 권한이 필요합니다.");
+            }
+            
+            // 사용자 정보 로드
+            userDetails = userDetailService.loadUserByUsername(email);
 
             UsernamePasswordAuthenticationToken authenticationToken =
-                    new UsernamePasswordAuthenticationToken(memberDTO, memberDTO.getPassword(), memberDTO.getAuthorities());
+                    new UsernamePasswordAuthenticationToken(userDetails, userDetails.getPassword(), userDetails.getAuthorities());
 
             // SecurityContextHolder에 인증 객체 저장
             SecurityContextHolder.getContext().setAuthentication(authenticationToken);

@@ -16,8 +16,9 @@ import java.util.List;
 @Schema(description = "로그인 성공 시 응답하는 회원 정보가 담긴 dto")
 public class LoginResponseDTO {
 
+    private Long id;
     private String email;
     private String name;
-    private List<String> roles;
+    private String userType;
     private String accessToken;
 }

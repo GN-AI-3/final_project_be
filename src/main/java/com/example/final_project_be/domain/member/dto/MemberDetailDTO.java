@@ -2,7 +2,6 @@ package com.example.final_project_be.domain.member.dto;
 
 import com.example.final_project_be.domain.member.entity.Member;
 import com.example.final_project_be.domain.member.enums.MemberGoal;
-import com.example.final_project_be.domain.member.enums.MemberRole;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -19,23 +18,25 @@ import java.util.stream.Collectors;
 @Schema(description = "회원 정보 조회와 수정을 위한 dto")
 public class MemberDetailDTO {
 
+    private Long id;
     private String email;
     private String phone;
     private String name;
+    private String gender;
     private String profileImage;
-    private List<String> roles;  // ← 여기!
-    private List<String> goals;
+    private String userType;
+    private List<String> goal;
 
     public static MemberDetailDTO from(Member member) {
         return MemberDetailDTO.builder()
+                .id(member.getId())
                 .email(member.getEmail())
                 .phone(member.getPhone())
                 .name(member.getName())
+                .gender(member.getGender())
                 .profileImage(member.getProfileImage())
-                .roles(member.getMemberRoleList().stream()
-                        .map(MemberRole::getRoleName)
-                        .collect(Collectors.toList()))
-                .goals(member.getMemberGoalList().stream()
+                .userType(member.getUserType())
+                .goal(member.getMemberGoalList().stream()
                         .map(MemberGoal::getGoal)
                         .collect(Collectors.toList()))
                 .build();

@@ -55,13 +55,31 @@ public class SecurityConfig {
                         .requestMatchers(new AntPathRequestMatcher("/api/member/login")).permitAll()
                         .requestMatchers(new AntPathRequestMatcher("/api/member/logout")).permitAll()
                         .requestMatchers(new AntPathRequestMatcher("/api/member/refresh")).permitAll()
-                        .requestMatchers(new AntPathRequestMatcher("/api/member/me")).permitAll()
                         .requestMatchers(new AntPathRequestMatcher("/api/member/check-email/**")).permitAll()
+                        
+                        // /api/trainer/ 공개 엔드포인트
+                        .requestMatchers(new AntPathRequestMatcher("/api/trainer/join")).permitAll()
+                        .requestMatchers(new AntPathRequestMatcher("/api/trainer/login")).permitAll()
+                        .requestMatchers(new AntPathRequestMatcher("/api/trainer/logout")).permitAll()
+                        .requestMatchers(new AntPathRequestMatcher("/api/trainer/refresh")).permitAll()
+                        .requestMatchers(new AntPathRequestMatcher("/api/trainer/check-email/**")).permitAll()
+                        
+                        // MEMBER 권한 필요 엔드포인트
+                        .requestMatchers(new AntPathRequestMatcher("/api/member/**")).hasRole("MEMBER")
+                        .requestMatchers(new AntPathRequestMatcher("/api/pt_contracts/members/**")).hasRole("TRAINER")
+                        // TRAINER 권한 필요 엔드포인트
+                        .requestMatchers(new AntPathRequestMatcher("/api/trainer/**")).hasRole("TRAINER")
+                        
+                        // 공통 엔드포인트
+                        .requestMatchers(new AntPathRequestMatcher("/api/member/me")).permitAll()
+                        .requestMatchers(new AntPathRequestMatcher("/api/trainer/me")).permitAll()
                         .requestMatchers(new AntPathRequestMatcher("/api/image/**")).permitAll()
+                        // chat_message
+                        .requestMatchers(new AntPathRequestMatcher("/api/chat/**")).permitAll()
                         // health check
                         .requestMatchers(new AntPathRequestMatcher("/health/**")).permitAll()
-//                        // api path에 admin 포함되면 ROLE_ADMIN 권한이 있어야 접근 가능,
-//                        .requestMatchers(new AntPathRequestMatcher("/api/admin/**")).hasRole("ADMIN")
+                        // 익명 채팅 엔드포인트 허용
+                        .requestMatchers(new AntPathRequestMatcher("/api/anonymous-chat/**")).permitAll()
                         // 정적 리소스에 대한 접근 허용
                         .requestMatchers(new AntPathRequestMatcher("/favicon.ico")).permitAll()
                         .requestMatchers(new AntPathRequestMatcher("/v2/api-docs")).permitAll()

@@ -9,6 +9,7 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '3.4.4'
     id 'io.spring.dependency-management' version '1.1.7'
+    id 'org.flywaydb.flyway' version '8.5.0'  // Flyway 플러그인 추가
 }
 
 group = 'com.example'
@@ -36,6 +37,8 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'com.fasterxml.jackson.core:jackson-databind'
+    implementation 'com.vladmihalcea:hibernate-types-60:2.21.1'
+    implementation 'org.hibernate.orm:hibernate-core:6.4.4.Final'
     compileOnly 'org.projectlombok:lombok'
     runtimeOnly 'org.postgresql:postgresql'
     annotationProcessor 'org.projectlombok:lombok'
@@ -69,7 +72,7 @@ dependencies {
     implementation 'net.coobird:thumbnailator:0.4.19'
 
     // Firebase Admin SDK
-    implementation 'com.google.firebase:firebase-admin:9.2.0'
+    implementation 'com.google.firebase:firebase-admin:9.3.0'
 
     // SMTP
     implementation 'org.springframework.boot:spring-boot-starter-mail'
@@ -79,6 +82,9 @@ dependencies {
 
     // 날짜/시간 타입 읽기 위한 솔루션
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+
+    // flyway
+//    implementation 'org.flywaydb:flyway-core:10.23.0'
 
 }
 

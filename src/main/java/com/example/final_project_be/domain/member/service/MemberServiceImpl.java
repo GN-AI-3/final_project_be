@@ -12,6 +12,8 @@ import com.example.final_project_be.util.file.CustomFileUtil;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -43,13 +45,20 @@ public class MemberServiceImpl implements MemberService {
         Member member = Member.from(request);
         // 먼저 회원을 저장
         memberRepository.save(member);
-
     }
 
     @Transactional(readOnly = true)
     @Override
     public Map<String, Object> login(String email, String password) {
-        MemberDTO memberAuthDTO = (MemberDTO) customUserDetailService.loadUserByUsername(email);
+        UserDetails userDetails;
+        try {
+            // MEMBER 타입으로 사용자 로드 시도
+            userDetails = customUserDetailService.loadUserByUsernameAndType(email, "MEMBER");
+        } catch (UsernameNotFoundException e) {
+            throw new RuntimeException("해당 이메일로 등록된 회원이 없습니다.");
+        }
+        
+        MemberDTO memberAuthDTO = (MemberDTO) userDetails;
         log.info("email : {}, password : {}", email, password);
 
         if(!passwordEncoder.matches(password, memberAuthDTO.getPassword())) {
@@ -69,7 +78,7 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     public Member getEntity(String email) {
-        return memberRepository.getWithRoles(email)
+        return memberRepository.findByEmail(email)
                 .orElseThrow(() -> new EntityNotFoundException("해당하는 회원이 없습니다. email: " + email));
     }
 
@@ -77,8 +86,7 @@ public class MemberServiceImpl implements MemberService {
     @Override
     public MemberDetailDTO getMyInfo(String email) {
         Member member = getEntity(email);
-
-        return entityToMemberDetailDTO(member);
+        return MemberDetailDTO.from(member);
     }
 
     @Override
@@ -86,5 +94,10 @@ public class MemberServiceImpl implements MemberService {
         return memberRepository.existsByEmail(email);
     }
 
-
+    @Override
+    public MemberDetailDTO getMemberInfo(Long memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
+        return MemberDetailDTO.from(member);
+    }
 }
