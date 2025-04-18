@@ -27,11 +27,21 @@ public class JWTCheckFilter extends OncePerRequestFilter {
 
     private final JWTUtil jwtUtil;
     private final CustomUserDetailService userDetailService;
+    
+    // AI 서버 관련 상수 정의
+    private static final String AI_SERVER_HEADER = "X-API-KEY";
 
     // 해당 필터로직(doFilterInternal)을 수행할지 여부를 결정하는 메서드
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
         String path = request.getRequestURI();
         log.info("check uri: " + path);
+
+        // AI 서버에서 오는 요청 확인 (API 키 헤더가 있는 경우)
+        String aiApiKey = request.getHeader(AI_SERVER_HEADER);
+        if (aiApiKey != null && !aiApiKey.isEmpty()) {
+            log.info("AI 서버에서 온 요청, JWT 필터 스킵: {}", path);
+            return true;
+        }
 
         // Pre-flight 요청은 필터를 타지 않도록 설정
         if (request.getMethod().equals("OPTIONS")) {
@@ -59,6 +69,13 @@ public class JWTCheckFilter extends OncePerRequestFilter {
 
         // 채팅 엔드포인트 추가
         if (path.startsWith("/api/anonymous-chat/")) {
+            return true;
+        }
+        
+        // AI 관련 API 엔드포인트 제외 설정
+        if (path.startsWith("/api/chat") || path.startsWith("/api/pt_log") || 
+            path.startsWith("/api/workout_log") || path.startsWith("/api/ai/")) {
+            log.info("AI 관련 API 엔드포인트 요청, JWT 필터 스킵: {}", path);
             return true;
         }
 
@@ -90,8 +107,32 @@ public class JWTCheckFilter extends OncePerRequestFilter {
         log.info("request.getServletPath(): {}", request.getServletPath());
         log.info("..................................................");
 
+        // AI 서버 인증 헤더 체크
+        String aiApiKey = request.getHeader(AI_SERVER_HEADER);
+        if (aiApiKey != null && !aiApiKey.isEmpty()) {
+            // AI 서버 요청이라면 바로 통과
+            log.info("AI 서버 요청으로 판단하여 필터 통과");
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         String autHeaderStr = request.getHeader("Authorization");
         log.info("autHeaderStr Authorization: {}", autHeaderStr);
+        
+        // Authorization 헤더가 없는 경우 처리
+        if (autHeaderStr == null || !autHeaderStr.startsWith("Bearer ")) {
+            log.error("Authorization 헤더가 없거나 올바르지 않은 형식입니다.");
+            
+            ObjectMapper objectMapper = new ObjectMapper();
+            String msg = objectMapper.writeValueAsString(Map.of("error", "MISSING_OR_INVALID_TOKEN"));
+            
+            response.setContentType("application/json;charset=UTF-8");
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            PrintWriter printWriter = response.getWriter();
+            printWriter.println(msg);
+            printWriter.close();
+            return;
+        }
 
         try {
             // Bearer accessToken 형태로 전달되므로 Bearer 제거

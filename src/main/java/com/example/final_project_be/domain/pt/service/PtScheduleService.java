@@ -38,7 +38,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
+@Transactional
 public class PtScheduleService {
 
     private final PtScheduleRepository ptScheduleRepository;
@@ -186,6 +186,7 @@ public class PtScheduleService {
         return schedule.getId();
     }
 
+    @Transactional
     public void sendCancelAlarm(Long scheduleId, String reason) {
         log.info("cancel alarm start...");
 
@@ -270,6 +271,7 @@ public class PtScheduleService {
         return newScheduleId;
     }
 
+    @Transactional
     public void sendChangeAlarm(Long scheduleId) {
         log.info("change alarm start...");
 

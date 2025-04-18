@@ -92,6 +92,9 @@ public class PtScheduleController {
             @Valid @RequestBody PtScheduleChangeRequestDTO request,
             @AuthenticationPrincipal Object user) {
         Long newScheduleId = ptScheduleService.changeSchedule(scheduleId, request, user);
+
+        ptScheduleService.sendChangeAlarm(newScheduleId);
+
         return ResponseEntity.ok(ptScheduleService.getPtScheduleById(newScheduleId));
     }
 
@@ -109,8 +112,6 @@ public class PtScheduleController {
                 request != null ? request.getReason() : null,
                 user
         );
-
-        ptScheduleService.sendChangeAlarm(updatedScheduleId);
 
         return ResponseEntity.ok(ptScheduleService.getPtScheduleById(updatedScheduleId));
     }
