@@ -71,13 +71,6 @@ public class JWTCheckFilter extends OncePerRequestFilter {
         if (path.startsWith("/api/anonymous-chat/")) {
             return true;
         }
-        
-        // AI 관련 API 엔드포인트 제외 설정
-        if (path.startsWith("/api/chat") || path.startsWith("/api/pt_log") || 
-            path.startsWith("/api/workout_log") || path.startsWith("/api/ai/")) {
-            log.info("AI 관련 API 엔드포인트 요청, JWT 필터 스킵: {}", path);
-            return true;
-        }
 
         // -----
         // health check
