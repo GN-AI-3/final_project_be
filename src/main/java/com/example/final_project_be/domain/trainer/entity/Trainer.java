@@ -65,6 +65,9 @@ public class Trainer extends BaseEntity {
     @OneToOne(mappedBy = "trainer", cascade = CascadeType.ALL)
     private Subscribe subscribe;
 
+    @OneToOne(mappedBy = "trainer", cascade = CascadeType.ALL, orphanRemoval = true)
+    private TrainerWorkingTime trainerWorkingTime;
+
     @Column(name = "schedule_cancel_limit_hours", nullable = false)
     @Builder.Default
     private Integer scheduleCancelLimitHours = 12;

@@ -19,8 +19,8 @@ public class TrainerWorkingTime extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "trainer_id", nullable = false)
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "trainer_id", nullable = false, unique = true)
     private Trainer trainer;
 
     @Column(name = "day_of_week", nullable = false)
