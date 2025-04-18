@@ -10,7 +10,6 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -66,34 +65,16 @@ public class ConsultServiceImpl implements ConsultService {
         
         List<Consult> consults = consultRepository.findByMemberIdWithFetchJoin(memberId);
         
-        // 각 Consult의 컬렉션 초기화
-        consults.forEach(this::initializeConsultCollections);
-        
         return consults.stream()
                 .map(ConsultResponseDTO::from)
                 .collect(Collectors.toList());
     }
     
     /**
-     * Consult 엔티티의 모든 컬렉션 필드를 초기화합니다.
-     * 여러 컬렉션을 동시에 fetch하면 MultipleBagFetchException이 발생하므로
-     * 각 컬렉션을 개별적으로 초기화합니다.
-     */
-    private void initializeConsultCollections(Consult consult) {
-        if (consult != null) {
-            Hibernate.initialize(consult.getPreferredExercises());
-            Hibernate.initialize(consult.getDislikedExercises());
-            Hibernate.initialize(consult.getBodyConcerns());
-            Hibernate.initialize(consult.getPreferredDays());
-            Hibernate.initialize(consult.getPreferredTimes());
-        }
-    }
-    
-    /**
      * ConsultRequestDTO로부터 Consult 엔티티를 생성합니다.
      */
     private Consult buildConsultEntity(PtContract ptContract, ConsultRequestDTO dto) {
-        return Consult.builder()
+        Consult consult = Consult.builder()
                 .ptContract(ptContract)
                 
                 // 1. 기본 정보
@@ -111,19 +92,37 @@ public class ConsultServiceImpl implements ConsultService {
                 .hasExperience(dto.getHasExperience())
                 .exerciseExperience(dto.getExerciseExperience())
                 .weeklyWorkoutFrequency(dto.getWeeklyWorkoutFrequency())
-                .preferredExercises(dto.getPreferredExercises() != null ? dto.getPreferredExercises() : Collections.emptyList())
-                .dislikedExercises(dto.getDislikedExercises() != null ? dto.getDislikedExercises() : Collections.emptyList())
                 .weakPointsOrPain(dto.getWeakPointsOrPain())
-                .bodyConcerns(dto.getBodyConcerns() != null ? dto.getBodyConcerns() : Collections.emptyList())
                 
                 // 3. 식단 정보
                 .needsDietPlan(dto.getNeedsDietPlan())
                 
                 // 4. 일정 정보
-                .preferredDays(dto.getPreferredDays() != null ? dto.getPreferredDays() : Collections.emptyList())
-                .preferredTimes(dto.getPreferredTimes() != null ? dto.getPreferredTimes() : Collections.emptyList())
                 .availableSessionsPerWeek(dto.getAvailableSessionsPerWeek())
                 .distanceToGym(dto.getDistanceToGym())
                 .build();
+        
+        // List 타입 필드는 별도 설정
+        if (dto.getPreferredExercises() != null) {
+            consult.setPreferredExercises(dto.getPreferredExercises());
+        }
+        
+        if (dto.getDislikedExercises() != null) {
+            consult.setDislikedExercises(dto.getDislikedExercises());
+        }
+        
+        if (dto.getBodyConcerns() != null) {
+            consult.setBodyConcerns(dto.getBodyConcerns());
+        }
+        
+        if (dto.getPreferredDays() != null) {
+            consult.setPreferredDays(dto.getPreferredDays());
+        }
+        
+        if (dto.getPreferredTimes() != null) {
+            consult.setPreferredTimes(dto.getPreferredTimes());
+        }
+        
+        return consult;
     }
 } 
