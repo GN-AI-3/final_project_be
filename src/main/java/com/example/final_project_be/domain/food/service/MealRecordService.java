@@ -1,71 +1,112 @@
 package com.example.final_project_be.domain.food.service;
 
-import com.example.final_project_be.domain.food.dto.MealRecordRequestDTO;
-import com.example.final_project_be.domain.food.dto.MealRecordResponseDTO;
-import com.example.final_project_be.domain.food.entity.MealRecords;
+import com.example.final_project_be.domain.food.dto.MealRecordRequest;
+import com.example.final_project_be.domain.food.dto.MealRecordResponse;
+import com.example.final_project_be.domain.food.entity.MealRecord;
 import com.example.final_project_be.domain.food.repository.MealRecordRepository;
-import com.example.final_project_be.domain.member.entity.Member;
-import com.example.final_project_be.domain.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.time.LocalDate;
-import java.util.List;
+import java.time.LocalTime;
 
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class MealRecordService {
-
     private final MealRecordRepository mealRecordRepository;
-    private final MemberRepository memberRepository;
 
-    public List<MealRecordResponseDTO> getTodayMeals(Long memberId) {
-        LocalDateTime startOfDay = LocalDate.now().atStartOfDay();
-        LocalDateTime endOfDay = LocalDate.now().plusDays(1).atStartOfDay();
+    @Transactional
+    public MealRecordResponse recordMeal(MealRecordRequest request) {
+        // TODO: Implement meal parsing logic
+        // TODO: Implement nutrition lookup logic
 
-        return mealRecordRepository.findMealRecordsDTOByMemberIdAndCreatedAtBetween(
-                memberId, startOfDay, endOfDay);
-    }
+        MealRecord mealRecord = new MealRecord();
+        mealRecord.setMemberId(request.getMemberId());
+        mealRecord.setFoodName("parsed_food_name");
+        mealRecord.setMealType("parsed_meal_type");
+        mealRecord.setPortion(100.0);
+        mealRecord.setUnit("g");
+        mealRecord.setMealDate(LocalDate.now());
+        mealRecord.setMealTime(LocalTime.now());
+        mealRecord.setCalories(0.0);
+        mealRecord.setProtein(0.0);
+        mealRecord.setCarbs(0.0);
+        mealRecord.setFat(0.0);
 
-    public List<MealRecordResponseDTO> getWeeklyMeals(Long memberId) {
-        LocalDateTime startOfWeek = LocalDate.now().minusDays(7).atStartOfDay();
-        LocalDateTime endOfDay = LocalDate.now().plusDays(1).atStartOfDay();
+        MealRecord savedRecord = mealRecordRepository.save(mealRecord);
 
-        return mealRecordRepository.findMealRecordsDTOByMemberIdAndCreatedAtBetween(
-                memberId, startOfWeek, endOfDay);
+        return MealRecordResponse.builder()
+                .status("✅ 저장 완료")
+                .food(savedRecord.getFoodName())
+                .mealType(savedRecord.getMealType())
+                .portion(savedRecord.getPortion())
+                .unit(savedRecord.getUnit())
+                .calories(savedRecord.getCalories())
+                .protein(savedRecord.getProtein())
+                .carbs(savedRecord.getCarbs())
+                .fat(savedRecord.getFat())
+                .build();
     }
 
     @Transactional
-    public MealRecordResponseDTO saveMealRecord(MealRecordRequestDTO requestDTO) {
-        Member member = memberRepository.findById(requestDTO.getMemberId())
-                .orElseThrow(() -> new IllegalArgumentException("Member not found"));
+    public MealRecordResponse insertMeal(MealRecordRequest request) {
+        MealRecord mealRecord = new MealRecord();
+        mealRecord.setMemberId(request.getMemberId());
+        mealRecord.setFoodName(request.getFoodName());
+        mealRecord.setMealType(request.getMealType());
+        mealRecord.setPortion(request.getPortion());
+        mealRecord.setUnit(request.getUnit());
+        mealRecord.setMealDate(LocalDate.now());
+        mealRecord.setMealTime(LocalTime.now());
+        mealRecord.setCalories(request.getCalories());
+        mealRecord.setProtein(request.getProtein());
+        mealRecord.setCarbs(request.getCarbs());
+        mealRecord.setFat(request.getFat());
+        
+        MealRecord savedRecord = mealRecordRepository.save(mealRecord);
 
-        MealRecords mealRecord = MealRecords.builder()
-                .member(member)
-                .foodName(requestDTO.getFoodName())
-                .portion(requestDTO.getPortion())
-                .unit(requestDTO.getUnit())
-                .mealType(requestDTO.getMealType())
-                .calories(requestDTO.getCalories())
-                .protein(requestDTO.getProtein())
-                .carbs(requestDTO.getCarbs())
-                .fat(requestDTO.getFat())
+        return MealRecordResponse.builder()
+                .status("✅ 저장 완료")
+                .food(savedRecord.getFoodName())
+                .mealType(savedRecord.getMealType())
+                .portion(savedRecord.getPortion())
+                .unit(savedRecord.getUnit())
+                .calories(savedRecord.getCalories())
+                .protein(savedRecord.getProtein())
+                .carbs(savedRecord.getCarbs())
+                .fat(savedRecord.getFat())
                 .build();
-
-        MealRecords savedRecord = mealRecordRepository.save(mealRecord);
-        return convertToDTO(savedRecord);
     }
 
-    private MealRecordResponseDTO convertToDTO(MealRecords record) {
-        return MealRecordResponseDTO.builder()
-                .Name(record.getFoodName())
-                .Calories(record.getCalories())
-                .Protein(record.getProtein())
-                .Carbs(record.getCarbs())
-                .Fat(record.getFat())
+    @Transactional
+    public MealRecordResponse updateMeal(MealRecordRequest request) {
+        LocalDate today = LocalDate.now();
+
+        MealRecord mealRecord = mealRecordRepository.findByMemberIdAndFoodNameAndMealTypeAndMealDate(
+        request.getMemberId(), request.getFoodName(), request.getMealType(), today)
+    .orElseThrow(() -> new IllegalArgumentException("오늘의 해당 식사 기록이 존재하지 않습니다."));
+
+        mealRecord.setPortion(request.getPortion());
+        mealRecord.setUnit(request.getUnit());
+        mealRecord.setCalories(request.getCalories());
+        mealRecord.setProtein(request.getProtein());
+        mealRecord.setCarbs(request.getCarbs());
+        mealRecord.setFat(request.getFat());
+
+        MealRecord updatedRecord = mealRecordRepository.save(mealRecord);
+
+        return MealRecordResponse.builder()
+                .status("♻️ 기존 기록 갱신 완료")
+                .food(updatedRecord.getFoodName())
+                .mealType(updatedRecord.getMealType())
+                .portion(updatedRecord.getPortion())
+                .unit(updatedRecord.getUnit())
+                .calories(updatedRecord.getCalories())
+                .protein(updatedRecord.getProtein())
+                .carbs(updatedRecord.getCarbs())
+                .fat(updatedRecord.getFat())
                 .build();
     }
 }
