@@ -17,10 +17,20 @@ public interface ConsultService {
     
     /**
      * 회원 ID로 해당 회원의 상담 일지를 조회합니다.
-     * 회원이 자신의 상담 일지를 조회하거나 트레이너가 담당 회원의 상담 일지를 조회할 때 사용합니다.
+     * 회원이 자신의 상담 일지를 조회할 때 사용합니다.
      * 
      * @param memberId 회원 ID
      * @return 회원의 상담 일지 목록
      */
     List<ConsultResponseDTO> getConsultsByMemberId(Long memberId);
+    
+    /**
+     * PT 계약 ID로 해당 계약과 관련된 회원의 상담 일지를 조회합니다.
+     * 트레이너가 담당 회원의 상담 일지를 조회할 때 사용합니다.
+     * 
+     * @param ptContractId PT 계약 ID
+     * @param trainerId 트레이너 ID (권한 검증용)
+     * @return 회원의 상담 일지 목록
+     */
+    List<ConsultResponseDTO> getConsultsByPtContractId(Long ptContractId, Long trainerId);
 } 

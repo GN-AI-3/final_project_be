@@ -9,7 +9,9 @@ import org.hibernate.annotations.DynamicUpdate;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @DynamicUpdate
 @SuperBuilder
@@ -19,6 +21,8 @@ import java.util.List;
 @AllArgsConstructor
 @Table(name = "consult")
 public class Consult extends BaseEntity {
+    
+    private static final String DELIMITER = ";;";
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -78,27 +82,21 @@ public class Consult extends BaseEntity {
     @Setter
     private Integer weeklyWorkoutFrequency;
 
-    @ElementCollection
-    @CollectionTable(name = "consult_preferred_exercises", joinColumns = @JoinColumn(name = "consult_id"))
-    @Column(name = "preferred_exercises")
-    @Builder.Default
-    private List<String> preferredExercises = new ArrayList<>();
+    @Column(name = "preferred_exercises", columnDefinition = "TEXT")
+    @Setter
+    private String preferredExercisesStr;
 
-    @ElementCollection
-    @CollectionTable(name = "consult_disliked_exercises", joinColumns = @JoinColumn(name = "consult_id"))
-    @Column(name = "disliked_exercises")
-    @Builder.Default
-    private List<String> dislikedExercises = new ArrayList<>();
+    @Column(name = "disliked_exercises", columnDefinition = "TEXT")
+    @Setter
+    private String dislikedExercisesStr;
 
     @Column(name = "weak_points_or_pain", columnDefinition = "TEXT")
     @Setter
     private String weakPointsOrPain;
 
-    @ElementCollection
-    @CollectionTable(name = "consult_body_concerns", joinColumns = @JoinColumn(name = "consult_id"))
-    @Column(name = "body_concerns")
-    @Builder.Default
-    private List<String> bodyConcerns = new ArrayList<>();
+    @Column(name = "body_concerns", columnDefinition = "TEXT")
+    @Setter
+    private String bodyConcernsStr;
 
     // 3. 식단 정보
     @Column(name = "needs_diet_plan")
@@ -106,17 +104,13 @@ public class Consult extends BaseEntity {
     private Boolean needsDietPlan;
 
     // 4. 일정 정보
-    @ElementCollection
-    @CollectionTable(name = "consult_preferred_days", joinColumns = @JoinColumn(name = "consult_id"))
-    @Column(name = "preferred_days")
-    @Builder.Default
-    private List<String> preferredDays = new ArrayList<>();
+    @Column(name = "preferred_days", columnDefinition = "TEXT")
+    @Setter
+    private String preferredDaysStr;
 
-    @ElementCollection
-    @CollectionTable(name = "consult_preferred_times", joinColumns = @JoinColumn(name = "consult_id"))
-    @Column(name = "preferred_times")
-    @Builder.Default
-    private List<String> preferredTimes = new ArrayList<>();
+    @Column(name = "preferred_times", columnDefinition = "TEXT")
+    @Setter
+    private String preferredTimesStr;
 
     @Column(name = "available_sessions_per_week")
     @Setter
@@ -125,4 +119,108 @@ public class Consult extends BaseEntity {
     @Column(name = "distance_to_gym", length = 100)
     @Setter
     private String distanceToGym;
+    
+    // === String ↔ List 변환 메서드 ===
+    
+    /**
+     * 선호하는 운동 목록 문자열을 리스트로 변환하여 반환합니다.
+     */
+    @Transient
+    public List<String> getPreferredExercises() {
+        return stringToList(preferredExercisesStr);
+    }
+    
+    /**
+     * 선호하는 운동 목록을 설정합니다.
+     */
+    public void setPreferredExercises(List<String> preferredExercises) {
+        this.preferredExercisesStr = listToString(preferredExercises);
+    }
+    
+    /**
+     * 싫어하는 운동 목록 문자열을 리스트로 변환하여 반환합니다.
+     */
+    @Transient
+    public List<String> getDislikedExercises() {
+        return stringToList(dislikedExercisesStr);
+    }
+    
+    /**
+     * 싫어하는 운동 목록을 설정합니다.
+     */
+    public void setDislikedExercises(List<String> dislikedExercises) {
+        this.dislikedExercisesStr = listToString(dislikedExercises);
+    }
+    
+    /**
+     * 신체 고민 목록 문자열을 리스트로 변환하여 반환합니다.
+     */
+    @Transient
+    public List<String> getBodyConcerns() {
+        return stringToList(bodyConcernsStr);
+    }
+    
+    /**
+     * 신체 고민 목록을 설정합니다.
+     */
+    public void setBodyConcerns(List<String> bodyConcerns) {
+        this.bodyConcernsStr = listToString(bodyConcerns);
+    }
+    
+    /**
+     * 선호하는 요일 목록 문자열을 리스트로 변환하여 반환합니다.
+     */
+    @Transient
+    public List<String> getPreferredDays() {
+        return stringToList(preferredDaysStr);
+    }
+    
+    /**
+     * 선호하는 요일 목록을 설정합니다.
+     */
+    public void setPreferredDays(List<String> preferredDays) {
+        this.preferredDaysStr = listToString(preferredDays);
+    }
+    
+    /**
+     * 선호하는 시간 목록 문자열을 리스트로 변환하여 반환합니다.
+     */
+    @Transient
+    public List<String> getPreferredTimes() {
+        return stringToList(preferredTimesStr);
+    }
+    
+    /**
+     * 선호하는 시간 목록을 설정합니다.
+     */
+    public void setPreferredTimes(List<String> preferredTimes) {
+        this.preferredTimesStr = listToString(preferredTimes);
+    }
+    
+    // === 유틸리티 메서드 ===
+    
+    /**
+     * 문자열 리스트를 구분자로 연결된 하나의 문자열로 변환합니다.
+     */
+    private String listToString(List<String> list) {
+        if (list == null || list.isEmpty()) {
+            return null;
+        }
+        return list.stream()
+                .filter(item -> item != null && !item.isEmpty())
+                .map(item -> item.replace(DELIMITER, ",")) // 구분자가 포함된 경우 대체
+                .collect(Collectors.joining(DELIMITER));
+    }
+    
+    /**
+     * 구분자로 연결된 문자열을 문자열 리스트로 변환합니다.
+     */
+    private List<String> stringToList(String str) {
+        if (str == null || str.isEmpty()) {
+            return new ArrayList<>();
+        }
+        return Arrays.stream(str.split(DELIMITER))
+                .filter(item -> !item.isEmpty())
+                .collect(Collectors.toList());
+    }
 }

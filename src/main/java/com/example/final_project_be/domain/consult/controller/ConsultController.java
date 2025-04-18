@@ -50,14 +50,14 @@ public class ConsultController {
         return ResponseEntity.ok(responseDTOs);
     }
     
-    @GetMapping("/member/{memberId}")
+    @GetMapping("/contract/{ptContractId}")
     @PreAuthorize("hasAnyRole('TRAINER')")
-    @Operation(summary = "트레이너가 회원의 상담 일지 조회", description = "트레이너가 특정 회원의 상담 일지를 조회합니다.")
-    public ResponseEntity<List<ConsultResponseDTO>> getMemberConsults(
-            @PathVariable Long memberId,
+    @Operation(summary = "트레이너가 PT 계약으로 상담 일지 조회", description = "트레이너가 담당하는 PT 계약의 회원 상담 일지를 조회합니다.")
+    public ResponseEntity<List<ConsultResponseDTO>> getConsultsByPtContract(
+            @PathVariable Long ptContractId,
             @AuthenticationPrincipal TrainerDTO trainer) {
-        log.info("Trainer {} is fetching consultations for member ID: {}", trainer.getEmail(), memberId);
-        List<ConsultResponseDTO> responseDTOs = consultService.getConsultsByMemberId(memberId);
+        log.info("Trainer {} is fetching consultations for PT contract ID: {}", trainer.getEmail(), ptContractId);
+        List<ConsultResponseDTO> responseDTOs = consultService.getConsultsByPtContractId(ptContractId, trainer.getId());
         return ResponseEntity.ok(responseDTOs);
     }
 } 

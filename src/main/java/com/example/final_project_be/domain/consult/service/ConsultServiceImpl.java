@@ -10,7 +10,6 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -59,6 +58,11 @@ public class ConsultServiceImpl implements ConsultService {
         return ConsultResponseDTO.from(savedConsult);
     }
     
+    /**
+     * 회원 ID로 해당 회원의 상담 일지를 조회합니다.
+     * 회원이 자신의 상담 일지를 조회할 때만 사용합니다.
+     * 트레이너는 이 메서드를 직접 사용해서는 안 되며, getConsultsByPtContractId 메서드를 통해 조회해야 합니다.
+     */
     @Override
     @Transactional(readOnly = true)
     public List<ConsultResponseDTO> getConsultsByMemberId(Long memberId) {
@@ -66,8 +70,28 @@ public class ConsultServiceImpl implements ConsultService {
         
         List<Consult> consults = consultRepository.findByMemberIdWithFetchJoin(memberId);
         
-        // 각 Consult의 컬렉션 초기화
-        consults.forEach(this::initializeConsultCollections);
+        return consults.stream()
+                .map(ConsultResponseDTO::from)
+                .collect(Collectors.toList());
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public List<ConsultResponseDTO> getConsultsByPtContractId(Long ptContractId, Long trainerId) {
+        log.info("Fetching consultations for PT contract ID: {} by trainer ID: {}", ptContractId, trainerId);
+        
+        // 1. PT 계약 존재 여부 확인 및 트레이너 권한 검증
+        PtContract ptContract = ptContractRepository.findById(ptContractId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 PT 계약입니다. ID: " + ptContractId));
+        
+        // 2. 해당 PT 계약이 요청한 트레이너의 계약인지 확인
+        if (!ptContract.getTrainer().getId().equals(trainerId)) {
+            throw new IllegalArgumentException("해당 PT 계약에 대한 접근 권한이 없습니다.");
+        }
+        
+        // 3. 회원 ID를 통해 상담 일지 조회
+        Long memberId = ptContract.getMember().getId();
+        List<Consult> consults = consultRepository.findByMemberIdWithFetchJoin(memberId);
         
         return consults.stream()
                 .map(ConsultResponseDTO::from)
@@ -75,25 +99,10 @@ public class ConsultServiceImpl implements ConsultService {
     }
     
     /**
-     * Consult 엔티티의 모든 컬렉션 필드를 초기화합니다.
-     * 여러 컬렉션을 동시에 fetch하면 MultipleBagFetchException이 발생하므로
-     * 각 컬렉션을 개별적으로 초기화합니다.
-     */
-    private void initializeConsultCollections(Consult consult) {
-        if (consult != null) {
-            Hibernate.initialize(consult.getPreferredExercises());
-            Hibernate.initialize(consult.getDislikedExercises());
-            Hibernate.initialize(consult.getBodyConcerns());
-            Hibernate.initialize(consult.getPreferredDays());
-            Hibernate.initialize(consult.getPreferredTimes());
-        }
-    }
-    
-    /**
      * ConsultRequestDTO로부터 Consult 엔티티를 생성합니다.
      */
     private Consult buildConsultEntity(PtContract ptContract, ConsultRequestDTO dto) {
-        return Consult.builder()
+        Consult consult = Consult.builder()
                 .ptContract(ptContract)
                 
                 // 1. 기본 정보
@@ -111,19 +120,37 @@ public class ConsultServiceImpl implements ConsultService {
                 .hasExperience(dto.getHasExperience())
                 .exerciseExperience(dto.getExerciseExperience())
                 .weeklyWorkoutFrequency(dto.getWeeklyWorkoutFrequency())
-                .preferredExercises(dto.getPreferredExercises() != null ? dto.getPreferredExercises() : Collections.emptyList())
-                .dislikedExercises(dto.getDislikedExercises() != null ? dto.getDislikedExercises() : Collections.emptyList())
                 .weakPointsOrPain(dto.getWeakPointsOrPain())
-                .bodyConcerns(dto.getBodyConcerns() != null ? dto.getBodyConcerns() : Collections.emptyList())
                 
                 // 3. 식단 정보
                 .needsDietPlan(dto.getNeedsDietPlan())
                 
                 // 4. 일정 정보
-                .preferredDays(dto.getPreferredDays() != null ? dto.getPreferredDays() : Collections.emptyList())
-                .preferredTimes(dto.getPreferredTimes() != null ? dto.getPreferredTimes() : Collections.emptyList())
                 .availableSessionsPerWeek(dto.getAvailableSessionsPerWeek())
                 .distanceToGym(dto.getDistanceToGym())
                 .build();
+        
+        // List 타입 필드는 별도 설정
+        if (dto.getPreferredExercises() != null) {
+            consult.setPreferredExercises(dto.getPreferredExercises());
+        }
+        
+        if (dto.getDislikedExercises() != null) {
+            consult.setDislikedExercises(dto.getDislikedExercises());
+        }
+        
+        if (dto.getBodyConcerns() != null) {
+            consult.setBodyConcerns(dto.getBodyConcerns());
+        }
+        
+        if (dto.getPreferredDays() != null) {
+            consult.setPreferredDays(dto.getPreferredDays());
+        }
+        
+        if (dto.getPreferredTimes() != null) {
+            consult.setPreferredTimes(dto.getPreferredTimes());
+        }
+        
+        return consult;
     }
 } 
