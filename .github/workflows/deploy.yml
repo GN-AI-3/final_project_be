@@ -18,22 +18,21 @@ jobs:
           key: ${{ secrets.EC2_PRIVATE_KEY }}
           script_stop: true
           script: |
-            # 1) 작업 디렉터리로 이동 (한 번만 클론해 두세요)
             cd /home/ubuntu/final_project_be
 
-            # 2) 최신 코드 가져오기
+            echo "[1] Pull latest code"
             git pull origin main
 
-            # 3) Docker 이미지 빌드
+            echo "[2] Build Docker image"
             docker build -t gymggun_backend:latest .
 
-            # 4) 기존 컨테이너 중지·삭제
-            if docker ps -q --filter name=gymggun_backend | grep -q .; then
-              docker stop gymggun_backend
-              docker rm   gymggun_backend
+            echo "[3] Stop and remove existing container (if exists)"
+            if [ "$(docker ps -aq -f name=gymggun_backend)" ]; then
+              docker stop gymggun_backend || true
+              docker rm gymggun_backend || true
             fi
 
-            # 5) 새 컨테이너 실행 (.env 파일이 같은 디렉터리에 있어야 합니다)
+            echo "[4] Run new container"
             docker run -d \
               --name gymggun_backend \
               --env-file .env \
