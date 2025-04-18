@@ -10,6 +10,9 @@ import com.example.final_project_be.domain.pt.entity.PtSchedule;
 import com.example.final_project_be.domain.pt.enums.PtScheduleStatus;
 import com.example.final_project_be.domain.pt.repository.PtContractRepository;
 import com.example.final_project_be.domain.pt.repository.PtScheduleRepository;
+import com.example.final_project_be.domain.schedule.entity.ScheduleAlarm;
+import com.example.final_project_be.domain.schedule.enums.AlarmTargetType;
+import com.example.final_project_be.domain.schedule.enums.AlarmType;
 import com.example.final_project_be.domain.schedule.repository.ScheduleAlarmRepository;
 import com.example.final_project_be.domain.trainer.entity.Trainer;
 import com.example.final_project_be.security.MemberDTO;
@@ -25,15 +28,17 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
+@Transactional
 public class PtScheduleService {
 
     private final PtScheduleRepository ptScheduleRepository;
@@ -182,6 +187,60 @@ public class PtScheduleService {
     }
 
     @Transactional
+    public void sendCancelAlarm(Long scheduleId, String reason) {
+        log.info("cancel alarm start...");
+
+        PtSchedule schedule = ptScheduleRepository.findByIdWithContractAndMembers(scheduleId)
+                .orElseThrow(() -> {
+                    log.error("❗ scheduleId {}에 해당하는 PT 스케줄을 찾을 수 없습니다.", scheduleId);
+                    return new IllegalArgumentException("PT 스케줄을 찾을 수 없습니다.");
+                });
+
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime ptTime = schedule.getStartTime();
+        LocalDate ptDate = ptTime.toLocalDate();
+        LocalDate today = now.toLocalDate();
+
+        boolean isSameDay = ptDate.isEqual(today);
+        boolean isDayBefore = ptDate.minusDays(1).isEqual(today);
+        log.info("isSameDay: {}, isDayBefore: {}", isSameDay, isDayBefore);
+
+        if (isSameDay || isDayBefore) {
+            var trainer = schedule.getPtContract().getTrainer();
+            String trainerToken = trainer.getFcmToken();
+
+            if (trainerToken != null && !trainerToken.isBlank()) {
+                String formattedTime = ptTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
+                String memberName = schedule.getPtContract().getMember().getName();
+                int remainingCount = schedule.getPtContract().getRemainingCount();
+
+                String title = "❗ PT 취소 알림";
+                String body = String.format(
+                        "회원 %s님의 %s 예정 PT가 취소되었습니다. 남은 회차: %d회\n사유: %s",
+                        memberName, formattedTime, remainingCount, reason
+                );
+
+                // 🔔 FCM 전송
+                fcmUtil.sendPush(trainerToken, title, body);
+
+                // 📝 알림 로그 저장
+                ScheduleAlarm alarm = ScheduleAlarm.builder()
+                        .targetType(AlarmTargetType.TRAINER)
+                        .targetId(trainer.getId())
+                        .alarmType(AlarmType.PT_CANCEL)
+                        .targetDate(ptDate)
+                        .relatedEntityId(schedule.getId())
+                        .status("SENT")
+                        .build();
+
+                scheduleAlarmRepository.save(alarm);
+                log.info("cancel alarm finished.");
+            }
+        }
+    }
+
+
+    @Transactional
     public Long changeSchedule(Long scheduleId, PtScheduleChangeRequestDTO request, Object user) {
         // 1. 기존 일정 조회 및 검증
         PtSchedule oldSchedule = ptScheduleRepository.findByIdWithContractAndMembers(scheduleId)
@@ -202,7 +261,8 @@ public class PtScheduleService {
         PtSchedule newSchedule = ptScheduleRepository.findByIdWithContractAndMembers(newScheduleId)
                 .orElseThrow(() -> new IllegalArgumentException("새로운 PT 스케줄을 찾을 수 없습니다."));
 
-        // 4. 회차 재계산 (이전 일정과 새로운 일정 중 더 이른 시간 기준)
+        // 4. 회차 재계산
+        // 이전 일정과 새로운 일정 중 더 이른 시간을 기준으로 재계산
         LocalDateTime recalculateTime = oldSchedule.getStartTime().isBefore(newSchedule.getStartTime())
                 ? oldSchedule.getStartTime()
                 : newSchedule.getStartTime();
@@ -210,6 +270,60 @@ public class PtScheduleService {
 
         return newScheduleId;
     }
+
+    @Transactional
+    public void sendChangeAlarm(Long scheduleId) {
+        log.info("change alarm start...");
+
+        PtSchedule schedule = ptScheduleRepository.findByIdWithContractAndMembers(scheduleId)
+                .orElseThrow(() -> {
+                    log.error("❗ scheduleId {}에 해당하는 PT 스케줄을 찾을 수 없습니다.", scheduleId);
+                    return new IllegalArgumentException("PT 스케줄을 찾을 수 없습니다.");
+                });
+
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime ptTime = schedule.getStartTime();
+        LocalDate ptDate = ptTime.toLocalDate();
+        LocalDate today = now.toLocalDate();
+
+        boolean isSameDay = ptDate.isEqual(today);
+        boolean isDayBefore = ptDate.minusDays(1).isEqual(today);
+        log.info("isSameDay: {}, isDayBefore: {}", isSameDay, isDayBefore);
+
+        if (isSameDay || isDayBefore) {
+            var trainer = schedule.getPtContract().getTrainer();
+            String trainerToken = trainer.getFcmToken();
+
+            if (trainerToken != null && !trainerToken.isBlank()) {
+                String formattedTime = ptTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
+                String memberName = schedule.getPtContract().getMember().getName();
+                int remainingCount = schedule.getPtContract().getRemainingCount();
+
+                String title = "🔁 PT 일정 변경 알림";
+                String body = String.format(
+                        "회원 %s님의 PT 일정이 변경되었습니다. 새 일정: %s\n남은 회차: %d회",
+                        memberName, formattedTime, remainingCount
+                );
+
+                // FCM 전송
+                fcmUtil.sendPush(trainerToken, title, body);
+
+                // 알림 로그 저장
+                ScheduleAlarm alarm = ScheduleAlarm.builder()
+                        .targetType(AlarmTargetType.TRAINER)
+                        .targetId(trainer.getId())
+                        .alarmType(AlarmType.PT_CHANGE)
+                        .targetDate(ptDate)
+                        .relatedEntityId(schedule.getId())
+                        .status("SENT")
+                        .build();
+
+                scheduleAlarmRepository.save(alarm);
+                log.info("change alarm finished.");
+            }
+        }
+    }
+
 
     /**
      * PT 계약의 특정 시점 이후의 모든 스케줄 회차를 재계산합니다.
@@ -234,7 +348,7 @@ public class PtScheduleService {
                 currentCount++;
                 schedule.setCurrentPtCount(currentCount);
             } else {
-                schedule.setCurrentPtCount(null);
+                schedule.setCurrentPtCount(currentCount);
             }
         }
     }

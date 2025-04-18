@@ -1,16 +1,5 @@
 package com.example.final_project_be.domain.exercise_record.service;
 
-import java.time.LocalDate;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.example.final_project_be.domain.exercise.entity.Exercise;
 import com.example.final_project_be.domain.exercise_record.dto.ExerciseRecordGroupedResponseDTO;
 import com.example.final_project_be.domain.exercise_record.dto.ExerciseRecordResponseDTO;
@@ -20,12 +9,21 @@ import com.example.final_project_be.domain.exercise_record.repository.ExerciseRe
 import com.example.final_project_be.domain.member.entity.Member;
 import com.example.final_project_be.domain.member.repository.MemberRepository;
 import com.fasterxml.jackson.databind.JsonNode;
-
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
+@Transactional
 public class ExerciseRecordServiceImpl implements ExerciseRecordService {
 
     private static final Logger log = LoggerFactory.getLogger(ExerciseRecordServiceImpl.class);

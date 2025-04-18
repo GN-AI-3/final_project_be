@@ -22,31 +22,11 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
+@Transactional
 public class PtContractService {
 
     private final PtContractRepository ptContractRepository;
-
-    @PersistenceContext
-    private EntityManager entityManager;
-
-    /**
-     * 만료된 스케줄을 완료 처리합니다.
-     * 매 60분마다 실행됩니다.
-     */
-    @Transactional
-    @Scheduled(fixedRate = 60 * 60 * 1000 * 24) // 하루마다 실행
-    public void updateExpiredContracts() {
-        try {
-            int updatedCount = entityManager
-                    .createQuery("UPDATE PtContract p SET p.status = 'EXPIRED' WHERE p.endDate < CURRENT_TIMESTAMP AND p.status = 'ACTIVE'")
-                    .executeUpdate();
-            log.info("지난 계약 {}건이 만료 처리되었습니다.", updatedCount);
-        } catch (Exception e) {
-            log.error("계약 만료 업데이트 중 오류 발생", e);
-        }
-    }
-
+    
     public List<PtContractResponseDTO> getContractMembers(Long trainerId, ContractStatus status) {
         List<PtContract> contracts = (status != null)
                 ? ptContractRepository.findByTrainerIdAndStatus(trainerId, status)

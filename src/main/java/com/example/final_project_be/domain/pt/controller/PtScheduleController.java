@@ -74,11 +74,12 @@ public class PtScheduleController {
             @RequestBody(required = false) PtScheduleCancelRequestDTO request,
             @AuthenticationPrincipal Object user) {
 
-        Long updatedScheduleId = ptScheduleService.cancelSchedule(
-                scheduleId,
-                request != null ? request.getReason() : null,
-                user
-        );
+        String reason = request != null ? request.getReason() : null;
+
+        Long updatedScheduleId = ptScheduleService.cancelSchedule(scheduleId, reason, user);
+
+        // 🔔 알림 직접 전송
+        ptScheduleService.sendCancelAlarm(updatedScheduleId, reason);
 
         return ResponseEntity.ok(ptScheduleService.getPtScheduleById(updatedScheduleId));
     }
@@ -91,6 +92,9 @@ public class PtScheduleController {
             @Valid @RequestBody PtScheduleChangeRequestDTO request,
             @AuthenticationPrincipal Object user) {
         Long newScheduleId = ptScheduleService.changeSchedule(scheduleId, request, user);
+
+        ptScheduleService.sendChangeAlarm(newScheduleId);
+
         return ResponseEntity.ok(ptScheduleService.getPtScheduleById(newScheduleId));
     }
 
