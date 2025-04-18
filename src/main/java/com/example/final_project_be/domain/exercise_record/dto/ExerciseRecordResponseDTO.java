@@ -1,32 +1,33 @@
 package com.example.final_project_be.domain.exercise_record.dto;
 
+import java.time.LocalDate;
+
 import com.example.final_project_be.domain.exercise_record.entity.ExerciseRecord;
 import com.fasterxml.jackson.databind.JsonNode;
-import lombok.Builder;
-import lombok.Getter;
 
-import java.time.LocalDateTime;
+import lombok.Getter;
+import lombok.Setter;
 
 @Getter
-@Builder
+@Setter
 public class ExerciseRecordResponseDTO {
     private Long id;
     private Long memberId;
     private Long exerciseId;
     private String exerciseName;
-    private LocalDateTime date;
+    private LocalDate date;
     private JsonNode recordData;
     private JsonNode memoData;
 
     public static ExerciseRecordResponseDTO from(ExerciseRecord exerciseRecord) {
-        return ExerciseRecordResponseDTO.builder()
-                .id(exerciseRecord.getId())
-                .memberId(exerciseRecord.getMember().getId())
-                .exerciseId(exerciseRecord.getExercise().getId())
-                .exerciseName(exerciseRecord.getExercise().getName())
-                .date(exerciseRecord.getDate())
-                .recordData(exerciseRecord.getRecordData())
-                .memoData(exerciseRecord.getMemoData())
-                .build();
+        ExerciseRecordResponseDTO dto = new ExerciseRecordResponseDTO();
+        dto.setId(exerciseRecord.getId());
+        dto.setMemberId(exerciseRecord.getMember().getId());
+        dto.setExerciseId(exerciseRecord.getExercise().getId());
+        dto.setExerciseName(exerciseRecord.getExercise().getName());
+        dto.setDate(exerciseRecord.getDate());
+        dto.setRecordData(exerciseRecord.getRecordData());
+        dto.setMemoData(exerciseRecord.getMemoData());
+        return dto;
     }
 } 
