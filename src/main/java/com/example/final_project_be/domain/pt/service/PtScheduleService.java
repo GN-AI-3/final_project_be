@@ -202,7 +202,8 @@ public class PtScheduleService {
         PtSchedule newSchedule = ptScheduleRepository.findByIdWithContractAndMembers(newScheduleId)
                 .orElseThrow(() -> new IllegalArgumentException("새로운 PT 스케줄을 찾을 수 없습니다."));
 
-        // 4. 회차 재계산 (이전 일정과 새로운 일정 중 더 이른 시간 기준)
+        // 4. 회차 재계산
+        // 이전 일정과 새로운 일정 중 더 이른 시간을 기준으로 재계산
         LocalDateTime recalculateTime = oldSchedule.getStartTime().isBefore(newSchedule.getStartTime())
                 ? oldSchedule.getStartTime()
                 : newSchedule.getStartTime();
@@ -234,7 +235,7 @@ public class PtScheduleService {
                 currentCount++;
                 schedule.setCurrentPtCount(currentCount);
             } else {
-                schedule.setCurrentPtCount(null);
+                schedule.setCurrentPtCount(currentCount);
             }
         }
     }
