@@ -9,7 +9,8 @@ import lombok.Setter;
 import java.time.LocalTime;
 
 @Entity
-@Table(name = "trainer_working_time")
+@Table(name = "trainer_working_time",
+        uniqueConstraints = @UniqueConstraint(columnNames = {"trainer_id", "day_of_week"}))
 @Getter
 @Setter
 @NoArgsConstructor
@@ -19,8 +20,8 @@ public class TrainerWorkingTime extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "trainer_id", nullable = false, unique = true)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "trainer_id", nullable = false)
     private Trainer trainer;
 
     @Column(name = "day_of_week", nullable = false)
