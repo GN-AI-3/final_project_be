@@ -59,4 +59,4 @@ public class ConsultController {
         List<ConsultResponseDTO> responseDTOs = consultService.getConsultsByMemberId(memberId);
         return ResponseEntity.ok(responseDTOs);
     }
-} 
+}
