@@ -17,6 +17,8 @@ import lombok.extern.slf4j.Slf4j;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -108,5 +110,33 @@ public class PtScheduleRepositoryImpl implements PtScheduleRepositoryCustom {
                         alarmExistsSubQuery.notExists()
                 )
                 .fetch();
+    }
+
+    @Override
+    public Map<Long, List<PtSchedule>> findSchedulesForTrainerSummary(LocalDateTime start, LocalDateTime end) {
+        log.debug("Finding schedules for trainer summary between {} and {}", start, end);
+
+        QPtSchedule ptSchedule = QPtSchedule.ptSchedule;
+
+        List<PtSchedule> schedules = queryFactory
+                .selectFrom(ptSchedule)
+                .join(ptSchedule.ptContract).fetchJoin()
+                .join(ptSchedule.ptContract.member).fetchJoin()
+                .join(ptSchedule.ptContract.trainer).fetchJoin()
+                .where(
+                        ptSchedule.status.eq(PtScheduleStatus.SCHEDULED),
+                        ptSchedule.startTime.between(start, end)
+                )
+                .orderBy(ptSchedule.startTime.asc())
+                .fetch();
+
+        // 트레이너 ID별로 그룹화
+        Map<Long, List<PtSchedule>> trainerSchedulesMap = schedules.stream()
+                .collect(Collectors.groupingBy(
+                        schedule -> schedule.getPtContract().getTrainer().getId()
+                ));
+
+        log.debug("Found schedules for {} trainers", trainerSchedulesMap.size());
+        return trainerSchedulesMap;
     }
 }

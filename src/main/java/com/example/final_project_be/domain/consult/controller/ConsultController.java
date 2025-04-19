@@ -33,7 +33,7 @@ public class ConsultController {
     public ResponseEntity<ConsultResponseDTO> createConsult(
             @Valid @RequestBody ConsultRequestDTO requestDTO,
             @AuthenticationPrincipal TrainerDTO trainer) {
-        log.info("Trainer {} is creating a new consultation for PT contract ID: {}", 
+        log.info("Trainer {} is creating a new consultation for PT contract ID: {}",
                 trainer.getEmail(), requestDTO.getPtContractId());
         ConsultResponseDTO responseDTO = consultService.createConsult(requestDTO);
         return new ResponseEntity<>(responseDTO, HttpStatus.CREATED);
@@ -48,7 +48,7 @@ public class ConsultController {
         List<ConsultResponseDTO> responseDTOs = consultService.getConsultsByMemberId(member.getId());
         return ResponseEntity.ok(responseDTOs);
     }
-    
+
     @GetMapping("/member/{memberId}")
     @PreAuthorize("hasAnyRole('TRAINER')")
     @Operation(summary = "트레이너가 회원의 상담 일지 조회", description = "트레이너가 특정 회원의 상담 일지를 조회합니다.")
@@ -59,4 +59,4 @@ public class ConsultController {
         List<ConsultResponseDTO> responseDTOs = consultService.getConsultsByMemberId(memberId);
         return ResponseEntity.ok(responseDTOs);
     }
-} 
+}
