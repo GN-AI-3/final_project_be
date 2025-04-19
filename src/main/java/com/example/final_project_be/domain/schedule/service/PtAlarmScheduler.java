@@ -31,7 +31,7 @@ public class PtAlarmScheduler {
     private final ScheduleAlarmRepository scheduleAlarmRepository;
     private final FcmUtil fcmUtil;
 
-    @Scheduled(cron = "0 0 9 * * *") // 매일 오전 9시
+    @Scheduled(cron = "0 0 9 * * *", zone = "Asia/Seoul") // 매일 오전 9시 (한국 시간)
     @Transactional
     public void sendPtBeforeAlarms() {
         log.info("Starting PT before day alarm scheduler");
@@ -119,7 +119,7 @@ public class PtAlarmScheduler {
      * 트레이너에게 다음날 PT 일정 명단을 알려주는 알람
      * 매일 저녁 8시에 실행
      */
-    @Scheduled(cron = "0 0 20 * * *") // 매일 저녁 8시
+    @Scheduled(cron = "0 0 20 * * *", zone = "Asia/Seoul") // 매일 저녁 8시 (한국 시간)
     @Transactional
     public void sendTrainerPtSummaryAlarms() {
         log.info("Starting trainer PT summary alarm scheduler");
