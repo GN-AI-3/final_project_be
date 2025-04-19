@@ -2,7 +2,6 @@ package com.example.final_project_be.domain.consult.controller;
 
 import com.example.final_project_be.domain.consult.dto.ConsultRequestDTO;
 import com.example.final_project_be.domain.consult.dto.ConsultResponseDTO;
-import com.example.final_project_be.domain.consult.entity.Consult;
 import com.example.final_project_be.domain.consult.service.ConsultService;
 import com.example.final_project_be.security.MemberDTO;
 import com.example.final_project_be.security.TrainerDTO;
@@ -34,7 +33,7 @@ public class ConsultController {
     public ResponseEntity<ConsultResponseDTO> createConsult(
             @Valid @RequestBody ConsultRequestDTO requestDTO,
             @AuthenticationPrincipal TrainerDTO trainer) {
-        log.info("Trainer {} is creating a new consultation for PT contract ID: {}", 
+        log.info("Trainer {} is creating a new consultation for PT contract ID: {}",
                 trainer.getEmail(), requestDTO.getPtContractId());
         ConsultResponseDTO responseDTO = consultService.createConsult(requestDTO);
         return new ResponseEntity<>(responseDTO, HttpStatus.CREATED);
@@ -49,15 +48,15 @@ public class ConsultController {
         List<ConsultResponseDTO> responseDTOs = consultService.getConsultsByMemberId(member.getId());
         return ResponseEntity.ok(responseDTOs);
     }
-    
-    @GetMapping("/contract/{ptContractId}")
+
+    @GetMapping("/member/{memberId}")
     @PreAuthorize("hasAnyRole('TRAINER')")
-    @Operation(summary = "트레이너가 PT 계약으로 상담 일지 조회", description = "트레이너가 담당하는 PT 계약의 회원 상담 일지를 조회합니다.")
-    public ResponseEntity<List<ConsultResponseDTO>> getConsultsByPtContract(
-            @PathVariable Long ptContractId,
+    @Operation(summary = "트레이너가 회원의 상담 일지 조회", description = "트레이너가 특정 회원의 상담 일지를 조회합니다.")
+    public ResponseEntity<List<ConsultResponseDTO>> getMemberConsults(
+            @PathVariable Long memberId,
             @AuthenticationPrincipal TrainerDTO trainer) {
-        log.info("Trainer {} is fetching consultations for PT contract ID: {}", trainer.getEmail(), ptContractId);
-        List<ConsultResponseDTO> responseDTOs = consultService.getConsultsByPtContractId(ptContractId, trainer.getId());
+        log.info("Trainer {} is fetching consultations for member ID: {}", trainer.getEmail(), memberId);
+        List<ConsultResponseDTO> responseDTOs = consultService.getConsultsByMemberId(memberId);
         return ResponseEntity.ok(responseDTOs);
     }
 } 
