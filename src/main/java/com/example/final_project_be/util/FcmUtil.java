@@ -39,4 +39,37 @@ public class FcmUtil {
     public void sendPush(String token, String title, String body) {
         sendMulticast(List.of(token), title, body);
     }
+    
+    /**
+     * 단일 디바이스에 긴 메시지를 포함한 알림을 전송합니다.
+     * 특히 트레이너에게 PT 일정 명단과 같은 긴 내용의 메시지를 전송할 때 사용합니다.
+     * 
+     * @param token FCM 토큰
+     * @param title 알림 제목
+     * @param body 알림 내용 (긴 메시지 가능)
+     * @return 전송 성공 여부
+     */
+    public boolean sendToDevice(String token, String title, String body) {
+        if (token == null || token.isEmpty()) {
+            log.warn("FCM 토큰이 비어 있음. 알림을 전송하지 않음.");
+            return false;
+        }
+
+        try {
+            Message message = Message.builder()
+                    .setToken(token)
+                    .setNotification(Notification.builder()
+                            .setTitle(title)
+                            .setBody(body)
+                            .build())
+                    .build();
+
+            String response = FirebaseMessaging.getInstance().send(message);
+            log.info("전송 성공: token={} / response={}", token, response);
+            return true;
+        } catch (FirebaseMessagingException e) {
+            log.error("전송 실패: token={} / error={}", token, e.getMessage(), e);
+            return false;
+        }
+    }
 }

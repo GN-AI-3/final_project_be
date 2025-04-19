@@ -1,7 +1,7 @@
 FROM gradle:7.6-jdk17 AS build
 WORKDIR /app
 COPY . .
-RUN gradle build --no-daemon -x test --prod
+RUN gradle build --no-daemon -x test
 
 FROM eclipse-temurin:17-jre
 WORKDIR /app
