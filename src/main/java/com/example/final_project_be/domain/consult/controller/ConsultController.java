@@ -2,7 +2,6 @@ package com.example.final_project_be.domain.consult.controller;
 
 import com.example.final_project_be.domain.consult.dto.ConsultRequestDTO;
 import com.example.final_project_be.domain.consult.dto.ConsultResponseDTO;
-import com.example.final_project_be.domain.consult.entity.Consult;
 import com.example.final_project_be.domain.consult.service.ConsultService;
 import com.example.final_project_be.security.MemberDTO;
 import com.example.final_project_be.security.TrainerDTO;
