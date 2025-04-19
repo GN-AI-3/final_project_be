@@ -1,6 +1,8 @@
 package com.example.final_project_be.domain.chatmessage.service;
 
 import com.example.final_project_be.domain.chatmessage.dto.ChatMessageResponseDTO;
+import com.example.final_project_be.domain.chatmessage.dto.WorkoutLogRequestDTO;
+import com.example.final_project_be.domain.chatmessage.dto.WorkoutLogResponseDTO;
 import java.util.List;
 
 /**
@@ -34,4 +36,12 @@ public interface ChatMessageService {
      * @return AI 응답 메시지
      */
     ChatMessageResponseDTO generateAnonymousResponse(String content);
+
+    /**
+     * 운동 기록을 FastAPI 서버로 전송합니다.
+     *
+     * @param request 운동 기록 요청 데이터
+     * @return 운동 기록 응답 데이터
+     */
+    WorkoutLogResponseDTO sendWorkoutLogToFastAPI(WorkoutLogRequestDTO request);
 }
