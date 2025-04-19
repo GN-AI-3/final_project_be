@@ -48,7 +48,6 @@ public class PtAlarmScheduler {
 
         // === 알림 대상 분리 ===
         List<String> memberTokens = new java.util.ArrayList<>();
-        List<String> trainerTokens = new java.util.ArrayList<>();
         List<ScheduleAlarm> alarmLogs = new java.util.ArrayList<>();
 
         for (PtSchedule schedule : schedules) {
@@ -76,43 +75,18 @@ public class PtAlarmScheduler {
                             .build());
                 }
             }
-
-            // === 트레이너 대상자 ===
-            var trainer = schedule.getPtContract().getTrainer();
-            Long trainerId = trainer.getId();
-            String trainerToken = trainer.getFcmToken();
-
-            if (trainerToken != null && !trainerToken.isBlank()) {
-                boolean alreadySent = scheduleAlarmRepository.existsByTargetTypeAndTargetIdAndAlarmTypeAndTargetDate(
-                        AlarmTargetType.TRAINER, trainerId, AlarmType.PT_BEFORE, targetDay);
-                if (!alreadySent) {
-                    trainerTokens.add(trainerToken);
-                    alarmLogs.add(ScheduleAlarm.builder()
-                            .targetType(AlarmTargetType.TRAINER)
-                            .targetId(trainerId)
-                            .alarmType(AlarmType.PT_BEFORE)
-                            .targetDate(targetDay)
-                            .relatedEntityId(scheduleId)
-                            .status("SENT")
-                            .build());
-                }
-            }
         }
 
-        // === FCM 다중 전송 ===
+        // === FCM 다중 전송 (회원만) ===
         if (!memberTokens.isEmpty()) {
             fcmUtil.sendMulticast(memberTokens, "📅 내일 PT 일정 알림", "내일 예정된 PT 일정이 있어요!");
-        }
-        
-        if (!trainerTokens.isEmpty()) {
-            fcmUtil.sendMulticast(trainerTokens, "📅 내일 PT 일정 알림", "내일 예정된 PT 일정이 있습니다.");
         }
 
         // === 알림 로그 저장 ===
         scheduleAlarmRepository.saveAll(alarmLogs);
 
-        log.info("Completed PT before day alarm scheduler: {} member, {} trainer notifications sent", 
-                memberTokens.size(), trainerTokens.size());
+        log.info("Completed PT before day alarm scheduler: {} member notifications sent", 
+                memberTokens.size());
     }
     
     /**
@@ -151,9 +125,9 @@ public class PtAlarmScheduler {
             Long trainerId = entry.getKey();
             List<PtSchedule> trainerSchedules = entry.getValue();
             
-            // 이미 알림을 보냈는지 확인
+            // PT_BEFORE 알람 유형을 사용하여 이미 알림을 보냈는지 확인
             boolean alreadySent = scheduleAlarmRepository.existsByTargetTypeAndTargetIdAndAlarmTypeAndTargetDate(
-                    AlarmTargetType.TRAINER, trainerId, AlarmType.PT_SUMMARY_FOR_TRAINER, targetDate);
+                    AlarmTargetType.TRAINER, trainerId, AlarmType.PT_BEFORE, targetDate);
             
             if (alreadySent) {
                 log.debug("Summary alarm already sent to trainer ID: {}", trainerId);
@@ -194,12 +168,16 @@ public class PtAlarmScheduler {
                     messageBody.toString()
             );
             
-            // 알림 로그 저장
+            // 첫 번째 스케줄의 ID를 관련 엔티티 ID로 사용
+            Long relatedScheduleId = trainerSchedules.get(0).getId();
+            
+            // PT_BEFORE 알람 유형을 사용하여 알림 로그 저장
             alarmLogs.add(ScheduleAlarm.builder()
                     .targetType(AlarmTargetType.TRAINER)
                     .targetId(trainerId)
-                    .alarmType(AlarmType.PT_SUMMARY_FOR_TRAINER)
+                    .alarmType(AlarmType.PT_BEFORE)  // PT_SUMMARY_FOR_TRAINER 대신 PT_BEFORE 사용
                     .targetDate(targetDate)
+                    .relatedEntityId(relatedScheduleId)
                     .status("SENT")
                     .build());
             
