@@ -19,10 +19,12 @@ import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@SuperBuilder
 @Table(name = "report")
 public class Report extends BaseEntity {
 
@@ -42,7 +44,7 @@ public class Report extends BaseEntity {
     @Type(value = JsonBinaryType.class)
     private JsonNode dietReport;
 
-    @Column(name = "overall_report", columnDefinition = "jsonb")
+    @Column(name = "inbody_report", columnDefinition = "jsonb")
     @Type(value = JsonBinaryType.class)
-    private JsonNode overallReport;
+    private JsonNode inbodyReport;
 } 
