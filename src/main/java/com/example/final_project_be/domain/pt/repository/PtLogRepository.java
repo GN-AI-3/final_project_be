@@ -38,4 +38,6 @@ public interface PtLogRepository extends JpaRepository<PtLog, Long> {
     List<PtLog> findByPtContractIdAndNotDeleted(@Param("ptContractId") Long ptContractId);
 
     boolean existsByPtScheduleId(Long ptScheduleId);
+
+    Optional<PtLog> findByPtScheduleId(Long ptScheduleId);
 } 
