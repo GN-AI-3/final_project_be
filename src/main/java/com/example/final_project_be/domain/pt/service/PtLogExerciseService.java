@@ -1,16 +1,22 @@
 package com.example.final_project_be.domain.pt.service;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.example.final_project_be.domain.exercise.entity.Exercise;
 import com.example.final_project_be.domain.exercise.repository.ExerciseRepository;
 import com.example.final_project_be.domain.pt.dto.PtLogExerciseCreateRequestDTO;
 import com.example.final_project_be.domain.pt.dto.PtLogExerciseUpdateRequestDTO;
+import com.example.final_project_be.domain.pt.dto.PtLogExerciseResponseDTO;
 import com.example.final_project_be.domain.pt.entity.PtLog;
 import com.example.final_project_be.domain.pt.entity.PtLogExercise;
 import com.example.final_project_be.domain.pt.repository.PtLogExerciseRepository;
 import com.example.final_project_be.domain.pt.repository.PtLogRepository;
+
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -88,5 +94,15 @@ public class PtLogExerciseService {
         if (request.getFeedback() != null) {
             ptLogExercise.setFeedback(request.getFeedback());
         }
+    }
+
+    public List<PtLogExerciseResponseDTO> getExercisesByPtScheduleId(Long ptScheduleId) {
+        PtLog ptLog = ptLogRepository.findByPtScheduleId(ptScheduleId)
+                .orElseThrow(() -> new RuntimeException("PT 로그를 찾을 수 없습니다. ID: " + ptScheduleId));
+
+        List<PtLogExercise> exercises = ptLogExerciseRepository.findByPtLogsOrderBySequenceAsc(ptLog);
+        return exercises.stream()
+                .map(PtLogExerciseResponseDTO::from)
+                .collect(Collectors.toList());
     }
 } 
