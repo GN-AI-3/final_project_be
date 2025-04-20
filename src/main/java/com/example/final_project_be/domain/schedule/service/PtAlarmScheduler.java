@@ -7,6 +7,7 @@ import com.example.final_project_be.domain.schedule.enums.AlarmType;
 import com.example.final_project_be.domain.schedule.repository.ScheduleAlarmRepository;
 import com.example.final_project_be.domain.pt.repository.querydsl.PtScheduleRepositoryCustom;
 import com.example.final_project_be.domain.trainer.entity.Trainer;
+import com.example.final_project_be.domain.trainer.repository.TrainerRepository;
 import com.example.final_project_be.util.FcmUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +30,7 @@ public class PtAlarmScheduler {
 
     private final PtScheduleRepositoryCustom ptScheduleRepository;
     private final ScheduleAlarmRepository scheduleAlarmRepository;
+    private final TrainerRepository trainerRepository;
     private final FcmUtil fcmUtil;
 
     @Scheduled(cron = "0 0 9 * * *", zone = "Asia/Seoul") // 매일 오전 9시 (한국 시간)
@@ -92,6 +94,7 @@ public class PtAlarmScheduler {
     /**
      * 트레이너에게 다음날 PT 일정 명단을 알려주는 알람
      * 매일 저녁 8시에 실행
+     * PT 일정이 없는 트레이너에게도 "내일은 예정된 PT가 없습니다" 메시지를 전송
      */
     @Scheduled(cron = "0 0 20 * * *", zone = "Asia/Seoul") // 매일 저녁 8시 (한국 시간)
     @Transactional
@@ -101,29 +104,28 @@ public class PtAlarmScheduler {
         LocalDateTime now = LocalDateTime.now();
         LocalDate targetDate = now.plusDays(1).toLocalDate();
         
-        // 다음날 전체 시간 범위
-        LocalDateTime start = targetDate.atStartOfDay();
-        LocalDateTime end = targetDate.atTime(23, 59, 59);
-        
         // 날짜 포맷터
         DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy년 MM월 dd일");
         DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
+        
+        // 다음날 전체 시간 범위
+        LocalDateTime start = targetDate.atStartOfDay();
+        LocalDateTime end = targetDate.atTime(23, 59, 59);
         
         // 트레이너별 스케줄 조회
         Map<Long, List<PtSchedule>> trainerSchedulesMap = ptScheduleRepository.findSchedulesForTrainerSummary(start, end);
         log.info("Found PT schedules for {} trainers", trainerSchedulesMap.size());
         
-        if (trainerSchedulesMap.isEmpty()) {
-            log.info("No PT schedules found for tomorrow. Skipping summary alarms.");
-            return;
-        }
+        // 모든 트레이너 목록 조회
+        List<Trainer> allTrainers = trainerRepository.findAll();
+        log.info("Total trainers in system: {}", allTrainers.size());
         
         List<ScheduleAlarm> alarmLogs = new ArrayList<>();
         
-        // 트레이너별로 알림 전송
-        for (Map.Entry<Long, List<PtSchedule>> entry : trainerSchedulesMap.entrySet()) {
-            Long trainerId = entry.getKey();
-            List<PtSchedule> trainerSchedules = entry.getValue();
+        // 모든 트레이너에게 알림 전송
+        for (Trainer trainer : allTrainers) {
+            Long trainerId = trainer.getId();
+            List<PtSchedule> trainerSchedules = trainerSchedulesMap.getOrDefault(trainerId, new ArrayList<>());
             
             // PT_BEFORE 알람 유형을 사용하여 이미 알림을 보냈는지 확인
             boolean alreadySent = scheduleAlarmRepository.existsByTargetTypeAndTargetIdAndAlarmTypeAndTargetDate(
@@ -134,8 +136,7 @@ public class PtAlarmScheduler {
                 continue;
             }
             
-            // 트레이너 정보 가져오기
-            Trainer trainer = trainerSchedules.get(0).getPtContract().getTrainer();
+            // 트레이너 FCM 토큰 확인
             String trainerToken = trainer.getFcmToken();
             
             if (trainerToken == null || trainerToken.isBlank()) {
@@ -145,43 +146,70 @@ public class PtAlarmScheduler {
             
             // 회원 목록 메시지 구성
             StringBuilder messageBody = new StringBuilder();
-            messageBody.append(targetDate.format(dateFormatter)).append(" PT 일정 명단입니다.\n\n");
+            messageBody.append(targetDate.format(dateFormatter));
             
-            for (PtSchedule schedule : trainerSchedules) {
-                String memberName = schedule.getPtContract().getMember().getName();
-                String startTime = schedule.getStartTime().format(timeFormatter);
-                String endTime = schedule.getEndTime().format(timeFormatter);
+            // 일정이 있는 경우와 없는 경우 메시지 분기
+            if (trainerSchedules.isEmpty()) {
+                messageBody.append(" 예정된 PT가 없습니다.");
                 
-                messageBody.append("• ")
-                           .append(startTime)
-                           .append("~")
-                           .append(endTime)
-                           .append(" : ")
-                           .append(memberName)
-                           .append("\n");
+                // FCM 전송 (PT 없음)
+                fcmUtil.sendToDevice(
+                        trainerToken,
+                        "📋 내일 PT 일정 알림",
+                        messageBody.toString()
+                );
+                
+                // 알림 로그 저장 (relatedEntityId는 null로 설정)
+                alarmLogs.add(ScheduleAlarm.builder()
+                        .targetType(AlarmTargetType.TRAINER)
+                        .targetId(trainerId)
+                        .alarmType(AlarmType.PT_BEFORE)
+                        .targetDate(targetDate)
+                        .status("SENT")
+                        .build());
+                
+                log.info("Sent 'No PT scheduled' alarm to trainer ID: {}", trainerId);
+                
+            } else {
+                // PT 일정이 있는 경우 명단 작성
+                messageBody.append(" PT 일정 명단입니다.\n\n");
+                
+                for (PtSchedule schedule : trainerSchedules) {
+                    String memberName = schedule.getPtContract().getMember().getName();
+                    String startTime = schedule.getStartTime().format(timeFormatter);
+                    String endTime = schedule.getEndTime().format(timeFormatter);
+                    
+                    messageBody.append("• ")
+                               .append(startTime)
+                               .append("~")
+                               .append(endTime)
+                               .append(" : ")
+                               .append(memberName)
+                               .append("\n");
+                }
+                
+                // FCM 전송 (PT 명단)
+                fcmUtil.sendToDevice(
+                        trainerToken,
+                        "📋 내일 PT 회원 명단",
+                        messageBody.toString()
+                );
+                
+                // 첫 번째 스케줄의 ID를 관련 엔티티 ID로 사용
+                Long relatedScheduleId = trainerSchedules.get(0).getId();
+                
+                // PT_BEFORE 알람 유형을 사용하여 알림 로그 저장
+                alarmLogs.add(ScheduleAlarm.builder()
+                        .targetType(AlarmTargetType.TRAINER)
+                        .targetId(trainerId)
+                        .alarmType(AlarmType.PT_BEFORE)
+                        .targetDate(targetDate)
+                        .relatedEntityId(relatedScheduleId)
+                        .status("SENT")
+                        .build());
+                
+                log.info("Sent PT summary alarm to trainer ID: {} with {} schedules", trainerId, trainerSchedules.size());
             }
-            
-            // FCM 전송
-            fcmUtil.sendToDevice(
-                    trainerToken,
-                    "📋 내일 PT 회원 명단",
-                    messageBody.toString()
-            );
-            
-            // 첫 번째 스케줄의 ID를 관련 엔티티 ID로 사용
-            Long relatedScheduleId = trainerSchedules.get(0).getId();
-            
-            // PT_BEFORE 알람 유형을 사용하여 알림 로그 저장
-            alarmLogs.add(ScheduleAlarm.builder()
-                    .targetType(AlarmTargetType.TRAINER)
-                    .targetId(trainerId)
-                    .alarmType(AlarmType.PT_BEFORE)  // PT_SUMMARY_FOR_TRAINER 대신 PT_BEFORE 사용
-                    .targetDate(targetDate)
-                    .relatedEntityId(relatedScheduleId)
-                    .status("SENT")
-                    .build());
-            
-            log.info("Sent PT summary alarm to trainer ID: {} with {} schedules", trainerId, trainerSchedules.size());
         }
         
         // 알림 로그 저장
