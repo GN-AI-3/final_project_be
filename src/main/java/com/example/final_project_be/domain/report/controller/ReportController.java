@@ -1,5 +1,7 @@
 package com.example.final_project_be.domain.report.controller;
 
+import java.util.Map;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -14,6 +16,7 @@ import com.example.final_project_be.domain.report.dto.ReportContentDTO;
 import com.example.final_project_be.domain.report.dto.ReportResponseDTO;
 import com.example.final_project_be.domain.report.entity.Report;
 import com.example.final_project_be.domain.report.repository.ReportRepository;
+import com.example.final_project_be.domain.report.service.ReportService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -27,6 +30,7 @@ public class ReportController {
 
     private final ReportRepository reportRepository;
     private final PtContractRepository ptContractRepository;
+    private final ReportService reportService;
 
     @PostMapping("/{ptContractId}")
     @Transactional
@@ -46,5 +50,12 @@ public class ReportController {
 
         Report savedReport = reportRepository.save(report);
         return ResponseEntity.ok(ReportResponseDTO.from(savedReport));
+    }
+
+    @PostMapping("/fast-api/{ptContractId}")
+    @Operation(summary = "FastAPI 보고서 생성", description = "FastAPI 서버를 통해 보고서를 생성합니다.")
+    public ResponseEntity<Map<String, Object>> createReportWithFastApi(@PathVariable Long ptContractId) {
+        Map<String, Object> response = reportService.callFastApiReport(ptContractId);
+        return ResponseEntity.ok(response);
     }
 } 
