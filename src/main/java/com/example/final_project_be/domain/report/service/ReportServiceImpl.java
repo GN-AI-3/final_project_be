@@ -10,6 +10,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,13 +33,16 @@ public class ReportServiceImpl implements ReportService {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
 
-            HttpEntity<Long> entity = new HttpEntity<>(ptContractId, headers);
-            String fastApiUrl = aiServerBaseUrl + "/report";
+            String fastApiUrl = UriComponentsBuilder.fromHttpUrl(aiServerBaseUrl)
+                    .path("/report")
+                    .queryParam("ptContractId", ptContractId)
+                    .build()
+                    .toUriString();
 
             Map<String, Object> response = restTemplate.exchange(
                 fastApiUrl,
                 HttpMethod.POST,
-                entity,
+                new HttpEntity<>(headers),
                 new ParameterizedTypeReference<Map<String, Object>>() {}
             ).getBody();
 
