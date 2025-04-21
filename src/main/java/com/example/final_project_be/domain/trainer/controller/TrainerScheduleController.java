@@ -61,8 +61,7 @@ public class TrainerScheduleController {
             @Parameter(description = "세션 시간 (30분, 60분, 90분 중 선택), 미입력시 60분") @RequestParam(required = false) SessionDuration sessionDuration
     ) {
         // 기본값 설정
-        long currentTime = Instant.now().getEpochSecond();
-        long defaultStartTime = startTime != null ? startTime : currentTime;
+        long defaultStartTime = startTime != null ? startTime : Instant.now().getEpochSecond();
         long defaultEndTime = endTime != null ? endTime : defaultStartTime + (7 * 24 * 60 * 60); // 1주일
         SessionDuration defaultSessionDuration = sessionDuration != null ? sessionDuration : SessionDuration.SIXTY_MINUTES;
 

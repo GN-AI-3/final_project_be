@@ -15,9 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.ZoneOffset;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -82,10 +80,20 @@ public class TrainerScheduleService {
         Trainer trainer = trainerRepository.findById(trainerId)
                 .orElseThrow(() -> new RuntimeException("트레이너를 찾을 수 없습니다."));
 
+        LocalDateTime startTime = LocalDateTime.ofInstant(
+                Instant.ofEpochSecond(request.getStartTime()),
+                ZoneId.systemDefault()
+        );
+
+        LocalDateTime endTime = LocalDateTime.ofInstant(
+                Instant.ofEpochSecond(request.getEndTime()),
+                ZoneId.systemDefault()
+        );
+
         TrainerUnavailableTime unavailableTime = new TrainerUnavailableTime();
         unavailableTime.setTrainer(trainer);
-        unavailableTime.setStartTime(request.getStartTime());
-        unavailableTime.setEndTime(request.getEndTime());
+        unavailableTime.setStartTime(startTime);
+        unavailableTime.setEndTime(endTime);
         unavailableTime.setReason(request.getReason());
 
         TrainerUnavailableTime savedUnavailableTime = trainerUnavailableTimeRepository.save(unavailableTime);
@@ -150,6 +158,7 @@ public class TrainerScheduleService {
                 startDateTime, endDateTime, trainerId, PtScheduleStatus.SCHEDULED);
 
         List<TrainerAvailableTimesResponseDTO.AvailableTimeSlot> availableSlots = new ArrayList<>();
+        ZoneOffset zoneOffset = ZoneId.systemDefault().getRules().getOffset(Instant.now());
 
         // 시작 시간을 정각 또는 30분으로 조정
         LocalDateTime currentTime = startDateTime;
@@ -167,8 +176,8 @@ public class TrainerScheduleService {
 
             if (isAvailableTime(workingTimes, unavailableTimes, ptSchedules, currentTime, slotEndTime)) {
                 availableSlots.add(TrainerAvailableTimesResponseDTO.AvailableTimeSlot.builder()
-                        .startTime(currentTime.toEpochSecond(ZoneOffset.UTC))
-                        .endTime(slotEndTime.toEpochSecond(ZoneOffset.UTC))
+                        .startTime(currentTime.toEpochSecond(zoneOffset))
+                        .endTime(slotEndTime.toEpochSecond(zoneOffset))
                         .build());
             }
 
@@ -178,8 +187,8 @@ public class TrainerScheduleService {
 
         return TrainerAvailableTimesResponseDTO.builder()
                 .trainerId(trainerId)
-                .startTime(startDateTime.toEpochSecond(ZoneOffset.UTC))
-                .endTime(endDateTime.toEpochSecond(ZoneOffset.UTC))
+                .startTime(startDateTime.toEpochSecond(zoneOffset))
+                .endTime(endDateTime.toEpochSecond(zoneOffset))
                 .sessionMinutes(sessionMinutes)
                 .availableTimes(availableSlots)
                 .build();
