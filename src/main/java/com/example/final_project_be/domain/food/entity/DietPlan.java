@@ -12,22 +12,12 @@ import java.time.LocalDateTime;
 @Entity
 @Getter
 @Setter
-@Table(name = "food_nutrition")
+@Table(name = "diet_plans")
 @EntityListeners(AuditingEntityListener.class)
-public class FoodNutrition {
+public class DietPlan {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    private String name;
-
-    private Double calories;
-
-    private Double protein;
-
-    private Double carbs;
-
-    private Double fat;
 
     @CreatedDate
     @Column(name = "created_at")
@@ -36,4 +26,25 @@ public class FoodNutrition {
     @LastModifiedDate
     @Column(name = "modified_at")
     private LocalDateTime modifiedAt;
+
+    @Column(name = "breakfast_suggestion")
+    private String breakfastSuggestion;
+
+    @Column(name = "lunch_suggestion")
+    private String lunchSuggestion;
+
+    @Column(name = "dinner_suggestion")
+    private String dinnerSuggestion;
+
+    private String breakfast;
+
+    private String lunch;
+
+    private String dinner;
+
+    @Column(name = "diet_type")
+    private String dietType;
+
+    @Column(name = "user_gender")
+    private String userGender;
 }

@@ -50,6 +50,9 @@ public class SecurityConfig {
 
         http.authorizeHttpRequests(
                 authorizeHttpRequests -> authorizeHttpRequests
+                        // /api/food/ 공개 엔드포인트
+                        .requestMatchers(new AntPathRequestMatcher("/api/food/**")).permitAll()
+                        
                         // /api/admin/join, /api/admin/login,logout 모두 접근 가능
                         .requestMatchers(new AntPathRequestMatcher("/api/member/join")).permitAll()
                         .requestMatchers(new AntPathRequestMatcher("/api/member/login")).permitAll()

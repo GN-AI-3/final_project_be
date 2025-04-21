@@ -7,27 +7,22 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 @Entity
 @Getter
 @Setter
-@Table(name = "food_nutrition")
+@Table(name = "meal_records")
 @EntityListeners(AuditingEntityListener.class)
-public class FoodNutrition {
+public class MealRecord {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long mealRecordsId;
 
-    private String name;
-
-    private Double calories;
-
-    private Double protein;
-
-    private Double carbs;
-
-    private Double fat;
+    @Column(name = "member_id")
+    private Long memberId;
 
     @CreatedDate
     @Column(name = "created_at")
@@ -36,4 +31,28 @@ public class FoodNutrition {
     @LastModifiedDate
     @Column(name = "modified_at")
     private LocalDateTime modifiedAt;
+
+    @Column(name = "food_name")
+    private String foodName;
+
+    private Double portion;
+
+    private String unit;
+
+    @Column(name = "meal_date")
+    private LocalDate mealDate;
+
+    @Column(name = "meal_time")
+    private LocalTime mealTime;
+
+    @Column(name = "meal_type")
+    private String mealType;
+
+    private Double calories;
+
+    private Double protein;
+
+    private Double carbs;
+
+    private Double fat;
 }
