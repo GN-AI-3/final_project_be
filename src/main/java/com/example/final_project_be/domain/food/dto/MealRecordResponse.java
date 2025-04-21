@@ -1,5 +1,7 @@
 package com.example.final_project_be.domain.food.dto;
 
+import java.time.LocalTime;
+
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -17,4 +19,5 @@ public class MealRecordResponse {
     private Double protein;
     private Double carbs;
     private Double fat;
+    private LocalTime mealTime;
 }
