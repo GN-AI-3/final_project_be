@@ -1,21 +1,17 @@
 package com.example.final_project_be.domain.food.dto;
 
-import com.example.final_project_be.domain.food.entity.MealRecords;
-import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
+import lombok.Setter;
 
 @Getter
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class MealRecordRequestDTO {
+@Setter
+public class MealRecordRequest {
+    
     private Long memberId;
     private String foodName;
+    private String mealType;
     private Double portion;
     private String unit;
-    private MealRecords.MealType mealType;
     private Double calories;
     private Double protein;
     private Double carbs;
