@@ -112,7 +112,8 @@ public class TrainerScheduleService {
                 .build();
     }
 
-    private boolean isAvailableTime(TrainerWorkingTime workingTime,
+    @Transactional(readOnly = true)
+    public boolean isAvailableTime(TrainerWorkingTime workingTime,
                                     List<TrainerUnavailableTime> unavailableTimes,
                                     List<PtSchedule> ptSchedules,
                                     LocalDateTime slotStartTime,
@@ -153,6 +154,12 @@ public class TrainerScheduleService {
     public TrainerAvailableTimesResponseDTO getAvailableTimes(Long trainerId, LocalDateTime startDateTime, LocalDateTime endDateTime, Integer sessionMinutes) {
         trainerRepository.findById(trainerId)
                 .orElseThrow(() -> new RuntimeException("트레이너를 찾을 수 없습니다."));
+
+        // 현재 시간 이후부터 계산
+        LocalDateTime now = LocalDateTime.now();
+        if (startDateTime.isBefore(now)) {
+            startDateTime = now;
+        }
 
         List<TrainerWorkingTime> workingTimes = trainerWorkingTimeRepository.findByTrainerId(trainerId);
         List<TrainerUnavailableTime> unavailableTimes = trainerUnavailableTimeRepository.findByTrainerIdAndStartTimeBetween(
@@ -275,5 +282,22 @@ public class TrainerScheduleService {
                         .createdAt(unavailableTime.getCreatedAt().atZone(ZoneId.systemDefault()).toEpochSecond())
                         .build())
                 .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<TrainerWorkingTime> getWorkingTimeEntities(Long trainerId) {
+        trainerRepository.findById(trainerId)
+                .orElseThrow(() -> new RuntimeException("트레이너를 찾을 수 없습니다."));
+
+        return trainerWorkingTimeRepository.findByTrainerId(trainerId);
+    }
+
+    @Transactional(readOnly = true)
+    public List<TrainerUnavailableTime> getUnavailableTimeEntities(Long trainerId, LocalDateTime startDateTime, LocalDateTime endDateTime) {
+        trainerRepository.findById(trainerId)
+                .orElseThrow(() -> new RuntimeException("트레이너를 찾을 수 없습니다."));
+
+        return trainerUnavailableTimeRepository.findByTrainerIdAndStartTimeBetween(
+                trainerId, startDateTime, endDateTime);
     }
 } 

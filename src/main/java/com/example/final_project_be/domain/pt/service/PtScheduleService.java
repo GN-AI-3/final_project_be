@@ -15,6 +15,10 @@ import com.example.final_project_be.domain.schedule.enums.AlarmTargetType;
 import com.example.final_project_be.domain.schedule.enums.AlarmType;
 import com.example.final_project_be.domain.schedule.repository.ScheduleAlarmRepository;
 import com.example.final_project_be.domain.trainer.entity.Trainer;
+import com.example.final_project_be.domain.trainer.entity.TrainerUnavailableTime;
+import com.example.final_project_be.domain.trainer.entity.TrainerWorkingTime;
+import com.example.final_project_be.domain.trainer.enums.DayOfWeek;
+import com.example.final_project_be.domain.trainer.service.TrainerScheduleService;
 import com.example.final_project_be.security.MemberDTO;
 import com.example.final_project_be.security.TrainerDTO;
 import com.example.final_project_be.util.FcmUtil;
@@ -47,6 +51,7 @@ public class PtScheduleService {
     private final ApplicationEventPublisher eventPublisher;
     private final MemberService memberService;
     private final FcmUtil fcmUtil;
+    private final TrainerScheduleService trainerScheduleService;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -138,10 +143,23 @@ public class PtScheduleService {
                 convertToLocalDateTime(request.getEndTime()) :
                 startTime.plusHours(1);
 
-        validateTime(startTime, endTime);
+        // 트레이너 가용 시간 체크
+        Trainer trainer = contract.getTrainer();
+        List<TrainerWorkingTime> workingTimes = trainerScheduleService.getWorkingTimeEntities(trainer.getId());
+        List<TrainerUnavailableTime> unavailableTimes = trainerScheduleService.getUnavailableTimeEntities(
+                trainer.getId(), startTime, endTime);
+        List<PtSchedule> ptSchedules = ptScheduleRepository.findByStartTimeBetweenAndPtContract_Trainer_IdAndStatus(
+                startTime, endTime, trainer.getId(), PtScheduleStatus.SCHEDULED);
 
-        // 중복 체크
-        checkTimeOverlap(startTime, endTime, request.getPtContractId());
+        DayOfWeek dayOfWeek = DayOfWeek.values()[startTime.getDayOfWeek().getValue() - 1];
+        TrainerWorkingTime workingTime = workingTimes.stream()
+                .filter(wt -> wt.getDay() == dayOfWeek)
+                .findFirst()
+                .orElse(null);
+
+        if (!trainerScheduleService.isAvailableTime(workingTime, unavailableTimes, ptSchedules, startTime, endTime)) {
+            throw new IllegalArgumentException("선택한 시간에 트레이너가 예약 가능한 상태가 아닙니다.");
+        }
 
         // 현재 PT 회차 계산
         int currentCount = calculatePreviousPtCount(request.getPtContractId(), startTime);
@@ -402,28 +420,6 @@ public class PtScheduleService {
         }
 
         return contract;
-    }
-
-    private void validateTime(LocalDateTime startTime, LocalDateTime endTime) {
-        if (startTime.isBefore(LocalDateTime.now())) {
-            throw new IllegalArgumentException("시작 시간은 현재 시간보다 이후여야 합니다.");
-        }
-        if (endTime.isBefore(startTime)) {
-            throw new IllegalArgumentException("종료 시간은 시작 시간보다 이후여야 합니다.");
-        }
-    }
-
-    private void checkTimeOverlap(LocalDateTime startTime, LocalDateTime endTime, Long ptContractId) {
-        List<PtSchedule> existingSchedules = ptScheduleRepository.findOverlappingSchedules(
-                ptContractId,
-                startTime,
-                endTime,
-                PtScheduleStatus.SCHEDULED
-        );
-
-        if (!existingSchedules.isEmpty()) {
-            throw new IllegalArgumentException("이미 예약된 시간과 중복됩니다.");
-        }
     }
 
     private LocalDateTime convertToLocalDateTime(Long timestamp) {
