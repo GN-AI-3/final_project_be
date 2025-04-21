@@ -1,5 +1,6 @@
 package com.example.final_project_be.domain.trainer.dto;
 
+import com.example.final_project_be.domain.trainer.enums.DayOfWeek;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -9,6 +10,6 @@ import java.util.List;
 @Builder
 public class TrainerWorkingTimeUpdateResponseDTO {
     private Long trainerId;
-    private List<Integer> updatedDays;
+    private List<DayOfWeek> updatedDays;
     private String message;
 } 
