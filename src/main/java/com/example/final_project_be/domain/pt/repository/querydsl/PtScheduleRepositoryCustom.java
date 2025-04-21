@@ -5,6 +5,7 @@ import com.example.final_project_be.domain.pt.entity.PtSchedule;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 public interface PtScheduleRepositoryCustom {
     
@@ -29,5 +30,14 @@ public interface PtScheduleRepositoryCustom {
      */
     List<PtSchedule> findCancelledSchedulesDayOfOrDayBefore(LocalDate today);
 
-
+    /**
+     * 다음날 진행될 PT 스케줄을 트레이너 ID별로 그룹화하여 조회합니다.
+     * 트레이너에게 다음 날 PT 일정을 알려주기 위한 메서드입니다.
+     * 스케줄 상태가 SCHEDULED인 것만 조회합니다.
+     *
+     * @param start 다음날 시작 시간 (00:00:00)
+     * @param end 다음날 종료 시간 (23:59:59)
+     * @return 트레이너 ID를 키로, 해당 트레이너의 스케줄 목록을 값으로 하는 맵
+     */
+    Map<Long, List<PtSchedule>> findSchedulesForTrainerSummary(LocalDateTime start, LocalDateTime end);
 }

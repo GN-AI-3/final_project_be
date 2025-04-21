@@ -67,6 +67,9 @@ public class SecurityConfig {
                         .requestMatchers(new AntPathRequestMatcher("/api/trainer/refresh")).permitAll()
                         .requestMatchers(new AntPathRequestMatcher("/api/trainer/check-email/**")).permitAll()
                         
+                        // 테스트 API 접근 허용
+                        .requestMatchers(new AntPathRequestMatcher("/api/v1/test/**")).permitAll()
+                        
                         // MEMBER 권한 필요 엔드포인트
                         .requestMatchers(new AntPathRequestMatcher("/api/member/**")).hasRole("MEMBER")
                         .requestMatchers(new AntPathRequestMatcher("/api/pt_contracts/members/**")).hasRole("TRAINER")

@@ -5,5 +5,6 @@ public enum AlarmType {
     PT_CANCEL,
     PT_CHANGE,
     NO_DIET_LOG,
-    NO_EXERCISE_LOG
+    NO_EXERCISE_LOG,
+    PT_SUMMARY_FOR_TRAINER
 }

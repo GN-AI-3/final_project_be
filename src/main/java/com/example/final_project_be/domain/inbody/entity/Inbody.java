@@ -25,6 +25,11 @@ public class Inbody {
     private Integer bmi;
     private String date;
 
+    private Double muscleMass;           // 골격근량 (kg)
+    private Double fatMass;              // 체지방량 (kg)
+    private Double bodyFatPercentage;    // 체지방률 (%)
+    private Double bmr;                  // 기초대사량 (kcal)
+
     @ManyToOne
     @JoinColumn(name = "member_id")
     private Member member;

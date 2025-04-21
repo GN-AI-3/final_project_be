@@ -46,7 +46,7 @@ public class ExerciseRecordController {
     private final ExerciseRepository exerciseRepository;
     private final ExerciseRecordService exerciseRecordService;
 
-    @PostMapping("/save_exercise_record")
+    @PostMapping
     @Transactional
     public ResponseEntity<ExerciseRecordResponseDTO> createExerciseRecord(@RequestBody ExerciseRecordRequestDTO requestDTO) {
         Member member = memberRepository.findById(requestDTO.getMemberId())
@@ -70,7 +70,7 @@ public class ExerciseRecordController {
         return ResponseEntity.ok(responseDTO);
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/{exerciseRecordId}")
     @Transactional(readOnly = true)
     public ResponseEntity<ExerciseRecordResponseDTO> getExerciseRecord(@PathVariable Long id) {
         ExerciseRecord exerciseRecord = exerciseRecordRepository.findById(id)
@@ -80,7 +80,7 @@ public class ExerciseRecordController {
         return ResponseEntity.ok(responseDTO);
     }
 
-    @PatchMapping("/update")
+    @PatchMapping
     @Transactional
     @Operation(summary = "운동 기록 수정", description = "회원 ID, 운동 ID, 날짜로 운동 기록을 찾아 recordData와 memoData를 수정합니다.")
     public ResponseEntity<ExerciseRecordResponseDTO> updateExerciseRecord(@RequestBody ExerciseRecordUpdateRequestDTO requestDTO) {
