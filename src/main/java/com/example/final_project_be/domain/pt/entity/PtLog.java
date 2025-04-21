@@ -4,10 +4,7 @@ import com.example.final_project_be.domain.member.entity.Member;
 import com.example.final_project_be.domain.trainer.entity.Trainer;
 import com.example.final_project_be.entity.BaseEntity;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.DynamicUpdate;
 
@@ -49,5 +46,6 @@ public class PtLog extends BaseEntity {
     private String nextPlan;
 
     @OneToMany(mappedBy = "ptLogs", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<PtLogExercise> exercises = new ArrayList<>();
 }
