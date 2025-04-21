@@ -76,4 +76,27 @@ public class TrainerScheduleController {
                 defaultSessionDuration.getMinutes()
         ));
     }
+
+    @Operation(summary = "트레이너 불가능 시간 조회", description = "트레이너의 특정 기간 동안의 불가능 시간을 조회합니다.")
+    @GetMapping("/{trainerId}/unavailable-times")
+    public ResponseEntity<List<TrainerUnavailableTimeResponseDTO>> getUnavailableTimes(
+            @Parameter(description = "트레이너 ID") @PathVariable Long trainerId,
+            @Parameter(description = "조회 시작 시간 (Unix timestamp 초), 미입력시 현재 시간") @RequestParam(required = false) Long startTime,
+            @Parameter(description = "조회 종료 시간 (Unix timestamp 초), 미입력시 현재 시간 + 1주일") @RequestParam(required = false) Long endTime
+    ) {
+        // 기본값 설정
+        long defaultStartTime = startTime != null ? startTime : Instant.now().getEpochSecond();
+        long defaultEndTime = endTime != null ? endTime : defaultStartTime + (7 * 24 * 60 * 60); // 1주일
+
+        // Unix timestamp를 LocalDateTime으로 변환
+        LocalDateTime startDateTime = LocalDateTime.ofInstant(Instant.ofEpochSecond(defaultStartTime), ZoneId.systemDefault());
+        LocalDateTime endDateTime = LocalDateTime.ofInstant(Instant.ofEpochSecond(defaultEndTime), ZoneId.systemDefault());
+
+        List<TrainerUnavailableTimeResponseDTO> response = trainerScheduleService.getUnavailableTimes(
+                trainerId,
+                startDateTime,
+                endDateTime
+        );
+        return ResponseEntity.ok(response);
+    }
 } 
