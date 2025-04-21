@@ -19,6 +19,7 @@ import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -108,43 +109,43 @@ public class TrainerScheduleService {
                 .build();
     }
 
-    private boolean isAvailableTime(List<TrainerWorkingTime> workingTimes,
+    private boolean isAvailableTime(TrainerWorkingTime workingTime,
                                     List<TrainerUnavailableTime> unavailableTimes,
                                     List<PtSchedule> ptSchedules,
-                                    LocalDateTime time,
-                                    LocalDateTime endTime) {
+                                    LocalDateTime slotStartTime,
+                                    LocalDateTime slotEndTime) {
         // 1. 근무 시간 체크
-        boolean isWorkingTime = workingTimes.stream()
-                .filter(workingTime -> workingTime.getDay() == DayOfWeek.values()[time.getDayOfWeek().getValue() - 1])
-                .anyMatch(workingTime -> {
-                    LocalTime localTime = time.toLocalTime();
-                    return localTime.isAfter(workingTime.getStartTime()) &&
-                            localTime.isBefore(workingTime.getEndTime());
-                });
+        if (workingTime == null || !workingTime.getIsActive()) {
+            return false;
+        }
+
+        LocalTime localSlotStartTime = slotStartTime.toLocalTime();
+        LocalTime localSlotEndTime = slotEndTime.toLocalTime();
+        boolean isWorkingTime = !localSlotStartTime.isBefore(workingTime.getStartTime())
+                && !localSlotEndTime.isAfter(workingTime.getEndTime());
 
         if (!isWorkingTime) {
             return false;
         }
 
         // 2. 불가능한 시간 체크
-        boolean isNotUnavailableTime = unavailableTimes.stream()
-                .noneMatch(unavailableTime ->
-                        (time.isAfter(unavailableTime.getStartTime()) &&
-                                time.isBefore(unavailableTime.getEndTime())) ||
-                                (endTime.isAfter(unavailableTime.getStartTime()) &&
-                                        endTime.isBefore(unavailableTime.getEndTime())));
+        boolean isUnavailableTime = unavailableTimes.stream()
+                .anyMatch(unavailableTime ->
+                        (!slotStartTime.isBefore(unavailableTime.getStartTime()) && slotStartTime.isBefore(unavailableTime.getEndTime()))
+                                || (!slotEndTime.isBefore(unavailableTime.getStartTime()) && slotEndTime.isBefore(unavailableTime.getEndTime()))
+                );
 
-        if (!isNotUnavailableTime) {
+        if (isUnavailableTime) {
             return false;
         }
 
         // 3. 예약된 스케줄 체크
-        return ptSchedules.stream()
-                .noneMatch(schedule ->
-                        (time.isAfter(schedule.getStartTime()) &&
-                                time.isBefore(schedule.getEndTime())) ||
-                                (endTime.isAfter(schedule.getStartTime()) &&
-                                        endTime.isBefore(schedule.getEndTime())));
+        boolean isScheduledTime = ptSchedules.stream()
+                .anyMatch(schedule ->
+                        (!slotStartTime.isBefore(schedule.getStartTime()) && slotStartTime.isBefore(schedule.getEndTime()))
+                                || (!slotEndTime.isBefore(schedule.getStartTime()) && slotEndTime.isBefore(schedule.getEndTime())));
+
+        return !isScheduledTime;
     }
 
     public TrainerAvailableTimesResponseDTO getAvailableTimes(Long trainerId, LocalDateTime startDateTime, LocalDateTime endDateTime, Integer sessionMinutes) {
@@ -157,32 +158,70 @@ public class TrainerScheduleService {
         List<PtSchedule> ptSchedules = ptScheduleRepository.findByStartTimeBetweenAndPtContract_Trainer_IdAndStatus(
                 startDateTime, endDateTime, trainerId, PtScheduleStatus.SCHEDULED);
 
+        // 요일별 근무시간 Map 생성
+        Map<DayOfWeek, TrainerWorkingTime> workingTimeMap = workingTimes.stream()
+                .collect(Collectors.toMap(
+                        TrainerWorkingTime::getDay,
+                        workingTime -> workingTime,
+                        (existing, replacement) -> existing
+                ));
+
         List<TrainerAvailableTimesResponseDTO.AvailableTimeSlot> availableSlots = new ArrayList<>();
         ZoneOffset zoneOffset = ZoneId.systemDefault().getRules().getOffset(Instant.now());
 
-        // 시작 시간을 정각 또는 30분으로 조정
-        LocalDateTime currentTime = startDateTime;
-        int minutes = currentTime.getMinute();
-        if (minutes > 0 && minutes < 30) {
-            currentTime = currentTime.withMinute(30).withSecond(0).withNano(0);
-        } else if (minutes > 30) {
-            currentTime = currentTime.plusHours(1).withMinute(0).withSecond(0).withNano(0);
-        } else {
-            currentTime = currentTime.withSecond(0).withNano(0);
-        }
+        LocalDateTime currentDate = startDateTime;
+        while (!currentDate.isAfter(endDateTime)) {
+            // 1. 현재 날짜의 요일과 해당 요일의 근무시간 조회
+            DayOfWeek dayOfWeek = DayOfWeek.values()[currentDate.getDayOfWeek().getValue() - 1];
+            TrainerWorkingTime workingTime = workingTimeMap.get(dayOfWeek);
 
-        while (currentTime.isBefore(endDateTime)) {
-            LocalDateTime slotEndTime = currentTime.plusMinutes(sessionMinutes);
+            if (workingTime != null && workingTime.getIsActive()) {
+                // 2. 해당 날짜의 근무 시작/종료 시간 설정
+                LocalDateTime dayStartTime = LocalDateTime.of(currentDate.toLocalDate(), workingTime.getStartTime());
+                LocalDateTime dayEndTime = LocalDateTime.of(currentDate.toLocalDate(), workingTime.getEndTime());
 
-            if (isAvailableTime(workingTimes, unavailableTimes, ptSchedules, currentTime, slotEndTime)) {
-                availableSlots.add(TrainerAvailableTimesResponseDTO.AvailableTimeSlot.builder()
-                        .startTime(currentTime.toEpochSecond(zoneOffset))
-                        .endTime(slotEndTime.toEpochSecond(zoneOffset))
-                        .build());
+                // 3. 요청된 시작 시간이 근무 시작 시간보다 이르면 근무 시작 시간으로 조정
+                if (startDateTime.isBefore(dayStartTime)) {
+                    currentDate = dayStartTime;
+                }
+
+                // 4. 요청된 시작 시간이 근무 종료 시간보다 늦은 경우 다음날로 이동
+                else if (startDateTime.isAfter(dayEndTime)) {
+                    currentDate = currentDate.plusDays(1);
+                    continue;
+                }
+
+                // 5. 시작 시간을 정각 또는 30분으로 조정
+                LocalDateTime slotStartTime = startDateTime;
+                int minutes = slotStartTime.getMinute();
+                if (minutes > 0 && minutes < 30) {
+                    slotStartTime = slotStartTime.withMinute(30).withSecond(0).withNano(0);
+                } else if (minutes > 30) {
+                    slotStartTime = slotStartTime.plusHours(1).withMinute(0).withSecond(0).withNano(0);
+                } else {
+                    slotStartTime = slotStartTime.withSecond(0).withNano(0);
+                }
+
+                LocalDateTime slotEndTime = slotStartTime.plusMinutes(sessionMinutes);
+
+                // 6. 해당 날짜의 근무 시간 내에서 30분 단위로 슬롯 생성
+                while (!slotEndTime.isAfter(dayEndTime)) {
+                    // 6-1. 해당 슬롯이 예약 가능한지 체크
+                    if (isAvailableTime(workingTime, unavailableTimes, ptSchedules, slotStartTime, slotEndTime)) {
+                        availableSlots.add(TrainerAvailableTimesResponseDTO.AvailableTimeSlot.builder()
+                                .startTime(slotStartTime.toEpochSecond(zoneOffset))
+                                .endTime(slotEndTime.toEpochSecond(zoneOffset))
+                                .build());
+                    }
+
+                    // 6-2. 30분 단위로 슬롯 이동
+                    slotStartTime = slotStartTime.plusMinutes(30);
+                    slotEndTime = slotEndTime.plusMinutes(30);
+                }
             }
 
-            // 30분 단위로 증가
-            currentTime = currentTime.plusMinutes(30);
+            // 7. 다음 날로 이동
+            currentDate = currentDate.plusDays(1);
         }
 
         return TrainerAvailableTimesResponseDTO.builder()
@@ -202,7 +241,7 @@ public class TrainerScheduleService {
      */
     @Transactional(readOnly = true)
     public List<TrainerWorkingTimeResponseDTO> getWorkingTimes(Long trainerId) {
-        Trainer trainer = trainerRepository.findById(trainerId)
+        trainerRepository.findById(trainerId)
                 .orElseThrow(() -> new RuntimeException("트레이너를 찾을 수 없습니다."));
 
         List<TrainerWorkingTime> workingTimes = trainerWorkingTimeRepository.findByTrainerId(trainerId);
