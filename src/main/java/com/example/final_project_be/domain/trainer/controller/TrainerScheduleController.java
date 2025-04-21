@@ -3,12 +3,14 @@ package com.example.final_project_be.domain.trainer.controller;
 import com.example.final_project_be.domain.trainer.dto.*;
 import com.example.final_project_be.domain.trainer.enums.SessionDuration;
 import com.example.final_project_be.domain.trainer.service.TrainerScheduleService;
+import com.example.final_project_be.security.TrainerDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
@@ -24,21 +26,29 @@ public class TrainerScheduleController {
 
     private final TrainerScheduleService trainerScheduleService;
 
-    @Operation(summary = "트레이너 근무 시간 수정", description = "트레이너의 요일별 근무 시간을 수정합니다.")
-    @PutMapping("/{trainerId}/working-times")
+    @Operation(summary = "트레이너 근무 시간 조회", description = "트레이너의 요일별 근무 시간을 조회합니다.")
+    @GetMapping("/{trainerId}/working-times")
+    public ResponseEntity<List<TrainerWorkingTimeResponseDTO>> getWorkingTimes(
+            @Parameter(description = "트레이너 ID") @PathVariable Long trainerId) {
+        List<TrainerWorkingTimeResponseDTO> response = trainerScheduleService.getWorkingTimes(trainerId);
+        return ResponseEntity.ok(response);
+    }
+
+    @Operation(summary = "트레이너 근무 시간 등록", description = "트레이너의 요일별 근무 시간을 등록/수정합니다.")
+    @PostMapping("/me/working-times")
     public ResponseEntity<TrainerWorkingTimeUpdateResponseDTO> updateWorkingTime(
-            @Parameter(description = "트레이너 ID") @PathVariable Long trainerId,
+            @AuthenticationPrincipal TrainerDTO trainer,
             @RequestBody @Valid List<TrainerWorkingTimeUpdateRequestDTO> requests) {
-        TrainerWorkingTimeUpdateResponseDTO response = trainerScheduleService.updateWorkingTime(trainerId, requests);
+        TrainerWorkingTimeUpdateResponseDTO response = trainerScheduleService.updateWorkingTime(trainer.getId(), requests);
         return ResponseEntity.ok(response);
     }
 
     @Operation(summary = "트레이너 불가능 시간 등록", description = "트레이너의 특정 시간대 불가능 시간을 등록합니다.")
-    @PostMapping("/{trainerId}/unavailable-times")
+    @PostMapping("/me/unavailable-times")
     public ResponseEntity<TrainerUnavailableTimeResponseDTO> createUnavailableTime(
-            @Parameter(description = "트레이너 ID") @PathVariable Long trainerId,
+            @AuthenticationPrincipal TrainerDTO trainer,
             @RequestBody @Valid TrainerUnavailableTimeCreateRequestDTO request) {
-        TrainerUnavailableTimeResponseDTO response = trainerScheduleService.createUnavailableTime(trainerId, request);
+        TrainerUnavailableTimeResponseDTO response = trainerScheduleService.createUnavailableTime(trainer.getId(), request);
         return ResponseEntity.ok(response);
     }
 

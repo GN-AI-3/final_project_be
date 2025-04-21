@@ -184,4 +184,27 @@ public class TrainerScheduleService {
                 .availableTimes(availableSlots)
                 .build();
     }
+
+    /**
+     * 트레이너의 근무 시간을 조회합니다.
+     *
+     * @param trainerId 트레이너 ID
+     * @return 근무 시간 목록
+     */
+    @Transactional(readOnly = true)
+    public List<TrainerWorkingTimeResponseDTO> getWorkingTimes(Long trainerId) {
+        Trainer trainer = trainerRepository.findById(trainerId)
+                .orElseThrow(() -> new RuntimeException("트레이너를 찾을 수 없습니다."));
+
+        List<TrainerWorkingTime> workingTimes = trainerWorkingTimeRepository.findByTrainerId(trainerId);
+
+        return workingTimes.stream()
+                .map(workingTime -> TrainerWorkingTimeResponseDTO.builder()
+                        .day(workingTime.getDay())
+                        .startTime(workingTime.getStartTime() != null ? workingTime.getStartTime().format(TIME_FORMATTER) : null)
+                        .endTime(workingTime.getEndTime() != null ? workingTime.getEndTime().format(TIME_FORMATTER) : null)
+                        .isActive(workingTime.getIsActive())
+                        .build())
+                .collect(Collectors.toList());
+    }
 } 
