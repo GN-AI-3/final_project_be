@@ -14,31 +14,29 @@ public interface MemberDietInfoRepository extends JpaRepository<MemberDietInfo, 
 
     @Modifying
     @Query(value = """
-        INSERT INTO member_diet_info (
-            member_id, allergies, food_preferences,
-            meal_pattern, activity_level, special_requirements, is_deleted,food_avoidance
-        )
-        VALUES (
-            :memberId, :allergies, :foodPreferences,
-            :mealPattern, :activityLevel, :specialRequirements, false
-        )
-        ON CONFLICT (member_id) DO UPDATE SET
-            allergies = EXCLUDED.allergies,
-            food_preferences = EXCLUDED.food_preferences,
-            meal_pattern = EXCLUDED.meal_pattern,
-            activity_level = EXCLUDED.activity_level,
-            special_requirements = EXCLUDED.special_requirements,
-            food_avoidance = EXCLUDED.food_avoidance,
-            is_deleted = false
-        """, nativeQuery = true)
+            INSERT INTO member_diet_info (
+                member_id, allergies, food_preferences,
+                meal_pattern, activity_level, special_requirements, is_deleted, food_avoidance
+            )
+            VALUES (
+                :memberId, :allergies, :foodPreferences,
+                :mealPattern, :activityLevel, :specialRequirements, false, :foodAvoidance
+            )
+            ON CONFLICT (member_id) DO UPDATE SET
+                allergies = EXCLUDED.allergies,
+                food_preferences = EXCLUDED.food_preferences,
+                meal_pattern = EXCLUDED.meal_pattern,
+                activity_level = EXCLUDED.activity_level,
+                special_requirements = EXCLUDED.special_requirements,
+                food_avoidance = EXCLUDED.food_avoidance
+            """, nativeQuery = true)
     void upsertMemberDietInfo(
             @Param("memberId") Long memberId,
             @Param("allergies") String allergies,
             @Param("foodPreferences") String foodPreferences,
             @Param("mealPattern") String mealPattern,
             @Param("activityLevel") String activityLevel,
-            @Param("specialRequirements") String specialRequirements,
-            @Param("foodAvoidance") String foodAvoidance);  
+            @Param("specialRequirements") String specialRequirements);
 
     Optional<MemberDietInfo> findByMemberId(Long memberId);
 }
