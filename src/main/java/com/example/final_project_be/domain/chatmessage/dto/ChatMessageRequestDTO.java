@@ -21,5 +21,6 @@ public class ChatMessageRequestDTO {
     private String content;
     
     @Schema(description = "메시지 역할 (기본값: member)", example = "member", defaultValue = "member")
+    @Builder.Default
     private String role = "member";
 }
