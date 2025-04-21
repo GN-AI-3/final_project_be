@@ -7,6 +7,7 @@ import com.example.final_project_be.domain.trainer.dto.*;
 import com.example.final_project_be.domain.trainer.entity.Trainer;
 import com.example.final_project_be.domain.trainer.entity.TrainerUnavailableTime;
 import com.example.final_project_be.domain.trainer.entity.TrainerWorkingTime;
+import com.example.final_project_be.domain.trainer.enums.DayOfWeek;
 import com.example.final_project_be.domain.trainer.repository.TrainerRepository;
 import com.example.final_project_be.domain.trainer.repository.TrainerUnavailableTimeRepository;
 import com.example.final_project_be.domain.trainer.repository.TrainerWorkingTimeRepository;
@@ -44,13 +45,13 @@ public class TrainerScheduleService {
         Trainer trainer = trainerRepository.findById(trainerId)
                 .orElseThrow(() -> new RuntimeException("트레이너를 찾을 수 없습니다."));
 
-        List<Integer> updatedDays = requests.stream()
+        List<DayOfWeek> updatedDays = requests.stream()
                 .map(request -> {
-                    TrainerWorkingTime workingTime = trainerWorkingTimeRepository.findByTrainerIdAndDayOfWeek(trainerId, request.getDayOfWeek())
+                    TrainerWorkingTime workingTime = trainerWorkingTimeRepository.findByTrainerIdAndDay(trainerId, request.getDay())
                             .orElseGet(() -> {
                                 TrainerWorkingTime newWorkingTime = new TrainerWorkingTime();
                                 newWorkingTime.setTrainer(trainer);
-                                newWorkingTime.setDayOfWeek(request.getDayOfWeek());
+                                newWorkingTime.setDay(request.getDay());
                                 return newWorkingTime;
                             });
 
@@ -59,7 +60,7 @@ public class TrainerScheduleService {
                     workingTime.setIsActive(request.getIsActive());
 
                     trainerWorkingTimeRepository.save(workingTime);
-                    return request.getDayOfWeek();
+                    return request.getDay();
                 })
                 .collect(Collectors.toList());
 
@@ -106,7 +107,7 @@ public class TrainerScheduleService {
                                     LocalDateTime endTime) {
         // 1. 근무 시간 체크
         boolean isWorkingTime = workingTimes.stream()
-                .filter(workingTime -> workingTime.getDayOfWeek() == time.getDayOfWeek().getValue())
+                .filter(workingTime -> workingTime.getDay() == DayOfWeek.values()[time.getDayOfWeek().getValue() - 1])
                 .anyMatch(workingTime -> {
                     LocalTime localTime = time.toLocalTime();
                     return localTime.isAfter(workingTime.getStartTime()) &&

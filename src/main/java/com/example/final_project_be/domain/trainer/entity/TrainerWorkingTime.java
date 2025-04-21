@@ -1,5 +1,6 @@
 package com.example.final_project_be.domain.trainer.entity;
 
+import com.example.final_project_be.domain.trainer.enums.DayOfWeek;
 import com.example.final_project_be.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -10,7 +11,7 @@ import java.time.LocalTime;
 
 @Entity
 @Table(name = "trainer_working_time",
-        uniqueConstraints = @UniqueConstraint(columnNames = {"trainer_id", "day_of_week"}))
+        uniqueConstraints = @UniqueConstraint(columnNames = {"trainer_id", "day"}))
 @Getter
 @Setter
 @NoArgsConstructor
@@ -24,8 +25,9 @@ public class TrainerWorkingTime extends BaseEntity {
     @JoinColumn(name = "trainer_id", nullable = false)
     private Trainer trainer;
 
-    @Column(name = "day_of_week", nullable = false)
-    private Integer dayOfWeek;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "day", nullable = false)
+    private DayOfWeek day;
 
     @Column(name = "start_time", nullable = false)
     private LocalTime startTime;
