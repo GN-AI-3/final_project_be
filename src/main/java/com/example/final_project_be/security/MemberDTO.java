@@ -1,5 +1,6 @@
 package com.example.final_project_be.security;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -15,6 +16,8 @@ public class MemberDTO extends User {
 
     private Long id;
     private String email;
+
+    @JsonIgnore
     private String password;
     private String phone;
     private String name;
@@ -46,7 +49,6 @@ public class MemberDTO extends User {
 
         dataMap.put("id", this.id);
         dataMap.put("email", this.email);
-        dataMap.put("password", this.password);
         dataMap.put("phone", this.phone);
         dataMap.put("name", this.name);
         dataMap.put("userType", this.userType);
