@@ -23,9 +23,6 @@ public class FoodController {
     @Operation(summary = "식사 기록 저장", description = "사용자의 식사 기록을 저장합니다.")
     @PostMapping("/insert-meal")
     public ResponseEntity<MealRecordResponse> insertMeal(@RequestBody MealRecordRequest request) {
-        System.out.println("request : " + request);
-        System.out.println(mealRecordService.insertMeal(request));
-        System.out.println("insertMeal 호출");
         return ResponseEntity.ok(mealRecordService.insertMeal(request));
     }
 
