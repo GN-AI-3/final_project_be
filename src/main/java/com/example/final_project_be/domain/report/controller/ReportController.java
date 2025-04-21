@@ -1,9 +1,12 @@
 package com.example.final_project_be.domain.report.controller;
 
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -56,6 +59,17 @@ public class ReportController {
     @Operation(summary = "FastAPI 보고서 생성", description = "FastAPI 서버를 통해 보고서를 생성합니다.")
     public ResponseEntity<Map<String, Object>> createReportWithFastApi(@PathVariable Long ptContractId) {
         Map<String, Object> response = reportService.callFastApiReport(ptContractId);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/latest/{ptContractId}")
+    @Operation(summary = "최근 보고서 조회", description = "PT 계약 ID로 최근 2개의 보고서를 조회합니다.")
+    public ResponseEntity<List<ReportResponseDTO>> getLatestReports(@PathVariable Long ptContractId) {
+        List<Report> reports = reportRepository.findTop2ByPtContractIdOrderByCreatedAtDesc(ptContractId);
+        List<ReportResponseDTO> response = reports.stream()
+                .limit(2)
+                .map(ReportResponseDTO::from)
+                .collect(Collectors.toList());
         return ResponseEntity.ok(response);
     }
 } 
