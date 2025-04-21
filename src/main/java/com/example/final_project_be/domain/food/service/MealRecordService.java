@@ -9,11 +9,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.time.LocalTime;
 
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
+@Transactional
 public class MealRecordService {
     private final MealRecordRepository mealRecordRepository;
 
@@ -29,7 +28,6 @@ public class MealRecordService {
         mealRecord.setPortion(100.0);
         mealRecord.setUnit("g");
         mealRecord.setMealDate(LocalDate.now());
-        mealRecord.setMealTime(LocalTime.now());
         mealRecord.setCalories(0.0);
         mealRecord.setProtein(0.0);
         mealRecord.setCarbs(0.0);
@@ -59,7 +57,6 @@ public class MealRecordService {
         mealRecord.setPortion(request.getPortion());
         mealRecord.setUnit(request.getUnit());
         mealRecord.setMealDate(LocalDate.now());
-        mealRecord.setMealTime(LocalTime.now());
         mealRecord.setCalories(request.getCalories());
         mealRecord.setProtein(request.getProtein());
         mealRecord.setCarbs(request.getCarbs());

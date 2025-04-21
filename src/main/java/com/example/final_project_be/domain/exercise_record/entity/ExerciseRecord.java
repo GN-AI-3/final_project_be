@@ -1,6 +1,6 @@
 package com.example.final_project_be.domain.exercise_record.entity;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.Type;
@@ -45,7 +45,7 @@ public class ExerciseRecord extends BaseEntity {
     @JoinColumn(name = "exercise_id")
     private Exercise exercise;
 
-    private LocalDateTime date;
+    private LocalDate date;
 
     @Column(columnDefinition = "jsonb")
     @Type(value = JsonBinaryType.class)

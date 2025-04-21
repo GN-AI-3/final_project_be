@@ -30,6 +30,7 @@ public class PtScheduleResponseDTO {
     private Integer usedCount;
     private Integer remainingPtCount;
     private Long ptLogId;
+    private Boolean isDeducted;
 
     public static PtScheduleResponseDTO from(PtSchedule ptSchedule) {
         return PtScheduleResponseDTO.builder()
@@ -49,6 +50,7 @@ public class PtScheduleResponseDTO {
                 .usedCount(ptSchedule.getPtContract().getUsedCount())
                 .remainingPtCount(ptSchedule.getPtContract().getTotalCount() - ptSchedule.getPtContract().getUsedCount())
                 .ptLogId(ptSchedule.getPtLogId())
+                .isDeducted(ptSchedule.getIsDeducted())
                 .build();
     }
 } 
