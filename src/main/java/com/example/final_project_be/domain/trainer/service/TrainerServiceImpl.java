@@ -85,9 +85,9 @@ public class TrainerServiceImpl implements TrainerService {
         log.info("Service - Trainer saved with id: {}", trainer.getId());
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     @Override
-    public Map<String, Object> login(String email, String password) {
+    public Map<String, Object> login(String email, String password, String fcmToken) {
         UserDetails userDetails;
         try {
             // TRAINER 타입으로 사용자 로드 시도
@@ -101,6 +101,16 @@ public class TrainerServiceImpl implements TrainerService {
 
         if(!passwordEncoder.matches(password, trainerDTO.getPassword())) {
             throw new RuntimeException("비밀번호가 틀렸습니다.");
+        }
+
+        // FCM 토큰 업데이트
+        if (fcmToken != null && !fcmToken.isBlank()) {
+            Trainer trainer = trainerRepository.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("트레이너 정보를 찾을 수 없습니다."));
+            
+            log.info("Updating FCM token for trainer: {}, token: {}", email, fcmToken);
+            trainer.updateFcmToken(fcmToken);
+            trainerRepository.save(trainer);
         }
 
         Map<String, Object> trainerClaims = trainerDTO.getClaims();

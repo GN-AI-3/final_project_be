@@ -61,7 +61,11 @@ public class MemberController {
                                                   LoginRequestDTO loginRequestDTO,
                                                   HttpServletResponse response) {
         log.info("Login request: {}", loginRequestDTO);
-        Map<String, Object> loginClaims = memberService.login(loginRequestDTO.getEmail(), loginRequestDTO.getPassword());
+        Map<String, Object> loginClaims = memberService.login(
+            loginRequestDTO.getEmail(), 
+            loginRequestDTO.getPassword(),
+            loginRequestDTO.getFcmToken()
+        );
 
         String refreshToken = loginClaims.get("refreshToken").toString();
         String accessToken = loginClaims.get("accessToken").toString();

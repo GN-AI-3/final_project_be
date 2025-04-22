@@ -21,4 +21,7 @@ public class TrainerLoginRequestDTO {
     @Schema(description = "비밀번호", example = "password123")
     @NotBlank(message = "비밀번호는 필수 입력 값입니다.")
     private String password;
+
+    @Schema(description = "FCM 토큰 (선택사항)")
+    private String fcmToken;
 } 

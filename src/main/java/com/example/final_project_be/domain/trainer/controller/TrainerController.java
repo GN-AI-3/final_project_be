@@ -80,7 +80,11 @@ public class TrainerController {
                                                         TrainerLoginRequestDTO loginRequestDTO,
                                                         HttpServletResponse response) {
         log.info("Trainer Login request: {}", loginRequestDTO);
-        Map<String, Object> loginClaims = trainerService.login(loginRequestDTO.getEmail(), loginRequestDTO.getPassword());
+        Map<String, Object> loginClaims = trainerService.login(
+            loginRequestDTO.getEmail(), 
+            loginRequestDTO.getPassword(),
+            loginRequestDTO.getFcmToken()
+        );
 
         String refreshToken = loginClaims.get("refreshToken").toString();
         String accessToken = loginClaims.get("accessToken").toString();

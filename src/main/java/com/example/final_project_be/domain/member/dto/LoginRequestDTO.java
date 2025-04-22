@@ -20,4 +20,7 @@ public class LoginRequestDTO {
     @Schema(description = "비밀번호", example = "1234")
     @NotBlank(message = "패스워드를 입력해주세요")
     private String password;
+    
+    @Schema(description = "FCM 토큰 (선택사항)")
+    private String fcmToken;
 }

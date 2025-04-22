@@ -13,7 +13,9 @@ public interface TrainerService {
 
     void join(@Valid TrainerJoinRequestDTO trainerJoinRequestDTO);
 
-    Map<String, Object> login(@NotBlank(message = "이메일을 입력해주세요") String email, @NotBlank(message = "패스워드를 입력해주세요") String password);
+    Map<String, Object> login(@NotBlank(message = "이메일을 입력해주세요") String email, 
+                             @NotBlank(message = "패스워드를 입력해주세요") String password,
+                             String fcmToken);
 
     Trainer getEntity(String email);
 

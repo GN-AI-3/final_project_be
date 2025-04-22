@@ -47,9 +47,9 @@ public class MemberServiceImpl implements MemberService {
         memberRepository.save(member);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     @Override
-    public Map<String, Object> login(String email, String password) {
+    public Map<String, Object> login(String email, String password, String fcmToken) {
         UserDetails userDetails;
         try {
             // MEMBER 타입으로 사용자 로드 시도
@@ -63,6 +63,16 @@ public class MemberServiceImpl implements MemberService {
 
         if(!passwordEncoder.matches(password, memberAuthDTO.getPassword())) {
             throw new RuntimeException("비밀번호가 틀렸습니다.");
+        }
+
+        // FCM 토큰 업데이트
+        if (fcmToken != null && !fcmToken.isBlank()) {
+            Member member = memberRepository.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("회원 정보를 찾을 수 없습니다."));
+            
+            log.info("Updating FCM token for member: {}, token: {}", email, fcmToken);
+            member.updateFcmToken(fcmToken);
+            memberRepository.save(member);
         }
 
         Map<String, Object> memberClaims = memberAuthDTO.getClaims();
