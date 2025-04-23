@@ -35,4 +35,12 @@ public interface ExerciseRecordService {
      */
     List<ExerciseRecordGroupedResponseDTO> getExerciseRecordsGroupedByDate(
             Long memberId, LocalDate startTime, LocalDate endTime);
+
+    /**
+     * 회원의 모든 운동 기록을 조회합니다.
+     *
+     * @param memberId 회원 ID
+     * @return 운동 기록 목록
+     */
+    List<ExerciseRecordResponseDTO> getExerciseRecordsByMemberId(Long memberId);
 } 
