@@ -16,4 +16,5 @@ public class MealRecordRequest {
     private Double protein;
     private Double carbs;
     private Double fat;
+    private Double estimated_grams;
 }

@@ -2,13 +2,18 @@ package com.example.final_project_be.domain.food.controller;
 
 import com.example.final_project_be.domain.food.dto.MealRecordRequest;
 import com.example.final_project_be.domain.food.dto.MealRecordResponse;
+import com.example.final_project_be.domain.food.dto.RecommendedDietPlanRequest;
 import com.example.final_project_be.domain.food.dto.UserDietInfoRequest;
 import com.example.final_project_be.domain.food.dto.UserDietInfoResponse;
 import com.example.final_project_be.domain.food.service.MealRecordService;
+import com.example.final_project_be.domain.food.service.RecommendedDietPlanService;
 import com.example.final_project_be.domain.food.service.UserDietInfoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+
+import java.util.Map;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,6 +24,7 @@ import org.springframework.web.bind.annotation.*;
 public class FoodController {
     private final MealRecordService mealRecordService;
     private final UserDietInfoService userDietInfoService;
+    private final RecommendedDietPlanService recommendedDietPlanService;
 
     @Operation(summary = "식사 기록 저장", description = "사용자의 식사 기록을 저장합니다.")
     @PostMapping("/insert-meal")
@@ -45,5 +51,13 @@ public class FoodController {
     @PutMapping("/user/diet-info")
     public ResponseEntity<UserDietInfoResponse> updateUserDietInfo(@RequestBody UserDietInfoRequest request) {
         return ResponseEntity.ok(userDietInfoService.saveUserDietInfo(request));
+    }
+
+    @Operation(summary = "추천 식단 계획 저장", description = "사용자에게 추천된 식단 계획을 저장합니다.")
+    @PostMapping("/recommended-diet-plan")
+    public ResponseEntity<?> saveRecommendedDietPlan(@RequestBody RecommendedDietPlanRequest request) {
+        System.out.println("request : " + request);
+        recommendedDietPlanService.saveRecommendedDietPlan(request);
+        return ResponseEntity.ok().body(Map.of("status", "success")); 
     }
 }

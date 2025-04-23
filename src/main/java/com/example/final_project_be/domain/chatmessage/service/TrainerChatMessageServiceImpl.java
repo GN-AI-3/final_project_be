@@ -148,7 +148,7 @@ public class TrainerChatMessageServiceImpl implements TrainerChatMessageService 
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
-        String aiApiUrl = aiServerBaseUrl + "/chat";  // 트레이너 전용 엔드포인트 사용 (필요시 변경)
+        String aiApiUrl = aiServerBaseUrl + "/chat";
 
         try {
             ResponseEntity<Map> response = restTemplate.postForEntity(aiApiUrl, entity, Map.class);

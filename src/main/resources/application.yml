@@ -40,9 +40,13 @@ spring:
         default_batch_fetch_size: 100
         show_sql: true
         type: trace
+        jdbc:
+          time_zone: Asia/Seoul
     show-sql: true
 #        hbm2ddl:
 #          auto: validate
+  jackson:
+    time-zone: Asia/Seoul
 
 app:
   props:

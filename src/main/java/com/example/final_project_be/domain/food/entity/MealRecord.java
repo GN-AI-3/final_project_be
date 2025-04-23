@@ -35,7 +35,7 @@ public class MealRecord {
     @Column(name = "food_name")
     private String foodName;
 
-    private Double portion;
+    private Double portion;                  
 
     private String unit;
 
@@ -55,4 +55,6 @@ public class MealRecord {
     private Double carbs;
 
     private Double fat;
+
+    private Double estimated_grams;
 }

@@ -16,4 +16,5 @@ public class UserDietInfoResponse {
     private String mealPattern;
     private String activityLevel;
     private String specialRequirements;
+    private String foodAvoidance;
 }

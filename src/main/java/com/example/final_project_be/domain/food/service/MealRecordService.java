@@ -63,6 +63,7 @@ public class MealRecordService {
         mealRecord.setCarbs(request.getCarbs());
         mealRecord.setFat(request.getFat());
         mealRecord.setMealTime(LocalTime.now());
+        mealRecord.setEstimated_grams(request.getEstimated_grams());
         MealRecord savedRecord = mealRecordRepository.save(mealRecord);
 
         return MealRecordResponse.builder()
@@ -75,6 +76,7 @@ public class MealRecordService {
                 .protein(savedRecord.getProtein())
                 .carbs(savedRecord.getCarbs())
                 .mealTime(savedRecord.getMealTime())
+                .estimated_grams(savedRecord.getEstimated_grams())
                 .fat(savedRecord.getFat())
                 .build();
     }
@@ -82,10 +84,10 @@ public class MealRecordService {
     @Transactional
     public MealRecordResponse updateMeal(MealRecordRequest request) {
         LocalDate today = LocalDate.now();
-        
+
         MealRecord mealRecord = mealRecordRepository.findByMemberIdAndFoodNameAndMealTypeAndMealDate(
-        request.getMemberId(), request.getFoodName(), request.getMealType(), today)
-    .orElseThrow(() -> new IllegalArgumentException("오늘의 해당 식사 기록이 존재하지 않습니다."));
+                request.getMemberId(), request.getFoodName(), request.getMealType(), today)
+                .orElseThrow(() -> new IllegalArgumentException("오늘의 해당 식사 기록이 존재하지 않습니다."));
 
         mealRecord.setPortion(request.getPortion());
         mealRecord.setUnit(request.getUnit());
@@ -94,6 +96,7 @@ public class MealRecordService {
         mealRecord.setCarbs(request.getCarbs());
         mealRecord.setFat(request.getFat());
         mealRecord.setMealDate(today);
+        mealRecord.setEstimated_grams(request.getEstimated_grams());
         mealRecord.setMealTime(LocalTime.now());
         MealRecord updatedRecord = mealRecordRepository.save(mealRecord);
 
@@ -107,6 +110,7 @@ public class MealRecordService {
                 .protein(updatedRecord.getProtein())
                 .carbs(updatedRecord.getCarbs())
                 .fat(updatedRecord.getFat())
+                .estimated_grams(updatedRecord.getEstimated_grams())
                 .build();
     }
 }
