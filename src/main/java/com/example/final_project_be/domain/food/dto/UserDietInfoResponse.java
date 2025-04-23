@@ -1,8 +1,11 @@
 package com.example.final_project_be.domain.food.dto;
 
+import com.example.final_project_be.domain.food.entity.MealRecord;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.util.List;
 
 @Getter
 @Setter
@@ -17,4 +20,5 @@ public class UserDietInfoResponse {
     private String activityLevel;
     private String specialRequirements;
     private String foodAvoidance;
+    private List<MealRecord> mealRecords;
 }

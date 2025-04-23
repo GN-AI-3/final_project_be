@@ -12,8 +12,10 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
+import java.time.LocalDate;
 import java.util.Map;
 
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -51,6 +53,16 @@ public class FoodController {
     @PutMapping("/user/diet-info")
     public ResponseEntity<UserDietInfoResponse> updateUserDietInfo(@RequestBody UserDietInfoRequest request) {
         return ResponseEntity.ok(userDietInfoService.saveUserDietInfo(request));
+    }
+    @Operation(summary = "식단 조회", description = "사용자 ID와 날짜 범위에 따른 식단 정보를 조회합니다.")
+    @GetMapping("/user/diet-info")
+    public ResponseEntity<UserDietInfoResponse> getUserDietInfo(
+            @RequestParam("memberId") Long memberId,
+            @RequestParam("startDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam("endDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+
+        UserDietInfoResponse response = mealRecordService.getUserDietInfo(memberId, startDate, endDate);
+        return ResponseEntity.ok(response);
     }
 
     @Operation(summary = "추천 식단 계획 저장", description = "사용자에게 추천된 식단 계획을 저장합니다.")

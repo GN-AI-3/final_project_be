@@ -2,14 +2,17 @@ package com.example.final_project_be.domain.food.service;
 
 import com.example.final_project_be.domain.food.dto.MealRecordRequest;
 import com.example.final_project_be.domain.food.dto.MealRecordResponse;
+import com.example.final_project_be.domain.food.dto.UserDietInfoResponse;
 import com.example.final_project_be.domain.food.entity.MealRecord;
 import com.example.final_project_be.domain.food.repository.MealRecordRepository;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -111,6 +114,17 @@ public class MealRecordService {
                 .carbs(updatedRecord.getCarbs())
                 .fat(updatedRecord.getFat())
                 .estimated_grams(updatedRecord.getEstimated_grams())
+                .build();
+    }
+
+    @Transactional(readOnly = true)
+    public UserDietInfoResponse getUserDietInfo(Long memberId, LocalDate startDate, LocalDate endDate) {
+        List<MealRecord> mealRecords = mealRecordRepository.findAllByMemberIdAndMealDateBetween(
+                memberId, startDate, endDate);
+
+        return UserDietInfoResponse.builder()
+                .status("✅ 식단 정보 조회 완료")
+                .mealRecords(mealRecords)
                 .build();
     }
 }
