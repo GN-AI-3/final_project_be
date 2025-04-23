@@ -40,7 +40,9 @@ public class UserDietInfoService {
         if (request.getSpecialRequirements() != null && !request.getSpecialRequirements().isEmpty()) {
             existingInfo.setSpecialRequirements(request.getSpecialRequirements());
         }
-        
+        if (request.getFoodAvoidance() != null && !request.getFoodAvoidance().isEmpty()) {
+            existingInfo.setFoodAvoidance(request.getFoodAvoidance());
+        }
         // memberId 설정
         existingInfo.setMemberId(request.getMemberId());
          // ✅ 기존 데이터에 isDeleted 값이 null일 수 있으므로 명시적으로 다시 설정
@@ -57,6 +59,7 @@ public class UserDietInfoService {
                 .mealPattern(savedInfo.getMealPattern())
                 .activityLevel(savedInfo.getActivityLevel())
                 .specialRequirements(savedInfo.getSpecialRequirements())
+                .foodAvoidance(savedInfo.getFoodAvoidance())
                 .build();
     }
 }

@@ -36,7 +36,8 @@ public interface MemberDietInfoRepository extends JpaRepository<MemberDietInfo, 
             @Param("foodPreferences") String foodPreferences,
             @Param("mealPattern") String mealPattern,
             @Param("activityLevel") String activityLevel,
-            @Param("specialRequirements") String specialRequirements);
+            @Param("specialRequirements") String specialRequirements,
+            @Param("foodAvoidance") String foodAvoidance);
 
     Optional<MemberDietInfo> findByMemberId(Long memberId);
 }

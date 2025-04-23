@@ -1,7 +1,6 @@
 package com.example.final_project_be.security.filter;
 
 import com.example.final_project_be.security.CustomUserDetailService;
-import com.example.final_project_be.security.MemberDTO;
 import com.example.final_project_be.util.JWTUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;

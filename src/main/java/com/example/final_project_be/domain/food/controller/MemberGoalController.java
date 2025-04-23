@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 public class MemberGoalController {
     private final MemberService memberService;
 
-    @Operation(summary = "사용자 정보 업데이트", description = "사용자의 목표와 성별 정보를 업데이트합니다.")
+    @Operation(summary = "사용자 정보 업데이트", description = "사용자의 목표정보를 업데이트합니다.")
     @PutMapping("/update")
     public ResponseEntity<Void> updateMember(@RequestBody MemberUpdateRequest request) {
         memberService.updateMember(request);
