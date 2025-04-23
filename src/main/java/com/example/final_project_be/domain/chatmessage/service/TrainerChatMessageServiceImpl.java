@@ -1,11 +1,15 @@
 package com.example.final_project_be.domain.chatmessage.service;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
+import com.example.final_project_be.domain.chatmessage.dto.PtLogRequestDTO;
+import com.example.final_project_be.domain.chatmessage.dto.PtLogResponseDTO;
+import com.example.final_project_be.domain.chatmessage.dto.TrainerChatMessageResponseDTO;
+import com.example.final_project_be.domain.chatmessage.entity.TrainerChatMessage;
+import com.example.final_project_be.domain.chatmessage.repository.TrainerChatMessageRepository;
+import com.example.final_project_be.domain.trainer.entity.Trainer;
+import com.example.final_project_be.domain.trainer.repository.TrainerRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -19,17 +23,11 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
-import com.example.final_project_be.domain.chatmessage.dto.PtLogRequestDTO;
-import com.example.final_project_be.domain.chatmessage.dto.PtLogResponseDTO;
-import com.example.final_project_be.domain.chatmessage.dto.TrainerChatMessageResponseDTO;
-import com.example.final_project_be.domain.chatmessage.entity.TrainerChatMessage;
-import com.example.final_project_be.domain.chatmessage.repository.TrainerChatMessageRepository;
-import com.example.final_project_be.domain.trainer.entity.Trainer;
-import com.example.final_project_be.domain.trainer.repository.TrainerRepository;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -150,7 +148,7 @@ public class TrainerChatMessageServiceImpl implements TrainerChatMessageService 
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
-        String aiApiUrl = aiServerBaseUrl + "/chat/trainer";  // 트레이너 전용 엔드포인트 사용 (필요시 변경)
+        String aiApiUrl = aiServerBaseUrl + "/chat";
 
         try {
             ResponseEntity<Map> response = restTemplate.postForEntity(aiApiUrl, entity, Map.class);
