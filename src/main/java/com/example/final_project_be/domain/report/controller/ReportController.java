@@ -63,7 +63,7 @@ public class ReportController {
     }
 
     @GetMapping("/latest/{ptContractId}")
-    @Operation(summary = "최근 보고서 조회", description = "PT 계약 ID로 최근 보고서와 첫 보고서서를 조회합니다.")
+    @Operation(summary = "최근 보고서 조회", description = "PT 계약 ID로 최근 보고서와 첫 보고서를 조회합니다.")
     public ResponseEntity<List<ReportResponseDTO>> getLatestReports(@PathVariable Long ptContractId) {
         List<Report> reports = reportRepository.findLatestAndOldestByPtContractId(ptContractId);
         List<ReportResponseDTO> response = reports.stream()
