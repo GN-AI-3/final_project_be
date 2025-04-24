@@ -136,29 +136,76 @@ public class ExerciseRecordServiceImpl implements ExerciseRecordService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<ExerciseRecordPtContractResponseDTO> getExerciseRecordsByPtContract(Long ptContractId) {
-        List<PtSchedule> schedules = ptScheduleRepository.findCompletedSchedulesByContractId(ptContractId);
-        
-        return schedules.stream()
-                .map(schedule -> {
-                    List<ExerciseRecordPtContractResponseDTO.ExerciseRecordDetailDTO> exercises = 
-                        ptLogExerciseRepository.findByPtLogs_PtSchedule_Id(schedule.getId()).stream()
-                            .map(exercise -> ExerciseRecordPtContractResponseDTO.ExerciseRecordDetailDTO.builder()
-                                    .exerciseId(exercise.getExercise().getId())
-                                    .exerciseName(exercise.getExercise().getName())
-                                    .reps(exercise.getReps())
-                                    .sets(exercise.getSets())
-                                    .weight(exercise.getWeight())
-                                    .memo(exercise.getFeedback())
-                                    .build())
-                            .collect(Collectors.toList());
+        log.info("PT 계약별 운동 기록 조회 시작 - PT 계약 ID: {}", ptContractId);
 
-                    return ExerciseRecordPtContractResponseDTO.builder()
-                            .date(schedule.getStartTime().toLocalDate())
-                            .exercises(exercises)
+        // PT 계약 조회 및 회원 ID 가져오기
+        PtContract ptContract = ptContractRepository.findById(ptContractId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 PT 계약입니다. ID: " + ptContractId));
+
+        // 회원의 모든 운동 기록 조회
+        List<ExerciseRecord> records = exerciseRecordRepository.findByMemberIdOrderByDateDesc(ptContract.getMember().getId());
+
+        // 날짜별로 그룹화
+        Map<LocalDate, List<ExerciseRecord>> groupedByDate = records.stream()
+                .collect(Collectors.groupingBy(ExerciseRecord::getDate));
+
+        List<ExerciseRecordPtContractResponseDTO> result = new ArrayList<>();
+
+        for (Map.Entry<LocalDate, List<ExerciseRecord>> entry : groupedByDate.entrySet()) {
+            List<ExerciseRecordPtContractResponseDTO.ExerciseRecordDetailDTO> exerciseDetails = new ArrayList<>();
+
+            for (ExerciseRecord record : entry.getValue()) {
+                try {
+                    JsonNode recordData = record.getRecordData();
+                    Integer reps = null;
+                    Integer sets = null;
+                    Integer weight = null;
+
+                    if (recordData != null) {
+                        // recordData가 배열인 경우
+                        if (recordData.isArray() && recordData.size() > 0) {
+                            JsonNode firstSet = recordData.get(0);
+                            if (firstSet.has("reps")) reps = firstSet.get("reps").asInt();
+                            if (firstSet.has("sets")) sets = firstSet.get("sets").asInt();
+                            if (firstSet.has("weight")) weight = firstSet.get("weight").asInt();
+                        }
+                        // recordData가 객체인 경우 (단일 세트)
+                        else if (recordData.isObject()) {
+                            if (recordData.has("reps")) reps = recordData.get("reps").asInt();
+                            if (recordData.has("sets")) sets = recordData.get("sets").asInt();
+                            if (recordData.has("weight")) weight = recordData.get("weight").asInt();
+                        }
+                    }
+
+                    ExerciseRecordPtContractResponseDTO.ExerciseRecordDetailDTO exerciseDetail =
+                            ExerciseRecordPtContractResponseDTO.ExerciseRecordDetailDTO.builder()
+                                    .exerciseId(record.getExercise().getId())
+                                    .exerciseName(record.getExercise().getName())
+                                    .reps(reps)
+                                    .sets(sets)
+                                    .weight(weight)
+                                    .memo(record.getMemoData() != null ? record.getMemoData().asText() : null)
+                                    .build();
+
+                    exerciseDetails.add(exerciseDetail);
+                } catch (Exception e) {
+                    log.error("운동 기록 데이터 파싱 중 오류 발생: {}", e.getMessage());
+                    throw new RuntimeException("운동 기록 데이터 파싱 중 오류가 발생했습니다.", e);
+                }
+            }
+
+            ExerciseRecordPtContractResponseDTO groupedRecord =
+                    ExerciseRecordPtContractResponseDTO.builder()
+                            .date(entry.getKey())
+                            .exercises(exerciseDetails)
                             .build();
-                })
-                .collect(Collectors.toList());
+
+            result.add(groupedRecord);
+        }
+
+        return result;
     }
 
     @Override
