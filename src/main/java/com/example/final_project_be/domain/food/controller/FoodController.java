@@ -5,19 +5,24 @@ import com.example.final_project_be.domain.food.dto.MealRecordResponse;
 import com.example.final_project_be.domain.food.dto.RecommendedDietPlanRequest;
 import com.example.final_project_be.domain.food.dto.UserDietInfoRequest;
 import com.example.final_project_be.domain.food.dto.UserDietInfoResponse;
+import com.example.final_project_be.domain.food.entity.MealRecord;
 import com.example.final_project_be.domain.food.service.MealRecordService;
 import com.example.final_project_be.domain.food.service.RecommendedDietPlanService;
 import com.example.final_project_be.domain.food.service.UserDietInfoService;
+import com.example.final_project_be.security.TrainerDTO;
+import java.util.List;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.Map;
-
-import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Food API", description = "식사 기록 및 식단 정보 관련 API")
 @RestController
@@ -54,22 +59,26 @@ public class FoodController {
     public ResponseEntity<UserDietInfoResponse> updateUserDietInfo(@RequestBody UserDietInfoRequest request) {
         return ResponseEntity.ok(userDietInfoService.saveUserDietInfo(request));
     }
+
     @Operation(summary = "식단 조회", description = "사용자 ID와 날짜 범위에 따른 식단 정보를 조회합니다.")
     @GetMapping("/user/diet-info")
-    public ResponseEntity<UserDietInfoResponse> getUserDietInfo(
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<List<MealRecord>> getUserDietInfo(
+            @AuthenticationPrincipal TrainerDTO trainer,
             @RequestParam("memberId") Long memberId,
             @RequestParam("startDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam("endDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
 
-        UserDietInfoResponse response = mealRecordService.getUserDietInfo(memberId, startDate, endDate);
+        List<MealRecord> response = mealRecordService.getUserDietInfo(memberId, startDate, endDate);
         return ResponseEntity.ok(response);
     }
 
     @Operation(summary = "추천 식단 계획 저장", description = "사용자에게 추천된 식단 계획을 저장합니다.")
     @PostMapping("/recommended-diet-plan")
-    public ResponseEntity<?> saveRecommendedDietPlan(@RequestBody RecommendedDietPlanRequest request) {
+    public ResponseEntity<?> saveRecommendedDietPlan(
+            @RequestBody RecommendedDietPlanRequest request) {
         System.out.println("request : " + request);
         recommendedDietPlanService.saveRecommendedDietPlan(request);
-        return ResponseEntity.ok().body(Map.of("status", "success")); 
+        return ResponseEntity.ok().body(Map.of("status", "success"));
     }
 }

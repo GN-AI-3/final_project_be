@@ -45,8 +45,8 @@ public class UserDietInfoService {
         }
         // memberId 설정
         existingInfo.setMemberId(request.getMemberId());
-         // ✅ 기존 데이터에 isDeleted 값이 null일 수 있으므로 명시적으로 다시 설정
-         if (existingInfo.getIsDeleted() == null) {
+        // ✅ 기존 데이터에 isDeleted 값이 null일 수 있으므로 명시적으로 다시 설정
+        if (existingInfo.getIsDeleted() == null) {
             existingInfo.setIsDeleted(false);
         }
         // 저장

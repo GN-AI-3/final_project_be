@@ -25,11 +25,11 @@ public class RecommendedDietPlanService {
         for (Map.Entry<String, Map<String, String>> entry : planJson.entrySet()) {
             String dayKey = entry.getKey(); // "single" 또는 "monday" 등
             Map<String, String> meals = entry.getValue();
-        
+
             String breakfast = meals.getOrDefault("아침", meals.getOrDefault("breakfast", ""));
             String lunch = meals.getOrDefault("점심", meals.getOrDefault("lunch", ""));
             String dinner = meals.getOrDefault("저녁", meals.getOrDefault("dinner", ""));
-        
+
             RecommendedDietPlan plan = new RecommendedDietPlan();
             plan.setMemberId(request.getMemberId());
             plan.setPlanScope(request.getPlanScope());
@@ -39,7 +39,7 @@ public class RecommendedDietPlanService {
             plan.setLunchPlan(lunch);
             plan.setDinnerPlan(dinner);
             plan.setCreatedDatetime(LocalDateTime.now());
-        
+
             recommendedDietPlanRepository.save(plan);
         }
     }

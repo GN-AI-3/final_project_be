@@ -2,7 +2,6 @@ package com.example.final_project_be.domain.food.service;
 
 import com.example.final_project_be.domain.food.dto.MealRecordRequest;
 import com.example.final_project_be.domain.food.dto.MealRecordResponse;
-import com.example.final_project_be.domain.food.dto.UserDietInfoResponse;
 import com.example.final_project_be.domain.food.entity.MealRecord;
 import com.example.final_project_be.domain.food.repository.MealRecordRepository;
 
@@ -65,8 +64,12 @@ public class MealRecordService {
         mealRecord.setProtein(request.getProtein());
         mealRecord.setCarbs(request.getCarbs());
         mealRecord.setFat(request.getFat());
-        mealRecord.setMealTime(LocalTime.now());
         mealRecord.setEstimated_grams(request.getEstimated_grams());
+
+        // 현재 시간을 HH:mm 형식으로 설정
+        LocalTime currentTime = LocalTime.now();
+        mealRecord.setMealTime(LocalTime.of(currentTime.getHour(), currentTime.getMinute()));
+
         MealRecord savedRecord = mealRecordRepository.save(mealRecord);
 
         return MealRecordResponse.builder()
@@ -100,7 +103,11 @@ public class MealRecordService {
         mealRecord.setFat(request.getFat());
         mealRecord.setMealDate(today);
         mealRecord.setEstimated_grams(request.getEstimated_grams());
-        mealRecord.setMealTime(LocalTime.now());
+
+        // 현재 시간을 HH:mm 형식으로 설정
+        LocalTime currentTime = LocalTime.now();
+        mealRecord.setMealTime(LocalTime.of(currentTime.getHour(), currentTime.getMinute()));
+
         MealRecord updatedRecord = mealRecordRepository.save(mealRecord);
 
         return MealRecordResponse.builder()
@@ -118,13 +125,9 @@ public class MealRecordService {
     }
 
     @Transactional(readOnly = true)
-    public UserDietInfoResponse getUserDietInfo(Long memberId, LocalDate startDate, LocalDate endDate) {
-        List<MealRecord> mealRecords = mealRecordRepository.findAllByMemberIdAndMealDateBetween(
+    public List<MealRecord> getUserDietInfo(Long memberId, LocalDate startDate, LocalDate endDate) {
+        return mealRecordRepository.findAllByMemberIdAndMealDateBetween(
                 memberId, startDate, endDate);
 
-        return UserDietInfoResponse.builder()
-                .status("✅ 식단 정보 조회 완료")
-                .mealRecords(mealRecords)
-                .build();
     }
 }
