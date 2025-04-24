@@ -134,10 +134,9 @@ public interface PtScheduleRepository extends JpaRepository<PtSchedule, Long>, P
 
     Optional<PtSchedule> findById(Long id);
 
-<<<<<<< HEAD
     @Query("SELECT ps FROM PtSchedule ps WHERE ps.ptContract.id = :ptContractId AND ps.status = 'COMPLETED'")
     List<PtSchedule> findCompletedSchedulesByContractId(@Param("ptContractId") Long ptContractId);
-=======
+    
     /**
      * PT 계약 ID와 트레이너 ID로 스케줄이 존재하는지 확인합니다.
      * 트레이너가 해당 계약의 담당자인지 검증하는 데 사용됩니다.
@@ -152,5 +151,4 @@ public interface PtScheduleRepository extends JpaRepository<PtSchedule, Long>, P
     boolean existsByPtContractIdAndTrainerId(
             @Param("ptContractId") Long ptContractId, 
             @Param("trainerId") Long trainerId);
->>>>>>> origin
 } 
