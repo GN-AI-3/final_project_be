@@ -12,6 +12,7 @@ import lombok.Setter;
 public class MealRecordResponse {
     private String status;
     private String food;
+    private Double estimated_grams;
     private String mealType;
     private Double portion;
     private String unit;

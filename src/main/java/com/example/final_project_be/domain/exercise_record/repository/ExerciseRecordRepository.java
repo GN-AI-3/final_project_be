@@ -23,10 +23,19 @@ public interface ExerciseRecordRepository extends JpaRepository<ExerciseRecord, 
     List<ExerciseRecord> findByMemberIdAndDateBetween(Long memberId, LocalDate startTime, LocalDate endTime);
 
     /**
+<<<<<<< HEAD
      * 회원 ID로 모든 운동 기록을 날짜 내림차순으로 조회합니다.
      *
      * @param memberId 회원 ID
      * @return 날짜 내림차순으로 정렬된 운동 기록 목록
      */
     List<ExerciseRecord> findByMemberIdOrderByDateDesc(Long memberId);
+=======
+     * 회원 ID로 모든 운동 기록을 조회합니다.
+     *
+     * @param memberId 회원 ID
+     * @return 운동 기록 목록
+     */
+    List<ExerciseRecord> findByMemberId(Long memberId);
+>>>>>>> origin
 }

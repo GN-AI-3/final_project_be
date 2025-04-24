@@ -5,6 +5,8 @@ import com.example.final_project_be.domain.pt.dto.PtContractUpdateRequestDTO;
 import com.example.final_project_be.domain.pt.enums.ContractStatus;
 import com.example.final_project_be.domain.pt.service.PtContractService;
 import com.example.final_project_be.security.TrainerDTO;
+import com.example.final_project_be.domain.exercise_record.dto.ExerciseRecordResponseDTO;
+import com.example.final_project_be.domain.exercise_record.service.ExerciseRecordService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -24,6 +26,7 @@ import java.util.List;
 public class PtContractController {
 
     private final PtContractService ptContractService;
+    private final ExerciseRecordService exerciseRecordService;
 
     @GetMapping("/members")
     @PreAuthorize("hasRole('TRAINER')")
@@ -36,6 +39,17 @@ public class PtContractController {
             @RequestParam(required = false) ContractStatus status,
             @AuthenticationPrincipal TrainerDTO trainer) {
         return ResponseEntity.ok(ptContractService.getContractMembers(trainer.getId(), status));
+    }
+
+    @GetMapping("/active/members")
+    @PreAuthorize("hasRole('TRAINER')")
+    @Operation(
+            summary = "활성 회원 목록 조회 (트레이너 전용)",
+            description = "트레이너의 활성(ACTIVE) 상태인 계약 회원 목록을 조회합니다. 트레이너 권한이 필요합니다."
+    )
+    public ResponseEntity<List<PtContractResponseDTO>> getActiveContractMembers(
+            @AuthenticationPrincipal TrainerDTO trainer) {
+        return ResponseEntity.ok(ptContractService.getContractMembers(trainer.getId(), ContractStatus.ACTIVE));
     }
 
     @GetMapping("/{ptContractId}")
@@ -84,5 +98,22 @@ public class PtContractController {
             @RequestBody PtContractUpdateRequestDTO updateRequest) {
         Long updatedContractId = ptContractService.updateContract(ptContractId, updateRequest);
         return ResponseEntity.ok(ptContractService.getContract(updatedContractId));
+    }
+    
+    @GetMapping("/member/{memberId}/exercise-records")
+    @PreAuthorize("hasRole('TRAINER')")
+    @Operation(
+            summary = "회원 운동 기록 조회 (트레이너 전용)",
+            description = "트레이너와 계약된 회원의 개인 운동 기록을 조회합니다. 트레이너 권한이 필요합니다."
+    )
+    public ResponseEntity<List<ExerciseRecordResponseDTO>> getMemberExerciseRecords(
+            @Parameter(description = "회원 ID", required = true)
+            @PathVariable Long memberId,
+            @AuthenticationPrincipal TrainerDTO trainer) {
+        // 회원과 트레이너의 관계 검증 (회원이 트레이너의 계약 회원인지 확인)
+        ptContractService.validateTrainerHasAccessToMember(memberId, trainer.getId());
+        // 회원의 운동 기록 조회
+        List<ExerciseRecordResponseDTO> exerciseRecords = exerciseRecordService.getExerciseRecordsByMemberId(memberId);
+        return ResponseEntity.ok(exerciseRecords);
     }
 } 
