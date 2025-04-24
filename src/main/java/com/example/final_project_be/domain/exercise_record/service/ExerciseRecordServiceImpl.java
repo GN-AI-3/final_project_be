@@ -1,5 +1,17 @@
 package com.example.final_project_be.domain.exercise_record.service;
 
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.example.final_project_be.domain.exercise.entity.Exercise;
 import com.example.final_project_be.domain.exercise_record.dto.ExerciseRecordGroupedResponseDTO;
 import com.example.final_project_be.domain.exercise_record.dto.ExerciseRecordPtContractResponseDTO;
@@ -11,21 +23,9 @@ import com.example.final_project_be.domain.member.entity.Member;
 import com.example.final_project_be.domain.member.repository.MemberRepository;
 import com.example.final_project_be.domain.pt.entity.PtContract;
 import com.example.final_project_be.domain.pt.repository.PtContractRepository;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -37,7 +37,6 @@ public class ExerciseRecordServiceImpl implements ExerciseRecordService {
     private final ExerciseRecordRepository exerciseRecordRepository;
     private final MemberRepository memberRepository;
     private final PtContractRepository ptContractRepository;
-    private final ObjectMapper objectMapper;
 
     @Override
     @Transactional

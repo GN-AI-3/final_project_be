@@ -133,4 +133,7 @@ public interface PtScheduleRepository extends JpaRepository<PtSchedule, Long>, P
     Integer findPreviousPtCount(@Param("ptContractId") Long ptContractId, @Param("beforeTime") LocalDateTime beforeTime);
 
     Optional<PtSchedule> findById(Long id);
+
+    @Query("SELECT ps FROM PtSchedule ps WHERE ps.ptContract.id = :ptContractId AND ps.status = 'COMPLETED'")
+    List<PtSchedule> findCompletedSchedulesByContractId(@Param("ptContractId") Long ptContractId);
 } 

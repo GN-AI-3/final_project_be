@@ -11,10 +11,12 @@ import com.example.final_project_be.domain.exercise.repository.ExerciseRepositor
 import com.example.final_project_be.domain.pt.dto.PtLogExerciseCreateRequestDTO;
 import com.example.final_project_be.domain.pt.dto.PtLogExerciseUpdateRequestDTO;
 import com.example.final_project_be.domain.pt.dto.PtLogExerciseResponseDTO;
+import com.example.final_project_be.domain.pt.dto.PtLogExerciseGroupedResponseDTO;
 import com.example.final_project_be.domain.pt.entity.PtLog;
 import com.example.final_project_be.domain.pt.entity.PtLogExercise;
 import com.example.final_project_be.domain.pt.repository.PtLogExerciseRepository;
 import com.example.final_project_be.domain.pt.repository.PtLogRepository;
+import com.example.final_project_be.domain.pt.repository.PtScheduleRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -26,6 +28,7 @@ public class PtLogExerciseService {
     private final PtLogRepository ptLogRepository;
     private final PtLogExerciseRepository ptLogExerciseRepository;
     private final ExerciseRepository exerciseRepository;
+    private final PtScheduleRepository ptScheduleRepository;
 
     @Transactional
     public void createPtLogExercise(Long ptLogId, PtLogExerciseCreateRequestDTO request) {
@@ -103,6 +106,24 @@ public class PtLogExerciseService {
         List<PtLogExercise> exercises = ptLogExerciseRepository.findByPtLogsOrderBySequenceAsc(ptLog);
         return exercises.stream()
                 .map(PtLogExerciseResponseDTO::from)
+                .collect(Collectors.toList());
+    }
+
+    public List<PtLogExerciseGroupedResponseDTO> getExercisesByPtContractId(Long ptContractId) {
+        return ptScheduleRepository.findCompletedSchedulesByContractId(ptContractId).stream()
+                .map(schedule -> PtLogExerciseGroupedResponseDTO.builder()
+                        .startTime(schedule.getStartTime())
+                        .exercises(ptLogExerciseRepository.findByPtLog_PtSchedule_Id(schedule.getId()).stream()
+                                .map(exercise -> PtLogExerciseGroupedResponseDTO.ExerciseDetailDTO.builder()
+                                        .exerciseId(exercise.getExercise().getId())
+                                        .exerciseName(exercise.getExercise().getName())
+                                        .feedback(exercise.getFeedback())
+                                        .reps(exercise.getReps())
+                                        .sets(exercise.getSets())
+                                        .weight(exercise.getWeight())
+                                        .build())
+                                .collect(Collectors.toList()))
+                        .build())
                 .collect(Collectors.toList());
     }
 } 
