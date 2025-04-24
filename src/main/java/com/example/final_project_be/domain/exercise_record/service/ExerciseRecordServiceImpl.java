@@ -131,7 +131,6 @@ public class ExerciseRecordServiceImpl implements ExerciseRecordService {
 
     @Override
     @Transactional(readOnly = true)
-<<<<<<< HEAD
     public List<ExerciseRecordPtContractResponseDTO> getExerciseRecordsByPtContract(Long ptContractId) {
         log.info("PT 계약별 운동 기록 조회 시작 - PT 계약 ID: {}", ptContractId);
 
@@ -210,7 +209,9 @@ public class ExerciseRecordServiceImpl implements ExerciseRecordService {
         }
 
         return result;
-=======
+    }
+
+    @Override
     public List<ExerciseRecordResponseDTO> getExerciseRecordsByMemberId(Long memberId) {
         log.info("회원의 모든 운동 기록 조회 시작 - 회원 ID: {}", memberId);
         
@@ -225,6 +226,5 @@ public class ExerciseRecordServiceImpl implements ExerciseRecordService {
         return allRecords.stream()
                 .map(ExerciseRecordResponseDTO::from)
                 .collect(Collectors.toList());
->>>>>>> origin
     }
 } 
