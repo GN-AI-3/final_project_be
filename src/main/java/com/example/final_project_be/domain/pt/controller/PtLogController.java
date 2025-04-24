@@ -5,6 +5,7 @@ import com.example.final_project_be.domain.pt.service.PtLogExerciseService;
 import com.example.final_project_be.domain.pt.service.PtLogService;
 import com.example.final_project_be.security.TrainerDTO;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -100,4 +101,19 @@ public class PtLogController {
         ptLogExerciseService.updatePtLogExercise(ptLogId, exerciseLogId, request);
         return ResponseEntity.ok().build();
     }
+
+    @GetMapping("/member/{memberId}")
+    @PreAuthorize("hasRole('TRAINER')")
+    @Operation(
+            summary = "회원별 PT 로그 목록 조회 (트레이너 전용)",
+            description = "특정 회원의 모든 PT 로그를 조회합니다. 트레이너 권한이 필요합니다."
+    )
+    public ResponseEntity<List<PtLogResponseDTO>> getPtLogsByMember(
+            @Parameter(description = "회원 ID", required = true)
+            @PathVariable Long memberId,
+            @AuthenticationPrincipal TrainerDTO trainer) {
+        List<PtLogResponseDTO> ptLogs = ptLogService.getPtLogsByMemberIdForTrainer(memberId, trainer.getId());
+        return ResponseEntity.ok(ptLogs);
+    }
+
 } 

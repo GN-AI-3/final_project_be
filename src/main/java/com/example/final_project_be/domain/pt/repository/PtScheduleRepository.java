@@ -133,4 +133,22 @@ public interface PtScheduleRepository extends JpaRepository<PtSchedule, Long>, P
     Integer findPreviousPtCount(@Param("ptContractId") Long ptContractId, @Param("beforeTime") LocalDateTime beforeTime);
 
     Optional<PtSchedule> findById(Long id);
+
+    @Query("SELECT ps FROM PtSchedule ps WHERE ps.ptContract.id = :ptContractId AND ps.status = 'COMPLETED'")
+    List<PtSchedule> findCompletedSchedulesByContractId(@Param("ptContractId") Long ptContractId);
+    
+    /**
+     * PT 계약 ID와 트레이너 ID로 스케줄이 존재하는지 확인합니다.
+     * 트레이너가 해당 계약의 담당자인지 검증하는 데 사용됩니다.
+     *
+     * @param ptContractId PT 계약 ID
+     * @param trainerId    트레이너 ID
+     * @return 해당 계약과 트레이너로 된 스케줄이 존재하면 true, 아니면 false
+     */
+    @Query("SELECT CASE WHEN COUNT(ps) > 0 THEN true ELSE false END FROM PtSchedule ps " +
+            "JOIN ps.ptContract pc " +
+            "WHERE pc.id = :ptContractId AND pc.trainer.id = :trainerId")
+    boolean existsByPtContractIdAndTrainerId(
+            @Param("ptContractId") Long ptContractId, 
+            @Param("trainerId") Long trainerId);
 } 

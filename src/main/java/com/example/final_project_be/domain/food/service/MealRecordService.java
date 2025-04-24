@@ -4,12 +4,14 @@ import com.example.final_project_be.domain.food.dto.MealRecordRequest;
 import com.example.final_project_be.domain.food.dto.MealRecordResponse;
 import com.example.final_project_be.domain.food.entity.MealRecord;
 import com.example.final_project_be.domain.food.repository.MealRecordRepository;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -62,8 +64,12 @@ public class MealRecordService {
         mealRecord.setProtein(request.getProtein());
         mealRecord.setCarbs(request.getCarbs());
         mealRecord.setFat(request.getFat());
-        mealRecord.setMealTime(LocalTime.now());
         mealRecord.setEstimated_grams(request.getEstimated_grams());
+
+        // 현재 시간을 HH:mm 형식으로 설정
+        LocalTime currentTime = LocalTime.now();
+        mealRecord.setMealTime(LocalTime.of(currentTime.getHour(), currentTime.getMinute()));
+
         MealRecord savedRecord = mealRecordRepository.save(mealRecord);
 
         return MealRecordResponse.builder()
@@ -97,7 +103,11 @@ public class MealRecordService {
         mealRecord.setFat(request.getFat());
         mealRecord.setMealDate(today);
         mealRecord.setEstimated_grams(request.getEstimated_grams());
-        mealRecord.setMealTime(LocalTime.now());
+
+        // 현재 시간을 HH:mm 형식으로 설정
+        LocalTime currentTime = LocalTime.now();
+        mealRecord.setMealTime(LocalTime.of(currentTime.getHour(), currentTime.getMinute()));
+
         MealRecord updatedRecord = mealRecordRepository.save(mealRecord);
 
         return MealRecordResponse.builder()
@@ -112,5 +122,12 @@ public class MealRecordService {
                 .fat(updatedRecord.getFat())
                 .estimated_grams(updatedRecord.getEstimated_grams())
                 .build();
+    }
+
+    @Transactional(readOnly = true)
+    public List<MealRecord> getUserDietInfo(Long memberId, LocalDate startDate, LocalDate endDate) {
+        return mealRecordRepository.findAllByMemberIdAndMealDateBetween(
+                memberId, startDate, endDate);
+
     }
 }

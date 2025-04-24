@@ -7,6 +7,9 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -25,23 +28,27 @@ public class MealRecord {
     private Long memberId;
 
     @CreatedDate
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
     @LastModifiedDate
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     @Column(name = "modified_at")
     private LocalDateTime modifiedAt;
 
     @Column(name = "food_name")
     private String foodName;
 
-    private Double portion;                  
+    private Double portion;
 
     private String unit;
 
     @Column(name = "meal_date")
     private LocalDate mealDate;
 
+    @JsonDeserialize(using = SafeLocalTimeDeserializer.class)
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm:ss")
     @Column(name = "meal_time")
     private LocalTime mealTime;
 
