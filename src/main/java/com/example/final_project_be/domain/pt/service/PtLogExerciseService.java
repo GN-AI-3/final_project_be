@@ -113,7 +113,7 @@ public class PtLogExerciseService {
         return ptScheduleRepository.findCompletedSchedulesByContractId(ptContractId).stream()
                 .map(schedule -> PtLogExerciseGroupedResponseDTO.builder()
                         .startTime(schedule.getStartTime())
-                        .exercises(ptLogExerciseRepository.findByPtLog_PtSchedule_Id(schedule.getId()).stream()
+                        .exercises(ptLogExerciseRepository.findByPtLogs_PtSchedule_Id(schedule.getId()).stream()
                                 .map(exercise -> PtLogExerciseGroupedResponseDTO.ExerciseDetailDTO.builder()
                                         .exerciseId(exercise.getExercise().getId())
                                         .exerciseName(exercise.getExercise().getName())

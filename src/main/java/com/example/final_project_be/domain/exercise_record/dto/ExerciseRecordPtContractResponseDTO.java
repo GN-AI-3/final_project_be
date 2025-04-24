@@ -23,17 +23,9 @@ public class ExerciseRecordPtContractResponseDTO {
     public static class ExerciseRecordDetailDTO {
         private Long exerciseId;
         private String exerciseName;
-        private List<SetDetailDTO> sets;
-        private String memo;
-    }
-
-    @Getter
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class SetDetailDTO {
         private Integer reps;
         private Integer sets;
-        private Double weight;
+        private Integer weight;
+        private String memo;
     }
 } 
