@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.final_project_be.domain.pt.dto.PtLogExerciseResponseDTO;
+import com.example.final_project_be.domain.pt.dto.PtLogExerciseGroupedResponseDTO;
 import com.example.final_project_be.domain.pt.service.PtLogExerciseService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -29,6 +30,13 @@ public class PtLogExerciseController {
     public ResponseEntity<List<PtLogExerciseResponseDTO>> getExercisesByPtScheduleId(
             @PathVariable Long ptScheduleId) {
         List<PtLogExerciseResponseDTO> exercises = ptLogExerciseService.getExercisesByPtScheduleId(ptScheduleId);
+        return ResponseEntity.ok(exercises);
+    }
+
+    @GetMapping("/pt-contract/{ptContractId}")
+    public ResponseEntity<List<PtLogExerciseGroupedResponseDTO>> getExercisesByPtContractId(
+            @PathVariable Long ptContractId) {
+        List<PtLogExerciseGroupedResponseDTO> exercises = ptLogExerciseService.getExercisesByPtContractId(ptContractId);
         return ResponseEntity.ok(exercises);
     }
 } 

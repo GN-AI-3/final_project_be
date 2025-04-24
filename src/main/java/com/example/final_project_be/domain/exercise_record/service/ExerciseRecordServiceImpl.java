@@ -1,25 +1,35 @@
 package com.example.final_project_be.domain.exercise_record.service;
 
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.example.final_project_be.domain.exercise.entity.Exercise;
 import com.example.final_project_be.domain.exercise_record.dto.ExerciseRecordGroupedResponseDTO;
+import com.example.final_project_be.domain.exercise_record.dto.ExerciseRecordPtContractResponseDTO;
 import com.example.final_project_be.domain.exercise_record.dto.ExerciseRecordResponseDTO;
 import com.example.final_project_be.domain.exercise_record.dto.ExerciseRecordUpdateRequestDTO;
 import com.example.final_project_be.domain.exercise_record.entity.ExerciseRecord;
 import com.example.final_project_be.domain.exercise_record.repository.ExerciseRecordRepository;
 import com.example.final_project_be.domain.member.entity.Member;
 import com.example.final_project_be.domain.member.repository.MemberRepository;
+import com.example.final_project_be.domain.pt.entity.PtContract;
+import com.example.final_project_be.domain.pt.repository.PtContractRepository;
 import com.fasterxml.jackson.databind.JsonNode;
-import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import com.example.final_project_be.domain.pt.entity.PtSchedule;
+import com.example.final_project_be.domain.pt.repository.PtScheduleRepository;
+import com.example.final_project_be.domain.pt.entity.PtLogExercise;
+import com.example.final_project_be.domain.pt.repository.PtLogExerciseRepository;
 
-import java.time.LocalDate;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -30,6 +40,9 @@ public class ExerciseRecordServiceImpl implements ExerciseRecordService {
 
     private final ExerciseRecordRepository exerciseRecordRepository;
     private final MemberRepository memberRepository;
+    private final PtContractRepository ptContractRepository;
+    private final PtScheduleRepository ptScheduleRepository;
+    private final PtLogExerciseRepository ptLogExerciseRepository;
 
     @Override
     @Transactional
@@ -123,7 +136,32 @@ public class ExerciseRecordServiceImpl implements ExerciseRecordService {
     }
 
     @Override
-    @Transactional(readOnly = true)
+    public List<ExerciseRecordPtContractResponseDTO> getExerciseRecordsByPtContract(Long ptContractId) {
+        List<PtSchedule> schedules = ptScheduleRepository.findCompletedSchedulesByContractId(ptContractId);
+        
+        return schedules.stream()
+                .map(schedule -> {
+                    List<ExerciseRecordPtContractResponseDTO.ExerciseRecordDetailDTO> exercises = 
+                        ptLogExerciseRepository.findByPtLogs_PtSchedule_Id(schedule.getId()).stream()
+                            .map(exercise -> ExerciseRecordPtContractResponseDTO.ExerciseRecordDetailDTO.builder()
+                                    .exerciseId(exercise.getExercise().getId())
+                                    .exerciseName(exercise.getExercise().getName())
+                                    .reps(exercise.getReps())
+                                    .sets(exercise.getSets())
+                                    .weight(exercise.getWeight())
+                                    .memo(exercise.getFeedback())
+                                    .build())
+                            .collect(Collectors.toList());
+
+                    return ExerciseRecordPtContractResponseDTO.builder()
+                            .date(schedule.getStartTime().toLocalDate())
+                            .exercises(exercises)
+                            .build();
+                })
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public List<ExerciseRecordResponseDTO> getExerciseRecordsByMemberId(Long memberId) {
         log.info("회원의 모든 운동 기록 조회 시작 - 회원 ID: {}", memberId);
         

@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.final_project_be.domain.exercise.entity.Exercise;
 import com.example.final_project_be.domain.exercise.repository.ExerciseRepository;
 import com.example.final_project_be.domain.exercise_record.dto.ExerciseRecordGroupedResponseDTO;
+import com.example.final_project_be.domain.exercise_record.dto.ExerciseRecordPtContractResponseDTO;
 import com.example.final_project_be.domain.exercise_record.dto.ExerciseRecordRequestDTO;
 import com.example.final_project_be.domain.exercise_record.dto.ExerciseRecordResponseDTO;
 import com.example.final_project_be.domain.exercise_record.dto.ExerciseRecordUpdateRequestDTO;
@@ -102,6 +103,21 @@ public class ExerciseRecordController {
 
         List<ExerciseRecordGroupedResponseDTO> response = exerciseRecordService
                 .getExerciseRecordsGroupedByDate(memberId, startTime, endTime);
+        
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/pt_contract/{ptContractId}")
+    @Transactional(readOnly = true)
+    @Operation(summary = "PT 계약별 운동 기록 조회", 
+            description = "PT 계약 ID로 회원의 운동 기록을 날짜별로 그룹화하여 조회하고, 세트 정보를 풀어서 반환합니다.")
+    public ResponseEntity<List<ExerciseRecordPtContractResponseDTO>> getExerciseRecordsByPtContract(
+            @PathVariable Long ptContractId) {
+        
+        log.info("PT 계약별 운동 기록 조회 요청 - PT 계약 ID: {}", ptContractId);
+
+        List<ExerciseRecordPtContractResponseDTO> response = exerciseRecordService
+                .getExerciseRecordsByPtContract(ptContractId);
         
         return ResponseEntity.ok(response);
     }
