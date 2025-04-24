@@ -121,4 +121,22 @@ public class ExerciseRecordServiceImpl implements ExerciseRecordService {
                 })
                 .collect(Collectors.toList());
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ExerciseRecordResponseDTO> getExerciseRecordsByMemberId(Long memberId) {
+        log.info("회원의 모든 운동 기록 조회 시작 - 회원 ID: {}", memberId);
+        
+        // 회원 존재 여부 확인
+        memberRepository.findById(memberId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다. ID: " + memberId));
+        
+        // 회원의 모든 운동 기록 조회
+        List<ExerciseRecord> allRecords = exerciseRecordRepository.findByMemberId(memberId);
+        
+        // DTO로 변환하여 반환
+        return allRecords.stream()
+                .map(ExerciseRecordResponseDTO::from)
+                .collect(Collectors.toList());
+    }
 } 

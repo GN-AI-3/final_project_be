@@ -34,4 +34,15 @@ public interface PtContractRepository extends JpaRepository<PtContract, Long> {
     
     // 회원의 가장 최근 활성 계약 조회
     Optional<PtContract> findTop1ByMemberAndStatusOrderByCreatedAtDesc(Member member, ContractStatus status);
+    
+    /**
+     * 회원 ID와 트레이너 ID로 계약 존재 여부 확인
+     * 
+     * @param memberId 회원 ID
+     * @param trainerId 트레이너 ID
+     * @return 계약 존재 여부
+     */
+    boolean existsByMemberIdAndTrainerId(
+            @Param("memberId") Long memberId, 
+            @Param("trainerId") Long trainerId);
 } 
