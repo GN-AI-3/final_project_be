@@ -13,5 +13,5 @@ public interface PtLogExerciseRepository extends JpaRepository<PtLogExercise, Lo
     List<PtLogExercise> findByPtLogsOrderBySequenceAsc(PtLog ptLog);
 
     @Query("SELECT ple FROM PtLogExercise ple WHERE ple.ptLogs.ptSchedule.id = :ptScheduleId")
-    List<PtLogExercise> findByPtLog_PtSchedule_Id(@Param("ptScheduleId") Long ptScheduleId);
+    List<PtLogExercise> findByPtLogs_PtSchedule_Id(@Param("ptScheduleId") Long ptScheduleId);
 }
