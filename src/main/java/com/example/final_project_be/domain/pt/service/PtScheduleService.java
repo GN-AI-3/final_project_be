@@ -1,6 +1,8 @@
 package com.example.final_project_be.domain.pt.service;
 
 import com.example.final_project_be.domain.member.dto.MemberDetailDTO;
+import com.example.final_project_be.domain.member.entity.Member;
+import com.example.final_project_be.domain.member.repository.MemberRepository;
 import com.example.final_project_be.domain.member.service.MemberService;
 import com.example.final_project_be.domain.pt.dto.PtScheduleChangeRequestDTO;
 import com.example.final_project_be.domain.pt.dto.PtScheduleCreateRequestDTO;
@@ -18,9 +20,8 @@ import com.example.final_project_be.domain.trainer.entity.Trainer;
 import com.example.final_project_be.domain.trainer.entity.TrainerUnavailableTime;
 import com.example.final_project_be.domain.trainer.entity.TrainerWorkingTime;
 import com.example.final_project_be.domain.trainer.enums.DayOfWeek;
+import com.example.final_project_be.domain.trainer.repository.TrainerRepository;
 import com.example.final_project_be.domain.trainer.service.TrainerScheduleService;
-import com.example.final_project_be.security.MemberDTO;
-import com.example.final_project_be.security.TrainerDTO;
 import com.example.final_project_be.util.FcmUtil;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -36,6 +37,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -48,6 +51,8 @@ public class PtScheduleService {
     private final PtScheduleRepository ptScheduleRepository;
     private final PtContractRepository ptContractRepository;
     private final ScheduleAlarmRepository scheduleAlarmRepository;
+    private final MemberRepository memberRepository;
+    private final TrainerRepository trainerRepository;
     private final ApplicationEventPublisher eventPublisher;
     private final MemberService memberService;
     private final FcmUtil fcmUtil;
@@ -78,38 +83,35 @@ public class PtScheduleService {
             @NonNull LocalDateTime startTime,
             @NonNull LocalDateTime endTime,
             PtScheduleStatus status,
-            Object user) {
+            Long memberId,
+            Long trainerId) {
 
         if (endTime.isBefore(startTime)) {
             throw new IllegalArgumentException("종료 시간은 시작 시간보다 이후여야 합니다.");
         }
 
         List<PtSchedule> schedules;
-        if (user instanceof MemberDTO member) {
-            List<Object[]> results = ptScheduleRepository.findByStartTimeBetweenAndPtContract_Member_IdWithPtLog(
-                    startTime, endTime, member.getId(), status
+        List<Object[]> results;
+
+        if (memberId != null) {
+            results = ptScheduleRepository.findByStartTimeBetweenAndPtContract_Member_IdWithPtLog(
+                    startTime, endTime, memberId, status
             );
-            schedules = results.stream()
-                    .map(result -> {
-                        PtSchedule schedule = (PtSchedule) result[0];
-                        schedule.setPtLogId((Long) result[1]);
-                        return schedule;
-                    })
-                    .collect(Collectors.toList());
-        } else if (user instanceof TrainerDTO trainer) {
-            List<Object[]> results = ptScheduleRepository.findByStartTimeBetweenAndPtContract_Trainer_IdWithPtLog(
-                    startTime, endTime, trainer.getId(), status
+        } else if (trainerId != null) {
+            results = ptScheduleRepository.findByStartTimeBetweenAndPtContract_Trainer_IdWithPtLog(
+                    startTime, endTime, trainerId, status
             );
-            schedules = results.stream()
-                    .map(result -> {
-                        PtSchedule schedule = (PtSchedule) result[0];
-                        schedule.setPtLogId((Long) result[1]);
-                        return schedule;
-                    })
-                    .collect(Collectors.toList());
         } else {
-            throw new IllegalArgumentException("유효하지 않은 사용자 타입입니다.");
+            throw new IllegalArgumentException("회원 ID 또는 트레이너 ID 중 하나는 필수입니다.");
         }
+
+        schedules = results.stream()
+                .map(result -> {
+                    PtSchedule schedule = (PtSchedule) result[0];
+                    schedule.setPtLogId((Long) result[1]);
+                    return schedule;
+                })
+                .collect(Collectors.toList());
 
         return schedules.stream()
                 .map(PtScheduleResponseDTO::from)
@@ -117,9 +119,16 @@ public class PtScheduleService {
     }
 
     @Transactional
-    public Long createSchedule(PtScheduleCreateRequestDTO request, Object user, boolean shouldCheckRemaining) {
+    public Long createSchedule(PtScheduleCreateRequestDTO request, Long memberId, boolean shouldCheckRemaining) {
         // 계약 유효성 검사
         PtContract contract = validateContract(request.getPtContractId());
+
+        // 요청한 회원이 계약의 실제 회원인지 확인 (using memberId)
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
+        if (!contract.getMember().equals(member)) {
+            throw new IllegalArgumentException("해당 PT 계약에 대한 권한이 없습니다.");
+        }
 
         if (shouldCheckRemaining) {
             // 남은 횟수 체크
@@ -129,12 +138,6 @@ public class PtScheduleService {
             // 횟수 차감
             contract.setUsedCount(contract.getUsedCount() + 1);
             ptContractRepository.save(contract);
-        }
-
-        // 요청한 회원이 계약의 실제 회원인지 확인
-        MemberDetailDTO memberDetail = memberService.getMemberInfo(contract.getMember().getId());
-        if (user instanceof MemberDTO member && !memberDetail.getEmail().equals(member.getEmail())) {
-            throw new IllegalArgumentException("해당 PT 계약에 대한 권한이 없습니다.");
         }
 
         // 시간 유효성 검사
@@ -267,10 +270,10 @@ public class PtScheduleService {
     }
 
     @Transactional
-    public Long cancelSchedule(Long scheduleId, String reason, Object user) {
-        PtSchedule schedule = ptScheduleRepository.findByIdWithContractAndMembers(scheduleId)
-                .orElseThrow(() -> new IllegalArgumentException("PT 스케줄을 찾을 수 없습니다."));
-        validateScheduleModification(schedule, LocalDateTime.now(), true, user);
+    public Long cancelSchedule(Long scheduleId, String reason, Long memberId, Long trainerId) {
+        PtSchedule schedule = ptScheduleRepository.findById(scheduleId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 스케줄입니다."));
+        validateScheduleModification(schedule, LocalDateTime.now(), true, memberId, trainerId);
 
         // 스케줄 취소
         schedule.setStatus(PtScheduleStatus.CANCELLED);
@@ -343,32 +346,41 @@ public class PtScheduleService {
 
 
     @Transactional
-    public Long changeSchedule(Long scheduleId, PtScheduleChangeRequestDTO request, Object user) {
-        // 1. 기존 일정 조회 및 검증
-        PtSchedule oldSchedule = ptScheduleRepository.findByIdWithContractAndMembers(scheduleId)
-                .orElseThrow(() -> new IllegalArgumentException("PT 스케줄을 찾을 수 없습니다."));
-        validateScheduleModification(oldSchedule, LocalDateTime.now(), false, user);
+    public Long changeSchedule(Long scheduleId, PtScheduleChangeRequestDTO request, Long memberId, Long trainerId) {
+        // Fetch the existing schedule WITH its contract and associated entities
+        PtSchedule existingSchedule = ptScheduleRepository.findByIdWithContractAndMembers(scheduleId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 스케줄입니다."));
 
-        // 2. 기존 일정 상태를 CHANGED로 변경
-        oldSchedule.setStatus(PtScheduleStatus.CHANGED);
-        oldSchedule.setReason(request.getReason());
+        // Validate modification rights and rules
+        validateScheduleModification(existingSchedule, LocalDateTime.now(), false, memberId, trainerId);
 
-        // 3. 새로운 일정 생성 (횟수 차감 체크 비활성화)
-        PtScheduleCreateRequestDTO createRequest = new PtScheduleCreateRequestDTO();
-        createRequest.setPtContractId(oldSchedule.getPtContract().getId());
-        createRequest.setStartTime(request.getStartTime());
-        createRequest.setEndTime(request.getEndTime());
+        // 기존 스케줄 취소 처리 (횟수 복구 없음)
+        existingSchedule.setStatus(PtScheduleStatus.CHANGED);
+        existingSchedule.setReason("스케줄 변경으로 인한 취소");
+        existingSchedule.setIsDeducted(false); // 횟수 차감 해제됨 (변경 시 횟수 소모 안 함)
+        ptScheduleRepository.save(existingSchedule);
 
-        Long newScheduleId = createSchedule(createRequest, user, false);  // 일정 변경은 횟수 차감 없음
-        PtSchedule newSchedule = ptScheduleRepository.findByIdWithContractAndMembers(newScheduleId)
-                .orElseThrow(() -> new IllegalArgumentException("새로운 PT 스케줄을 찾을 수 없습니다."));
+        // 계약 유효성 검사 (동일 계약으로만 변경 가능)
+        PtContract contract = existingSchedule.getPtContract();
 
-        // 4. 회차 재계산
-        // 이전 일정과 새로운 일정 중 더 이른 시간을 기준으로 재계산
-        LocalDateTime recalculateTime = oldSchedule.getStartTime().isBefore(newSchedule.getStartTime())
-                ? oldSchedule.getStartTime()
-                : newSchedule.getStartTime();
-        recalculatePtCounts(oldSchedule.getPtContract().getId(), recalculateTime);
+        // 새로운 스케줄 생성 DTO 준비
+        PtScheduleCreateRequestDTO createRequest = PtScheduleCreateRequestDTO.builder()
+                .ptContractId(contract.getId())
+                .startTime(request.getStartTime())
+                .endTime(request.getEndTime())
+                .build();
+
+        // 새로운 스케줄 생성 (횟수 차감 없음, 요청자는 회원으로 간주)
+        // Note: Determining the actual user (member or trainer) making the change might need refinement.
+        // Here, we assume the member linked to the contract is the intended user for createSchedule validation.
+        Long newScheduleId = createSchedule(createRequest, contract.getMember().getId(), false);
+
+        // 기존 스케줄의 회차 재계산
+        recalculatePtCounts(contract.getId(), existingSchedule.getStartTime());
+        // 새 스케줄 포함 회차 재계산
+        PtSchedule newSchedule = ptScheduleRepository.findById(newScheduleId)
+                .orElseThrow(() -> new IllegalStateException("Failed to retrieve newly created schedule"));
+        recalculatePtCounts(contract.getId(), newSchedule.getStartTime());
 
         return newScheduleId;
     }
@@ -462,25 +474,25 @@ public class PtScheduleService {
         return ptScheduleRepository.findPreviousPtCount(ptContractId, beforeTime);
     }
 
-    private void validateScheduleAuthority(PtSchedule schedule, Object user) {
-        if (user instanceof MemberDTO member) {
-            if (!schedule.getPtContract().getMember().getId().equals(member.getId())) {
-                throw new IllegalArgumentException("해당 PT 일정에 대한 변경 권한이 없습니다.");
+    /**
+     * Checks if the provided memberId or trainerId has authority over the given schedule.
+     * This method ONLY checks the relationship between the user ID and the contract.
+     */
+    private void validateScheduleAuthority(PtSchedule schedule, Long memberId, Long trainerId) {
+        if (memberId != null) {
+            Member member = memberRepository.findById(memberId)
+                    .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
+            if (!schedule.getPtContract().getMember().equals(member)) {
+                throw new IllegalArgumentException("해당 스케줄에 대한 권한이 없습니다.");
             }
-        } else if (user instanceof TrainerDTO trainer) {
-            if (!schedule.getPtContract().getTrainer().getId().equals(trainer.getId())) {
-                throw new IllegalArgumentException("해당 PT 일정에 대한 변경 권한이 없습니다.");
+        } else if (trainerId != null) {
+            Trainer trainer = trainerRepository.findById(trainerId)
+                    .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 트레이너입니다."));
+            if (!schedule.getPtContract().getTrainer().equals(trainer)) {
+                throw new IllegalArgumentException("해당 스케줄에 대한 권한이 없습니다.");
             }
         } else {
-            throw new IllegalArgumentException("유효하지 않은 사용자 타입입니다.");
-        }
-
-        if (schedule.getStatus() != PtScheduleStatus.SCHEDULED) {
-            throw new IllegalArgumentException("이미 취소되었거나 완료된 PT 일정입니다.");
-        }
-
-        if (schedule.getStartTime().isBefore(LocalDateTime.now())) {
-            throw new IllegalArgumentException("이미 시작된 PT 일정은 변경할 수 없습니다.");
+            throw new IllegalArgumentException("회원 또는 트레이너 ID가 필요합니다.");
         }
     }
 
@@ -513,32 +525,24 @@ public class PtScheduleService {
         );
     }
 
-    private void validateScheduleModification(PtSchedule schedule, LocalDateTime changeTime, boolean isCancel, Object user) {
-        // 1. 권한 검증
-        if (user instanceof MemberDTO member) {
-            if (!schedule.getPtContract().getMember().getId().equals(member.getId())) {
-                throw new IllegalArgumentException("해당 PT 일정에 대한 변경 권한이 없습니다.");
-            }
-        } else if (user instanceof TrainerDTO trainer) {
-            if (!schedule.getPtContract().getTrainer().getId().equals(trainer.getId())) {
-                throw new IllegalArgumentException("해당 PT 일정에 대한 변경 권한이 없습니다.");
-            }
-        } else {
-            throw new IllegalArgumentException("유효하지 않은 사용자 타입입니다.");
-        }
+    private void validateScheduleModification(PtSchedule schedule, LocalDateTime changeTime, boolean isCancel, Long memberId, Long trainerId) {
+        // 공통 권한 검사
+        validateScheduleAuthority(schedule, memberId, trainerId);
 
-        // 2. 상태 검증
+        // --- Start: Moved Checks from validateScheduleAuthority --- 
+        // 스케줄 상태 검사
         if (schedule.getStatus() != PtScheduleStatus.SCHEDULED) {
-            throw new IllegalArgumentException("이미 취소, 변경, 완료 또는 불참 처리된 PT 일정입니다.");
+            throw new IllegalArgumentException("이미 처리되었거나 예약되지 않은 스케줄은 변경/취소할 수 없습니다.");
         }
 
-        // 3. 시간 검증
+        // 시간 검증 (이미 시작된 스케줄)
         LocalDateTime scheduleStartTime = schedule.getStartTime();
         if (scheduleStartTime.isBefore(LocalDateTime.now())) {
-            throw new IllegalArgumentException("이미 시작된 PT 일정은 변경할 수 없습니다.");
+             throw new IllegalArgumentException("이미 시작된 PT 일정은 변경/취소할 수 없습니다.");
         }
+        // --- End: Moved Checks --- 
 
-        // 4. 제한 시간 검증
+        // 제한 시간 검증
         Trainer trainer = schedule.getPtContract().getTrainer();
         long hoursUntilStart = java.time.Duration.between(changeTime, scheduleStartTime).toHours();
         int limitHours = isCancel ? trainer.getScheduleCancelLimitHours() : trainer.getScheduleChangeLimitHours();
@@ -552,43 +556,111 @@ public class PtScheduleService {
         }
     }
 
-    private void validateNoShow(PtSchedule schedule, Object user) {
-        // 1. 권한 검증
-        if (!schedule.getPtContract().getTrainer().getId().equals(((TrainerDTO) user).getId())) {
-            throw new IllegalArgumentException("해당 PT 일정에 대한 변경 권한이 없습니다.");
+    private void validateNoShow(PtSchedule schedule, Long trainerId) {
+        if (trainerId == null) {
+            throw new IllegalArgumentException("트레이너 ID가 필요합니다.");
+        }
+         Trainer trainer = trainerRepository.findById(trainerId)
+                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 트레이너입니다."));
+
+        if (!schedule.getPtContract().getTrainer().equals(trainer)) {
+            throw new IllegalArgumentException("해당 스케줄을 불참 처리할 권한이 없습니다.");
         }
 
-        // 2. 상태 검증
-        if (schedule.getStatus() != PtScheduleStatus.COMPLETED) {
-            throw new IllegalArgumentException("이미 취소, 변경, 완료 또는 불참 처리된 PT 일정입니다.");
+        if (schedule.getStatus() != PtScheduleStatus.SCHEDULED) {
+            throw new IllegalArgumentException("예약 상태가 아닌 스케줄은 불참 처리할 수 없습니다.");
         }
 
-        // 3. 시간 검증
         if (schedule.getStartTime().isAfter(LocalDateTime.now())) {
-            throw new IllegalArgumentException("아직 시작되지 않은 PT 일정은 불참 처리할 수 없습니다.");
+            throw new IllegalArgumentException("아직 시작되지 않은 스케줄은 불참 처리할 수 없습니다.");
         }
     }
 
     @Transactional
-    public Long markAsNoShow(Long scheduleId, String reason, Object user) {
-        PtSchedule schedule = ptScheduleRepository.findByIdWithContractAndMembers(scheduleId)
-                .orElseThrow(() -> new IllegalArgumentException("PT 스케줄을 찾을 수 없습니다."));
-        validateNoShow(schedule, user);
+    public Long markAsNoShow(Long scheduleId, String reason, Long trainerId) {
+        PtSchedule schedule = ptScheduleRepository.findById(scheduleId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 스케줄입니다."));
+        validateNoShow(schedule, trainerId);
 
-        // 스케줄 불참 처리
         schedule.setStatus(PtScheduleStatus.NO_SHOW);
         schedule.setReason(reason);
+        schedule.setIsDeducted(true); // 불참 시 횟수 차감 유지
 
-        // 회차 정보 업데이트
-        recalculatePtCounts(schedule.getPtContract().getId(), schedule.getStartTime());
-
-        // PT 계약 테이블의 사용 횟수 감소
-        PtContract contract = schedule.getPtContract();
-        contract.setUsedCount(contract.getUsedCount() - 1);
-        ptContractRepository.save(contract);
-
-        return schedule.getId();
+        return ptScheduleRepository.save(schedule).getId();
     }
-
+    
+    /**
+     * 트레이너 ID와 회원 이름으로 해당 회원의 남은 PT 일정을 조회합니다.
+     * 현재 시점 이후의 SCHEDULED 상태인 PT 일정만 반환합니다.
+     *
+     * @param trainerId 트레이너 ID
+     * @param memberName 회원 이름
+     * @return 남은 PT 일정 목록
+     */
+    @Transactional(readOnly = true)
+    public List<PtScheduleResponseDTO> getRemainingSchedulesByTrainerIdAndMemberName(Long trainerId, String memberName) {
+        if (trainerId == null) {
+            throw new IllegalArgumentException("트레이너 ID는 필수입니다.");
+        }
+        
+        if (memberName == null || memberName.isBlank()) {
+            throw new IllegalArgumentException("회원 이름은 필수입니다.");
+        }
+        
+        // 1. 트레이너 존재 여부 확인
+        Trainer trainer = trainerRepository.findById(trainerId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 트레이너입니다."));
+        
+        // 2. 해당 이름을 가진 회원들 조회 (동명이인 가능성 고려)
+        List<Member> members = memberRepository.findByNameContaining(memberName);
+        
+        if (members.isEmpty()) {
+            return List.of(); // 해당 이름의 회원이 없으면 빈 리스트 반환
+        }
+        
+        // 3. 각 회원 ID 추출
+        List<Long> memberIds = members.stream()
+                .map(Member::getId)
+                .collect(Collectors.toList());
+        
+        // 4. 현재 시간 이후, 해당 트레이너와 회원들 간의 예약된(SCHEDULED) PT 일정 조회
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime oneYearLater = now.plusYears(1);
+        
+        List<PtSchedule> schedules = new ArrayList<>();
+        
+        for (Long memberId : memberIds) {
+            // 해당 트레이너와 회원 간의 계약이 존재하는지 확인
+            if (ptContractRepository.existsByMemberIdAndTrainerId(memberId, trainerId)) {
+                List<Object[]> results = ptScheduleRepository.findByStartTimeBetweenAndPtContract_Member_IdWithPtLog(
+                        now, oneYearLater, memberId, PtScheduleStatus.SCHEDULED
+                );
+                
+                List<PtSchedule> memberSchedules = results.stream()
+                        .map(result -> {
+                            PtSchedule schedule = (PtSchedule) result[0];
+                            schedule.setPtLogId((Long) result[1]);
+                            
+                            // 해당 계약이 요청한 트레이너의 것인지 확인
+                            if (schedule.getPtContract().getTrainer().getId().equals(trainerId)) {
+                                return schedule;
+                            }
+                            return null;
+                        })
+                        .filter(schedule -> schedule != null)
+                        .collect(Collectors.toList());
+                
+                schedules.addAll(memberSchedules);
+            }
+        }
+        
+        // 5. 시작 시간 기준 오름차순 정렬
+        schedules.sort(Comparator.comparing(PtSchedule::getStartTime));
+        
+        // 6. DTO로 변환하여 반환
+        return schedules.stream()
+                .map(PtScheduleResponseDTO::from)
+                .collect(Collectors.toList());
+    }
 
 }

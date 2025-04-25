@@ -75,6 +75,8 @@ public class SecurityConfig {
                         .requestMatchers(new AntPathRequestMatcher("/api/pt_contracts/members/**")).hasRole("TRAINER")
                         // TRAINER 권한 필요 엔드포인트
                         .requestMatchers(new AntPathRequestMatcher("/api/trainer/**")).hasRole("TRAINER")
+
+                        .requestMatchers(new AntPathRequestMatcher("/api/pt_schedules/**")).permitAll()
                         
                         // 공통 엔드포인트
                         .requestMatchers(new AntPathRequestMatcher("/api/member/me")).permitAll()
@@ -94,6 +96,8 @@ public class SecurityConfig {
                         .requestMatchers(new AntPathRequestMatcher("/webjars/**")).permitAll()
                         .requestMatchers(new AntPathRequestMatcher("/v3/api-docs/**")).permitAll()
                         .requestMatchers(new AntPathRequestMatcher("/h2-console/**")).permitAll()
+                        // PT 스케줄 API 경로 인증 없이 접근 허용 (AI 서버 접근용)
+                        .requestMatchers(new AntPathRequestMatcher("/api/pt_schedules/**")).permitAll()
                         .anyRequest().authenticated()
         );
 
