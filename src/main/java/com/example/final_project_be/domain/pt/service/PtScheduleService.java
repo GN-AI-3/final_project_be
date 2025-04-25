@@ -178,8 +178,92 @@ public class PtScheduleService {
 
         // 회차 재계산
         recalculatePtCounts(contract.getId(), startTime);
+        
+        // 당일 또는 내일 PT일 경우 알림 전송
+        LocalDate ptDate = startTime.toLocalDate();
+        LocalDate today = LocalDate.now();
+        LocalDate tomorrow = today.plusDays(1);
+        
+        if (ptDate.isEqual(today) || ptDate.isEqual(tomorrow)) {
+            sendNewPtScheduleNotification(savedSchedule);
+        }
 
         return savedSchedule.getId();
+    }
+    
+    /**
+     * PT 스케줄 추가 시 알림을 보냅니다.
+     * 당일이나 다음날 PT 추가 시에만 호출됩니다.
+     *
+     * @param schedule 추가된 PT 스케줄
+     */
+    @Transactional
+    public void sendNewPtScheduleNotification(PtSchedule schedule) {
+        log.info("새로운 PT 스케줄 알림 전송 시작...");
+        
+        LocalDateTime ptTime = schedule.getStartTime();
+        LocalDate ptDate = ptTime.toLocalDate();
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+        
+        // 트레이너 알림
+        Trainer trainer = schedule.getPtContract().getTrainer();
+        String trainerToken = trainer.getFcmToken();
+        String memberName = schedule.getPtContract().getMember().getName();
+        
+        if (trainerToken != null && !trainerToken.isBlank()) {
+            String title = "🆕 새로운 PT 일정 추가";
+            String body = String.format(
+                    "%s 회원님과 %s에 PT 일정이 추가되었습니다.",
+                    memberName,
+                    ptTime.format(dateTimeFormatter)
+            );
+            
+            // FCM 전송
+            fcmUtil.sendPush(trainerToken, title, body);
+            
+            // 알림 로그 저장
+            ScheduleAlarm trainerAlarm = ScheduleAlarm.builder()
+                    .targetType(AlarmTargetType.TRAINER)
+                    .targetId(trainer.getId())
+                    .alarmType(AlarmType.PT_NEW)
+                    .targetDate(ptDate)
+                    .relatedEntityId(schedule.getId())
+                    .status("SENT")
+                    .build();
+            
+            scheduleAlarmRepository.save(trainerAlarm);
+            log.info("트레이너에게 새 PT 일정 알림 전송 완료: {}", trainer.getId());
+        }
+        
+        // 회원 알림
+        var member = schedule.getPtContract().getMember();
+        String memberToken = member.getFcmToken();
+        String trainerName = trainer.getName();
+        
+        if (memberToken != null && !memberToken.isBlank()) {
+            String title = "🆕 새로운 PT 일정 추가";
+            String body = String.format(
+                    "%s 트레이너님과 %s에 PT 일정이 추가되었습니다.",
+                    trainerName,
+                    ptTime.format(dateTimeFormatter)
+            );
+            
+            // FCM 전송
+            fcmUtil.sendPush(memberToken, title, body);
+            
+            // 알림 로그 저장
+            ScheduleAlarm memberAlarm = ScheduleAlarm.builder()
+                    .targetType(AlarmTargetType.MEMBER)
+                    .targetId(member.getId())
+                    .alarmType(AlarmType.PT_NEW)
+                    .targetDate(ptDate)
+                    .relatedEntityId(schedule.getId())
+                    .status("SENT")
+                    .build();
+            
+            scheduleAlarmRepository.save(memberAlarm);
+            log.info("회원에게 새 PT 일정 알림 전송 완료: {}", member.getId());
+        }
     }
 
     @Transactional
