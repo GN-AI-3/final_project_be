@@ -2,6 +2,7 @@ package com.example.final_project_be.domain.chatmessage.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -19,4 +20,8 @@ public class TrainerChatMessageRequestDTO {
 
     @Schema(description = "메시지 역할 (기본값: trainer)", example = "trainer", defaultValue = "trainer")
     private String role = "trainer";
+
+    @NotNull(message = "트레이너 ID는 필수입니다.")
+    @Schema(description = "메시지를 보내는 회원의 ID")
+    private Long trainerId;
 } 
