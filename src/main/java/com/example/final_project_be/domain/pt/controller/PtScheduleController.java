@@ -6,7 +6,6 @@ import com.example.final_project_be.domain.pt.dto.PtScheduleCreateRequestDTO;
 import com.example.final_project_be.domain.pt.dto.PtScheduleResponseDTO;
 import com.example.final_project_be.domain.pt.enums.PtScheduleStatus;
 import com.example.final_project_be.domain.pt.service.PtScheduleService;
-import com.example.final_project_be.security.MemberDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -14,7 +13,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
@@ -39,7 +37,10 @@ public class PtScheduleController {
             @RequestParam(required = false) Long endTime,
             @Parameter(description = "스케줄 상태")
             @RequestParam(required = false) PtScheduleStatus status,
-            @AuthenticationPrincipal Object user) {
+            @Parameter(description = "회원 ID (트레이너 ID가 제공되지 않은 경우 필수)")
+            @RequestParam(required = false) Long memberId,
+            @Parameter(description = "트레이너 ID (회원 ID가 제공되지 않은 경우 필수)")
+            @RequestParam(required = false) Long trainerId) {
 
         LocalDateTime startDateTime = startTime != null ?
                 Instant.ofEpochSecond(startTime).atZone(ZoneId.systemDefault()).toLocalDateTime() :
@@ -48,7 +49,7 @@ public class PtScheduleController {
                 Instant.ofEpochSecond(endTime).atZone(ZoneId.systemDefault()).toLocalDateTime() :
                 startDateTime.plusYears(1);
 
-        return ResponseEntity.ok(ptScheduleService.getSchedulesByDateRange(startDateTime, endDateTime, status, user));
+        return ResponseEntity.ok(ptScheduleService.getSchedulesByDateRange(startDateTime, endDateTime, status, memberId, trainerId));
     }
 
     @GetMapping("/{scheduleId}")
@@ -61,8 +62,9 @@ public class PtScheduleController {
     @Operation(summary = "PT 스케줄 등록", description = "새로운 PT 스케줄을 등록합니다.")
     public ResponseEntity<PtScheduleResponseDTO> createPtSchedule(
             @Valid @RequestBody PtScheduleCreateRequestDTO request,
-            @AuthenticationPrincipal MemberDTO member) {
-        Long ptScheduleId = ptScheduleService.createSchedule(request, member, true);
+            @Parameter(description = "PT 스케줄을 등록하는 회원 ID")
+            @RequestParam Long memberId) {
+        Long ptScheduleId = ptScheduleService.createSchedule(request, memberId, true);
         return ResponseEntity.ok(ptScheduleService.getPtScheduleById(ptScheduleId));
     }
 
@@ -72,11 +74,14 @@ public class PtScheduleController {
             @Parameter(description = "취소할 PT 스케줄 ID")
             @PathVariable Long scheduleId,
             @RequestBody(required = false) PtScheduleCancelRequestDTO request,
-            @AuthenticationPrincipal Object user) {
+            @Parameter(description = "요청자 회원 ID (트레이너 ID가 제공되지 않은 경우)")
+            @RequestParam(required = false) Long memberId,
+            @Parameter(description = "요청자 트레이너 ID (회원 ID가 제공되지 않은 경우)")
+            @RequestParam(required = false) Long trainerId) {
 
         String reason = request != null ? request.getReason() : null;
 
-        Long updatedScheduleId = ptScheduleService.cancelSchedule(scheduleId, reason, user);
+        Long updatedScheduleId = ptScheduleService.cancelSchedule(scheduleId, reason, memberId, trainerId);
 
         // 🔔 알림 직접 전송
         ptScheduleService.sendCancelAlarm(updatedScheduleId, reason);
@@ -90,8 +95,11 @@ public class PtScheduleController {
             @Parameter(description = "변경할 PT 스케줄 ID")
             @PathVariable Long scheduleId,
             @Valid @RequestBody PtScheduleChangeRequestDTO request,
-            @AuthenticationPrincipal Object user) {
-        Long newScheduleId = ptScheduleService.changeSchedule(scheduleId, request, user);
+            @Parameter(description = "요청자 회원 ID (트레이너 ID가 제공되지 않은 경우)")
+            @RequestParam(required = false) Long memberId,
+            @Parameter(description = "요청자 트레이너 ID (회원 ID가 제공되지 않은 경우)")
+            @RequestParam(required = false) Long trainerId) {
+        Long newScheduleId = ptScheduleService.changeSchedule(scheduleId, request, memberId, trainerId);
 
         ptScheduleService.sendChangeAlarm(newScheduleId);
 
@@ -105,14 +113,26 @@ public class PtScheduleController {
             @Parameter(description = "불참 처리할 PT 스케줄 ID")
             @PathVariable Long scheduleId,
             @RequestBody(required = false) PtScheduleCancelRequestDTO request,
-            @AuthenticationPrincipal Object user) {
+            @Parameter(description = "불참 처리하는 트레이너 ID")
+            @RequestParam Long trainerId) {
 
         Long updatedScheduleId = ptScheduleService.markAsNoShow(
                 scheduleId,
                 request != null ? request.getReason() : null,
-                user
+                trainerId
         );
 
         return ResponseEntity.ok(ptScheduleService.getPtScheduleById(updatedScheduleId));
+    }
+
+    @GetMapping("/trainer/{trainerId}/member/schedules")
+    @Operation(summary = "트레이너가 회원의 남은 PT 일정 조회", description = "트레이너가 자신의 회원 중 이름으로 검색하여 해당 회원의 남은 PT 일정을 조회합니다.")
+    public ResponseEntity<List<PtScheduleResponseDTO>> getRemainingSchedulesByMemberName(
+            @Parameter(description = "트레이너 ID")
+            @PathVariable Long trainerId,
+            @Parameter(description = "회원 이름", required = true)
+            @RequestParam String memberName) {
+        
+        return ResponseEntity.ok(ptScheduleService.getRemainingSchedulesByTrainerIdAndMemberName(trainerId, memberName));
     }
 } 

@@ -113,7 +113,7 @@ public class PtAlarmScheduler {
         LocalDateTime start = targetDate.atStartOfDay();
         LocalDateTime end = targetDate.atTime(23, 59, 59);
         
-        // 트레이너별 스케줄 조회
+        // 트레이너별 스케줄 조회 (SCHEDULED 및 CHANGED 상태 포함)
         Map<Long, List<PtSchedule>> trainerSchedulesMap = ptScheduleRepository.findSchedulesForTrainerSummary(start, end);
         log.info("Found PT schedules for {} trainers", trainerSchedulesMap.size());
         
@@ -179,18 +179,30 @@ public class PtAlarmScheduler {
                 // PT 일정이 있는 경우 명단 작성
                 messageBody.append(" PT 일정 명단입니다.\n\n");
                 
-                for (PtSchedule schedule : trainerSchedules) {
+                // 시간순으로 정렬 (모든 일정을 함께 처리)
+                List<PtSchedule> sortedSchedules = new ArrayList<>(trainerSchedules);
+                sortedSchedules.sort((a, b) -> a.getStartTime().compareTo(b.getStartTime()));
+                
+                // 모든 일정을 시간순으로 표시
+                for (PtSchedule schedule : sortedSchedules) {
                     String memberName = schedule.getPtContract().getMember().getName();
                     String startTime = schedule.getStartTime().format(timeFormatter);
                     String endTime = schedule.getEndTime().format(timeFormatter);
+                    String statusIndicator = "";
+                    
+                    // 변경된 일정인 경우 작은 표시 추가
+                    if (schedule.getStatus() == com.example.final_project_be.domain.pt.enums.PtScheduleStatus.CHANGED) {
+                        statusIndicator = " 🔄";
+                    }
                     
                     messageBody.append("• ")
-                               .append(startTime)
-                               .append("~")
-                               .append(endTime)
-                               .append(" : ")
-                               .append(memberName)
-                               .append("\n");
+                            .append(startTime)
+                            .append("~")
+                            .append(endTime)
+                            .append(" : ")
+                            .append(memberName)
+                            .append(statusIndicator)
+                            .append("\n");
                 }
                 
                 // FCM 전송 (PT 명단) - sendToDevice 메서드 사용
@@ -250,7 +262,7 @@ public class PtAlarmScheduler {
         LocalDateTime start = targetDate.atStartOfDay();
         LocalDateTime end = targetDate.atTime(23, 59, 59);
         
-        // 트레이너별 스케줄 조회
+        // 트레이너별 스케줄 조회 (SCHEDULED 및 CHANGED 상태 포함)
         Map<Long, List<PtSchedule>> trainerSchedulesMap = ptScheduleRepository.findSchedulesForTrainerSummary(start, end);
         log.info("Found PT schedules for {} trainers", trainerSchedulesMap.size());
         
@@ -322,18 +334,30 @@ public class PtAlarmScheduler {
                 // PT 일정이 있는 경우 명단 작성
                 messageBody.append(" PT 일정 명단입니다.\n\n");
                 
-                for (PtSchedule schedule : trainerSchedules) {
+                // 시간순으로 정렬 (모든 일정을 함께 처리)
+                List<PtSchedule> sortedSchedules = new ArrayList<>(trainerSchedules);
+                sortedSchedules.sort((a, b) -> a.getStartTime().compareTo(b.getStartTime()));
+                
+                // 모든 일정을 시간순으로 표시
+                for (PtSchedule schedule : sortedSchedules) {
                     String memberName = schedule.getPtContract().getMember().getName();
                     String startTime = schedule.getStartTime().format(timeFormatter);
                     String endTime = schedule.getEndTime().format(timeFormatter);
+                    String statusIndicator = "";
+                    
+                    // 변경된 일정인 경우 작은 표시 추가
+                    if (schedule.getStatus() == com.example.final_project_be.domain.pt.enums.PtScheduleStatus.CHANGED) {
+                        statusIndicator = " 🔄";
+                    }
                     
                     messageBody.append("• ")
-                               .append(startTime)
-                               .append("~")
-                               .append(endTime)
-                               .append(" : ")
-                               .append(memberName)
-                               .append("\n");
+                            .append(startTime)
+                            .append("~")
+                            .append(endTime)
+                            .append(" : ")
+                            .append(memberName)
+                            .append(statusIndicator)
+                            .append("\n");
                 }
                 
                 // FCM 전송 (PT 명단) - sendToDevice 메서드 사용

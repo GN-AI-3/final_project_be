@@ -124,7 +124,7 @@ public class PtScheduleRepositoryImpl implements PtScheduleRepositoryCustom {
                 .join(ptSchedule.ptContract.member).fetchJoin()
                 .join(ptSchedule.ptContract.trainer).fetchJoin()
                 .where(
-                        ptSchedule.status.eq(PtScheduleStatus.SCHEDULED),
+                        ptSchedule.status.in(PtScheduleStatus.SCHEDULED, PtScheduleStatus.CHANGED),
                         ptSchedule.startTime.between(start, end)
                 )
                 .orderBy(ptSchedule.startTime.asc())
