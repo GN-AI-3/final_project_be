@@ -43,7 +43,7 @@ public class Trainer extends BaseEntity {
     @Column
     private String career;
     
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "trainer_certification", joinColumns = @JoinColumn(name = "trainer_id"))
     @Column(name = "certification")
     @Builder.Default
@@ -52,7 +52,7 @@ public class Trainer extends BaseEntity {
     @Column
     private String introduction;
     
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "trainer_speciality", joinColumns = @JoinColumn(name = "trainer_id"))
     @Column(name = "speciality")
     @Builder.Default
